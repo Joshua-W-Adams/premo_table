@@ -5,6 +5,9 @@ class DropdownCellContent extends StatefulWidget {
   final CellState cellState;
   final List<String> dropdownList;
 
+  /// the icon to display for the dropdown button
+  final Widget? icon;
+
   final TextStyle? textStyle;
 
   /// cannot be edited or selected
@@ -22,6 +25,7 @@ class DropdownCellContent extends StatefulWidget {
     Key? key,
     required this.cellState,
     required this.dropdownList,
+    this.icon,
     this.textStyle,
     this.enabled = true,
     this.inputDecoration = const InputDecoration(
@@ -65,6 +69,8 @@ class _DropdownCellContentState extends State<DropdownCellContent> {
           decoration: widget.inputDecoration,
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
+              icon: widget.icon,
+
               /// Expand dropdown button to size of parent widget
               isExpanded: true,
 
@@ -107,6 +113,7 @@ class _DropdownCellContentState extends State<DropdownCellContent> {
                     // issue currently logged on the git flutter repo.
                     // https://github.com/flutter/flutter/issues/3759
                     // textAlign: widget.textAlign,
+                    style: widget.textStyle,
                   ),
                 );
               }).toList(),
