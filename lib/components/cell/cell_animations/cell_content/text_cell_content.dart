@@ -29,6 +29,13 @@ class TextCellContent extends StatefulWidget {
   /// user events
   final VoidCallback? onTap;
 
+  /// parsers for the value within the [CellState] so that the data is presented
+  /// in a certain format
+  /// applied to all values set in a cell
+  final String? Function(String?)? inputFormatter;
+  // applied to all values returned from cell
+  final String? Function(String?)? outputFormatter;
+
   TextCellContent({
     Key? key,
     required this.cellState,
@@ -54,6 +61,8 @@ class TextCellContent extends StatefulWidget {
     this.onFieldSubmitted,
     this.onFocusLost,
     this.onTap,
+    this.inputFormatter,
+    this.outputFormatter,
   }) : super(key: key);
 
   @override
@@ -88,13 +97,30 @@ class _TextCellContentState extends State<TextCellContent> {
     super.dispose();
   }
 
+  String _setValueFormat(String? value) {
+    if (widget.inputFormatter != null) {
+      return widget.inputFormatter!(value) ?? '';
+    }
+    return value ?? '';
+  }
+
+  String _removeValueFormat(String? value) {
+    if (widget.outputFormatter != null) {
+      return widget.outputFormatter!(value) ?? '';
+    }
+    return value ?? '';
+  }
+
   @override
   Widget build(BuildContext context) {
+    String? _value = widget.cellState.value;
+    _value = _setValueFormat(_value);
+
     /// update controller value and selection position on cell state update
     _textController.value = TextEditingValue(
-      text: widget.cellState.value ?? '',
+      text: _value,
       selection: TextSelection.collapsed(
-        offset: (widget.cellState.value ?? '').length,
+        offset: _value.length,
       ),
     );
 
@@ -117,19 +143,19 @@ class _TextCellContentState extends State<TextCellContent> {
       validator: widget.validator,
       onChanged: (val) {
         if (_key.currentState?.validate() == true && widget.onChanged != null) {
-          widget.onChanged!(val);
+          widget.onChanged!(_removeValueFormat(val));
         }
       },
       onEditingComplete: () {
         if (_key.currentState?.validate() == true &&
             widget.onEditingComplete != null) {
-          widget.onEditingComplete!(_textController.text);
+          widget.onEditingComplete!(_removeValueFormat(_textController.text));
         }
       },
       onFieldSubmitted: (val) {
         if (_key.currentState?.validate() == true &&
             widget.onFieldSubmitted != null) {
-          widget.onFieldSubmitted!(val);
+          widget.onFieldSubmitted!(_removeValueFormat(val));
         }
       },
       onTap: widget.onTap,

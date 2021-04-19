@@ -15,11 +15,17 @@ class DateCellContent extends StatefulWidget {
   /// label text, hint text, helper text, prefix icon, suffix icon
   final InputDecoration? inputDecoration;
 
-  /// text field validator
   final void Function(String)? onChanged;
 
   /// user events
   final VoidCallback? onTap;
+
+  /// parsers for the value within the [CellState] so that the date is presented
+  /// in a certain format
+  /// applied to all values set in a date cell content
+  final String? Function(String?) inputFormatter;
+  // applied to all values returned from date cell content
+  final String? Function(String?)? outputFormatter;
 
   DateCellContent({
     required this.cellState,
@@ -37,6 +43,8 @@ class DateCellContent extends StatefulWidget {
     ),
     this.onChanged,
     this.onTap,
+    this.inputFormatter = DataFormatter.toDate,
+    this.outputFormatter,
   });
 
   @override
@@ -45,9 +53,6 @@ class DateCellContent extends StatefulWidget {
 
 class _DateCellContentState extends State<DateCellContent> {
   final TextEditingController _textController = TextEditingController();
-
-  /// required to enforce data formats for dates and currencies.
-  final DataFormatter _dataFormatter = DataFormatter();
 
   /// call dispose method to cleanup all state variables to eliminate any
   /// memory leaks.
@@ -73,12 +78,17 @@ class _DateCellContentState extends State<DateCellContent> {
       ),
     );
 
-    _textController.text = _dataFormatter.toDate(pickedDate?.toString()) ?? '';
+    String newDate = widget.inputFormatter(pickedDate?.toString()) ?? '';
+
+    /// prevent onChange callback firing on same date selected
+    if (newDate != _textController.text) {
+      _textController.text = newDate;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    String? _date = _dataFormatter.toDate(widget.cellState.value);
+    String? _date = widget.inputFormatter(widget.cellState.value);
 
     /// update controller value and selection position on cell state update
     _textController.value = TextEditingValue(
@@ -99,7 +109,14 @@ class _DateCellContentState extends State<DateCellContent> {
       readOnly: widget.readOnly,
       enabled: widget.enabled,
       decoration: widget.inputDecoration,
-      onChanged: widget.onChanged,
+      onChanged: (val) {
+        if (widget.outputFormatter != null) {
+          val = widget.outputFormatter!(val) ?? '';
+        }
+        if (widget.onChanged != null) {
+          widget.onChanged!(val);
+        }
+      },
       onTap: () {
         /// load date selector
         _selectDate();
