@@ -2,7 +2,7 @@ part of premo_table;
 
 /// Manages all content of type dropdown in a [Cell].
 class DropdownCellContent extends StatefulWidget {
-  final CellState cellState;
+  final CellBlocState cellBlocState;
   final List<String> dropdownList;
 
   /// the icon to display for the dropdown button
@@ -23,7 +23,7 @@ class DropdownCellContent extends StatefulWidget {
 
   DropdownCellContent({
     Key? key,
-    required this.cellState,
+    required this.cellBlocState,
     required this.dropdownList,
     this.icon,
     this.textStyle,
@@ -51,13 +51,13 @@ class _DropdownCellContentState extends State<DropdownCellContent> {
 
   void initState() {
     super.initState();
-    _value = widget.cellState.value ?? null;
+    _value = widget.cellBlocState.value ?? null;
   }
 
   @override
   void didUpdateWidget(DropdownCellContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _value = widget.cellState.value ?? null;
+    _value = widget.cellBlocState.value ?? null;
   }
 
   @override

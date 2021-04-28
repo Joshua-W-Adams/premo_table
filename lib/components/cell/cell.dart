@@ -14,7 +14,7 @@ class Cell extends StatelessWidget {
   final CellBloc cellBloc;
 
   /// content
-  final Widget child;
+  final Widget Function(CellBlocState) builder;
 
   /// sizing
   final double? height;
@@ -31,13 +31,15 @@ class Cell extends StatelessWidget {
   /// user events
   final VoidCallback? onTap;
   final void Function(PointerHoverEvent)? onHover;
+  final void Function(PointerEnterEvent)? onMouseEnter;
+  final void Function(PointerExitEvent)? onMouseExit;
 
   Cell({
     Key? key,
     required this.cellBloc,
-    required this.child,
-    this.height = 70,
-    this.width = 50,
+    required this.builder,
+    this.height = 50,
+    this.width = 70,
     this.padding = const EdgeInsets.only(
       left: 5.0,
       right: 5.0,
@@ -49,27 +51,29 @@ class Cell extends StatelessWidget {
     this.visible = true,
     this.onTap,
     this.onHover,
+    this.onMouseEnter,
+    this.onMouseExit,
   }) : super(key: key);
 
   Color? _applyCellEffects(
-    CellState cellState,
+    CellBlocState cellBlocState,
     BuildContext context,
   ) {
     Color? color;
     ThemeData theme = Theme.of(context);
-    if (cellState.selected == true) {
+    if (cellBlocState.selected == true) {
       /// case 1 - cell is selected
       color = theme.accentColor.withOpacity(0.5);
-    } else if (cellState.hovered == true) {
+    } else if (cellBlocState.hovered == true) {
       /// case 2 - cell is hovered
       color = Colors.grey[300];
-    } else if (cellState.rowSelected || cellState.colSelected) {
+    } else if (cellBlocState.rowSelected || cellBlocState.colSelected) {
       /// case 3 - cells row or column selected
       color = theme.accentColor.withOpacity(0.25);
-    } else if (cellState.rowHovered || cellState.colHovered) {
+    } else if (cellBlocState.rowHovered || cellBlocState.colHovered) {
       /// case 4 - cell row or column hovered
       color = Colors.grey[200]!;
-    } else if (cellState.rowChecked) {
+    } else if (cellBlocState.rowChecked) {
       /// case 5 - cell row checked by user
       color = theme.accentColor.withOpacity(0.10);
     }
@@ -78,7 +82,7 @@ class Cell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<CellState>(
+    return StreamBuilder<CellBlocState>(
       stream: cellBloc.stream,
       builder: (_context, _snapshot) {
         if (_snapshot.connectionState == ConnectionState.waiting) {
@@ -94,13 +98,13 @@ class Cell extends StatelessWidget {
 
         /// case 4 - all generic state checks passed
         /// get cell state released on stream
-        CellState cellState = _snapshot.data!;
+        CellBlocState cellBlocState = _snapshot.data!;
 
         /// determine cell effect to apply based on state
-        Color? color = _applyCellEffects(cellState, _context);
+        Color? color = _applyCellEffects(cellBlocState, _context);
 
         return CellAnimations(
-          cellState: cellState,
+          cellBlocState: cellBlocState,
           endAnimationColor: color,
           widgetBuilder: (_, _colorTween) {
             return Visibility(
@@ -114,6 +118,8 @@ class Cell extends StatelessWidget {
                 alignment: alignment,
                 child: MouseRegion(
                   onHover: onHover,
+                  onEnter: onMouseEnter,
+                  onExit: onMouseExit,
 
                   /// Gesture detection will not fire if the child widget has an onTap
                   /// pointer event configured. i.e. in the case of a child TextFormField
@@ -132,7 +138,7 @@ class Cell extends StatelessWidget {
                                   ? color
                                   : _colorTween.value,
                             ),
-                      child: child,
+                      child: builder(cellBlocState),
                     ),
                   ),
                 ),
