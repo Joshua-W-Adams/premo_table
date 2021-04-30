@@ -2,22 +2,28 @@ part of premo_table;
 
 /// Controls all cell animations.
 ///
-/// Will animate the cell background colours based on the provided [CellState].
+/// Will animate the both the cell background colours and sizes based on the
+/// provided [CellBlocState].
 class CellAnimations extends StatefulWidget {
   /// current state of the cell
-  final CellState cellState;
+  final CellBlocState cellBlocState;
 
   /// widget to be animated
-  final Widget Function(BuildContext context, Animation? animationTween)
-      widgetBuilder;
+  final Widget Function(BuildContext context, Animation<Color?>? colorTween,
+      Animation<double>? _sizeTween) widgetBuilder;
 
   /// color to finish all animations at
   final Color? endAnimationColor;
 
+  /// height to animate from or too based on the [CellBlocState] reporting an
+  /// add or delete. if no height is provided no size animation will occur.
+  final double? animationHeight;
+
   CellAnimations({
-    required this.cellState,
+    required this.cellBlocState,
     required this.widgetBuilder,
     this.endAnimationColor,
+    this.animationHeight,
   });
 
   @override
@@ -28,9 +34,9 @@ class CellAnimations extends StatefulWidget {
 /// additional functionality required to animate a widget.
 class _CellAnimationsState extends State<CellAnimations>
     with SingleTickerProviderStateMixin {
-  /// local anaimation properties
   AnimationController? _animationController;
-  Animation? _animationTween;
+  Animation<Color?>? _colorTween;
+  Animation<double>? _sizeTween;
 
   @override
   void initState() {
@@ -43,42 +49,97 @@ class _CellAnimationsState extends State<CellAnimations>
         milliseconds: 1000,
       ),
     );
+
+    /// rebuild widget every time the animation fires
+    _animationController!.addListener(() {
+      setState(() {});
+    });
   }
 
-  /// Configure animation TWEENS. A Tween is a linear interpolation between two
-  /// values. A tween is a key process in all animations. It is effectively the
-  /// process of generating the frames between two images to create an animation.
-  Animation? _getColorTween(CellState cellState) {
-    if (cellState.serverUpdate == true) {
-      /// case 1 - cell change recieved from server
-      return ColorTween(
-        begin: Colors.orange,
-        end: widget.endAnimationColor,
-      ).animate(_animationController!);
-    } else if (cellState.requestSucceeded == true) {
-      /// case 2 - client/user change passed
-      return ColorTween(
-        begin: Colors.green,
-        end: widget.endAnimationColor,
-      ).animate(_animationController!);
-    } else if (cellState.requestSucceeded == false) {
-      /// case 3 - client/user change failed
-      return ColorTween(
-        begin: Colors.red,
-        end: widget.endAnimationColor,
-      ).animate(_animationController!);
-    } else {
-      /// no animation configured for provided [CellState]
-      return null;
+  @override
+  void didUpdateWidget(CellAnimations oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    /// set tween to animate
+    _colorTween = _getColorTween(widget.cellBlocState);
+    _sizeTween = _getSizeTween(widget.cellBlocState);
+
+    if (_colorTween != null || _sizeTween != null) {
+      /// case 1 - [CellBlocState] has associated animation
+      _animate();
     }
+
+    /// case 2 - no animation to play
   }
 
   /// call dispose method to cleanup all cell state variables to eliminate any
-  /// memory leaks.
+  /// memory leaks
   @override
   void dispose() {
     _animationController!.dispose();
     super.dispose();
+  }
+
+  Color? _getAnimationColor(CellBlocState cellBlocState) {
+    if (cellBlocState.changeType == ChangeTypes.update) {
+      /// case 1 - cell change recieved from server
+      return Colors.orange;
+    } else if (cellBlocState.changeType == ChangeTypes.add) {
+      /// case 2 - newly added row
+      return Colors.green;
+    } else if (cellBlocState.changeType == ChangeTypes.delete) {
+      /// case 3 - deleted row
+      return Colors.red;
+    } else if (cellBlocState.requestSucceeded == true) {
+      /// case 4 - client/user change passed
+      return Colors.green;
+    } else if (cellBlocState.requestSucceeded == false) {
+      /// case 5 - client/user change failed
+      return Colors.red;
+    }
+
+    /// case 6 - no animation color configured for provided [CellBlocState]
+    return null;
+  }
+
+  /// *********************** Configure animation TWEENS ***********************
+  /// A Tween is a linear interpolation between two
+  /// values. A tween is a key process in all animations. It is effectively the
+  /// process of generating the frames between two images to create an animation.
+
+  /// Tween for animating cell colours
+  Animation<Color?>? _getColorTween(CellBlocState cellBlocState) {
+    Color? animationColor = _getAnimationColor(cellBlocState);
+    if (animationColor != null) {
+      /// case 1 - animation available
+      return ColorTween(
+        begin: animationColor,
+        end: widget.endAnimationColor,
+      ).animate(_animationController!);
+    }
+
+    /// case 2 - no animation configured for provided [CellBlocState]
+    return null;
+  }
+
+  /// Tween for collapsing and expanding rows
+  Animation<double>? _getSizeTween(CellBlocState cellBlocState) {
+    if (cellBlocState.changeType == ChangeTypes.add) {
+      /// case 1 - newly added row
+      return Tween<double>(
+        begin: 0.0,
+        end: widget.animationHeight ?? 0,
+      ).animate(_animationController!);
+    } else if (cellBlocState.changeType == ChangeTypes.delete) {
+      /// case 2 - deleted row
+      return Tween<double>(
+        begin: widget.animationHeight ?? 0,
+        end: 0.0,
+      ).animate(_animationController!);
+    }
+
+    /// no animation configured for provided [CellBlocState]
+    return null;
   }
 
   /// run animations
@@ -89,21 +150,6 @@ class _CellAnimationsState extends State<CellAnimations>
 
   @override
   Widget build(BuildContext context) {
-    /// set tween to animate
-    _animationTween = _getColorTween(widget.cellState);
-
-    if (_animationTween != null) {
-      /// case 1 - [CellState] has associated animation
-      _animate();
-      return AnimatedBuilder(
-        animation: _animationTween!,
-        builder: (_context, __) {
-          return widget.widgetBuilder(_context, _animationTween);
-        },
-      );
-    } else {
-      /// case 2 - no animation to play
-      return widget.widgetBuilder(context, null);
-    }
+    return widget.widgetBuilder(context, _colorTween, _sizeTween);
   }
 }
