@@ -132,6 +132,9 @@ class TableBloc<T extends IUniqueIdentifier> {
 
     /// ui layer properties
     CellBloc uiLegendCell = CellBloc(initialValue: '');
+    // initalise ui legend with false row checked state, legend cell is tristate
+    // and null initialisation would imply partial checked status
+    uiLegendCell.state.rowChecked = false;
     List<CellBloc> uiColumnHeaders = [];
     List<UiRow<T>> uiRows = [];
     List<ColumnState> uiColumnStates = [];
@@ -799,6 +802,11 @@ class TableBloc<T extends IUniqueIdentifier> {
       /// case 1 - user changing sort column
       state.sortColumnIndex = newColumnIndex;
       state.isAscending = true;
+      // update old ui column header element
+      if (oldColumnIndex != null) {
+        CellBloc oldColumn = state.uiColumnHeaders[oldColumnIndex];
+        oldColumn.setColumnSorted(null);
+      }
     } else {
       /// case 2 - user changing sort order
       if (state.isAscending == true) {
@@ -810,14 +818,9 @@ class TableBloc<T extends IUniqueIdentifier> {
       }
     }
 
-    /// update the ui elements
+    /// update new column header ui elements
     CellBloc newColumn = state.uiColumnHeaders[newColumnIndex];
     newColumn.setColumnSorted(state.isAscending);
-
-    if (oldColumnIndex != null) {
-      CellBloc oldColumn = state.uiColumnHeaders[oldColumnIndex];
-      oldColumn.setColumnSorted(null);
-    }
 
     _setViewableData();
   }
