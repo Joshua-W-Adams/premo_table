@@ -23,9 +23,9 @@ class DateCellContent extends StatefulWidget {
   /// parsers for the value within the [CellBlocState] so that the date is
   /// presented in a certain format
   /// applied to all values set in a date cell content
-  final String? Function(String?) inputFormatter;
+  final String? Function(String?) inputParser;
   // applied to all values returned from date cell content
-  final String? Function(String?)? outputFormatter;
+  final String? Function(String?)? outputParser;
 
   DateCellContent({
     required this.cellBlocState,
@@ -43,8 +43,8 @@ class DateCellContent extends StatefulWidget {
     ),
     this.onChanged,
     this.onTap,
-    this.inputFormatter = DataFormatter.toDate,
-    this.outputFormatter,
+    this.inputParser = DataFormatter.toDate,
+    this.outputParser,
   });
 
   @override
@@ -78,7 +78,7 @@ class _DateCellContentState extends State<DateCellContent> {
       ),
     );
 
-    String newDate = widget.inputFormatter(pickedDate?.toString()) ?? '';
+    String newDate = widget.inputParser(pickedDate?.toString()) ?? '';
 
     /// prevent onChange callback firing on same date selected
     if (newDate != _textController.text) {
@@ -88,7 +88,7 @@ class _DateCellContentState extends State<DateCellContent> {
 
   @override
   Widget build(BuildContext context) {
-    String? _date = widget.inputFormatter(widget.cellBlocState.value);
+    String? _date = widget.inputParser(widget.cellBlocState.value);
 
     /// update controller value and selection position on cell state update
     _textController.value = TextEditingValue(
@@ -110,8 +110,8 @@ class _DateCellContentState extends State<DateCellContent> {
       enabled: widget.enabled,
       decoration: widget.inputDecoration,
       onChanged: (val) {
-        if (widget.outputFormatter != null) {
-          val = widget.outputFormatter!(val) ?? '';
+        if (widget.outputParser != null) {
+          val = widget.outputParser!(val) ?? '';
         }
         if (widget.onChanged != null) {
           widget.onChanged!(val);

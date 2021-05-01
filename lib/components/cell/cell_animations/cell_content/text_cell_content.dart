@@ -2,7 +2,7 @@ part of premo_table;
 
 /// Manages all content of type text in a [Cell].
 class TextCellContent extends StatefulWidget {
-  final CellState cellState;
+  final CellBlocState cellBlocState;
   final TextStyle? textStyle;
   final TextAlign textAlign;
 
@@ -24,21 +24,24 @@ class TextCellContent extends StatefulWidget {
   final void Function(String)? onChanged;
   final void Function(String value)? onEditingComplete;
   final void Function(String)? onFieldSubmitted;
-  final VoidCallback? onFocusLost;
+  final void Function(String)? onFocusLost;
 
   /// user events
   final VoidCallback? onTap;
 
-  /// parsers for the value within the [CellState] so that the data is presented
-  /// in a certain format
+  /// parsers for the value within the [CellBlocState] so that the data is
+  /// presented in a certain format
   /// applied to all values set in a cell
-  final String? Function(String?)? inputFormatter;
+  final String? Function(String?)? inputParser;
   // applied to all values returned from cell
-  final String? Function(String?)? outputFormatter;
+  final String? Function(String?)? outputParser;
+
+  /// input formatters applied to all keystrokes in the [TextFormField]
+  final List<TextInputFormatter>? inputFormatters;
 
   TextCellContent({
     Key? key,
-    required this.cellState,
+    required this.cellBlocState,
     this.textStyle,
     this.textAlign = TextAlign.left,
     this.readOnly = false,
@@ -61,8 +64,9 @@ class TextCellContent extends StatefulWidget {
     this.onFieldSubmitted,
     this.onFocusLost,
     this.onTap,
-    this.inputFormatter,
-    this.outputFormatter,
+    this.inputParser,
+    this.outputParser,
+    this.inputFormatters,
   }) : super(key: key);
 
   @override
@@ -83,7 +87,7 @@ class _TextCellContentState extends State<TextCellContent> {
       if (!_focusNode.hasFocus &&
           widget.onFocusLost != null &&
           _key.currentState?.validate() == true) {
-        widget.onFocusLost!();
+        widget.onFocusLost!(_removeValueFormat(_textController.text));
       }
     });
   }
@@ -98,22 +102,22 @@ class _TextCellContentState extends State<TextCellContent> {
   }
 
   String _setValueFormat(String? value) {
-    if (widget.inputFormatter != null) {
-      return widget.inputFormatter!(value) ?? '';
+    if (widget.inputParser != null) {
+      return widget.inputParser!(value) ?? '';
     }
     return value ?? '';
   }
 
   String _removeValueFormat(String? value) {
-    if (widget.outputFormatter != null) {
-      return widget.outputFormatter!(value) ?? '';
+    if (widget.outputParser != null) {
+      return widget.outputParser!(value) ?? '';
     }
     return value ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
-    String? _value = widget.cellState.value;
+    String? _value = widget.cellBlocState.value;
     _value = _setValueFormat(_value);
 
     /// update controller value and selection position on cell state update
@@ -159,6 +163,7 @@ class _TextCellContentState extends State<TextCellContent> {
         }
       },
       onTap: widget.onTap,
+      inputFormatters: widget.inputFormatters,
     );
   }
 }

@@ -73,7 +73,7 @@ class Cell extends StatelessWidget {
     } else if (cellBlocState.rowHovered || cellBlocState.colHovered) {
       /// case 4 - cell row or column hovered
       color = Colors.grey[200]!;
-    } else if (cellBlocState.rowChecked) {
+    } else if (cellBlocState.rowChecked == true) {
       /// case 5 - cell row checked by user
       color = theme.accentColor.withOpacity(0.10);
     }
@@ -90,10 +90,10 @@ class Cell extends StatelessWidget {
           return Center(child: CircularProgressIndicator());
         } else if (_snapshot.hasError) {
           /// case 2 - error in snapshot
-          return ShowError(error: '${_snapshot.error.toString()}');
+          return ErrorMessage(error: '${_snapshot.error.toString()}');
         } else if (!_snapshot.hasData) {
           /// case 3 - no data recieved
-          return ShowError(error: 'Error: No data recieved');
+          return ErrorMessage(error: 'No data recieved');
         }
 
         /// case 4 - all generic state checks passed
@@ -106,9 +106,11 @@ class Cell extends StatelessWidget {
         return CellAnimations(
           cellBlocState: cellBlocState,
           endAnimationColor: color,
-          widgetBuilder: (_, _colorTween) {
+          animationHeight: height,
+          widgetBuilder: (_, _colorTween, _sizeTween) {
             return Visibility(
-              visible: visible,
+              visible:
+                  _sizeTween != null && _sizeTween.value == 0 ? false : visible,
 
               /// https://stackoverflow.com/questions/54717748/why-flutter-container-does-not-respects-its-width-and-height-constraints-when-it
               /// for the container widget inherently in the cell to respect the height
@@ -128,7 +130,7 @@ class Cell extends StatelessWidget {
                   child: GestureDetector(
                     onTap: onTap,
                     child: Container(
-                      height: height,
+                      height: _sizeTween == null ? height : _sizeTween.value,
                       width: width,
                       padding: padding,
                       decoration: _colorTween == null

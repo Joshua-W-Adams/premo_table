@@ -1,9 +1,12 @@
 part of premo_table;
 
 /// fully describes the current state of a cell
-class CellState<T> {
+class CellBlocState<T> {
   /// current value assigned to cell
   T value;
+
+  /// visibility of the cell
+  bool visible;
 
   /// selection details
   bool selected;
@@ -16,7 +19,10 @@ class CellState<T> {
   bool colHovered;
 
   /// checked details
-  bool rowChecked;
+  bool? rowChecked;
+
+  /// sort details
+  bool? columnSorted;
 
   /// if there is an aysnc request on the cell in operation
   bool requestInProgress;
@@ -24,160 +30,160 @@ class CellState<T> {
   /// whether or not the cell request executed correctly
   bool? requestSucceeded;
 
-  /// whether the latest update came from the server or not
-  bool serverUpdate;
+  /// what the latest update from the server was
+  ChangeTypes? changeType;
 
-  CellState({
+  CellBlocState({
     required this.value,
+    this.visible = true,
     this.selected = false,
     this.rowSelected = false,
     this.colSelected = false,
     this.hovered = false,
     this.rowHovered = false,
     this.colHovered = false,
-    this.rowChecked = false,
+    this.rowChecked,
+    this.columnSorted,
     this.requestInProgress = false,
     this.requestSucceeded,
-    this.serverUpdate = false,
+    this.changeType,
   });
+
+  bool stateChanged(CellBlocState newState) {
+    return !(this.value == newState.value &&
+        this.visible == newState.visible &&
+        this.selected == newState.selected &&
+        this.rowSelected == newState.rowSelected &&
+        this.colSelected == newState.colSelected &&
+        this.hovered == newState.hovered &&
+        this.rowHovered == newState.rowHovered &&
+        this.colHovered == newState.colHovered &&
+        this.rowChecked == newState.rowChecked &&
+        this.columnSorted == newState.columnSorted &&
+        this.requestInProgress == newState.requestInProgress &&
+        this.requestSucceeded == newState.requestSucceeded &&
+        this.changeType == newState.changeType);
+  }
 }
 
 /// All business logic for a [Cell]
 class CellBloc<T> {
-  /// initial value to be set in the [CellState]
+  /// initial value to be set in the [CellBlocState]
   final T initialValue;
 
-  /// callback function to fire everytime the cells value changes
-  final Future<void>? onChange;
-
   /// cache of cell state
-  CellState<T> state;
-  StreamController<CellState<T>> _controller = StreamController();
+  CellBlocState<T> state;
+  StreamController<CellBlocState<T>> _controller = StreamController();
 
   CellBloc({
     required this.initialValue,
-    this.onChange,
 
     /// create initial state
-  }) : this.state = CellState<T>(value: initialValue) {
+  }) : this.state = CellBlocState<T>(value: initialValue) {
     /// add state to stream
     _controller.sink.add(state);
   }
 
-  Stream<CellState<T>> get stream {
+  Stream<CellBlocState<T>> get stream {
     return _controller.stream;
   }
 
-  bool _hasValueChanged(T? newValue) {
-    if (state.value != newValue) {
-      return true;
+  void setState(CellBlocState<T> state) {
+    if (this.state.stateChanged(state)) {
+      this.state = state;
+      _controller.sink.add(this.state);
     }
-    return false;
   }
 
-  void _processOnChange() {
-    /// Prevent the user spamming multiple async change requests while one is
-    /// in progress
-    if (!state.requestInProgress) {
-      /// update state
-      state.requestInProgress = true;
-
-      /// release new state on stream so ui can block further changes
+  void setValue(T value) {
+    if (state.value != value) {
+      state.value = value;
       _controller.sink.add(state);
-
-      /// perform onChange request
-      onChange!.then((_) {
-        /// case 1 - async request performed successfully
-        /// update state
-        state.requestInProgress = false;
-        state.requestSucceeded = true;
-        state.serverUpdate = false;
-
-        /// release on stream
-        _controller.sink.add(state);
-      }).catchError((e) {
-        /// case 1 - error in async request
-        /// update state
-        state.requestInProgress = false;
-        state.requestSucceeded = false;
-        state.serverUpdate = false;
-
-        /// release on stream
-        _controller.sink.add(state);
-      });
-    }
-
-    /// pending result of request. Do nothing.
-  }
-
-  /// update the value in the [CellState]
-  void updateCellValue(T newValue) {
-    /// check that the newValue is different from the current value in the state
-    if (_hasValueChanged(newValue)) {
-      /// set new value
-      state.value = newValue;
-
-      if (onChange != null) {
-        /// case 1 - onChange callback provided
-        _processOnChange();
-      } else {
-        /// case 2 - otherwise
-        /// release on stream
-        _controller.sink.add(state);
-      }
     }
   }
 
-  void serverUpdateDetected(T serverValue) {
-    /// check if new value from server differes from existing value in state
-    if (_hasValueChanged(serverValue)) {
-      state.value = serverValue;
-      state.serverUpdate = true;
-
-      /// release on stream
+  void setVisible(bool visible) {
+    if (state.visible != visible) {
+      state.visible = visible;
       _controller.sink.add(state);
-
-      /// only fire server change animations once! ... don't refire when table
-      /// is sorted or filtered after a server change has been recieved.
-      state.serverUpdate = false;
     }
-
-    /// do nothing, value unchanged
   }
 
   void setSelected(bool selected) {
-    state.selected = selected;
-    _controller.sink.add(state);
+    if (state.selected != selected) {
+      state.selected = selected;
+      _controller.sink.add(state);
+    }
   }
 
   void setRowSelected(bool rowSelected) {
-    state.rowSelected = rowSelected;
-    _controller.sink.add(state);
+    if (state.rowSelected != rowSelected) {
+      state.rowSelected = rowSelected;
+      _controller.sink.add(state);
+    }
   }
 
   void setColSelected(bool colSelected) {
-    state.colSelected = colSelected;
-    _controller.sink.add(state);
-  }
-
-  void setRowChecked(bool checked) {
-    state.rowChecked = checked;
-    _controller.sink.add(state);
+    if (state.colSelected != colSelected) {
+      state.colSelected = colSelected;
+      _controller.sink.add(state);
+    }
   }
 
   void setHovered(bool hovered) {
-    state.hovered = hovered;
-    _controller.sink.add(state);
+    if (state.hovered != hovered) {
+      state.hovered = hovered;
+      _controller.sink.add(state);
+    }
   }
 
-  void setRowHovered(bool hovered) {
-    state.rowHovered = hovered;
-    _controller.sink.add(state);
+  void setRowHovered(bool rowHovered) {
+    if (state.rowHovered != rowHovered) {
+      state.rowHovered = rowHovered;
+      _controller.sink.add(state);
+    }
   }
 
-  void setColHovered(bool hovered) {
-    state.colHovered = hovered;
-    _controller.sink.add(state);
+  void setColHovered(bool colHovered) {
+    if (state.colHovered != colHovered) {
+      state.colHovered = colHovered;
+      _controller.sink.add(state);
+    }
+  }
+
+  void setRowChecked(bool? rowChecked) {
+    if (state.rowChecked != rowChecked) {
+      state.rowChecked = rowChecked;
+      _controller.sink.add(state);
+    }
+  }
+
+  void setColumnSorted(bool? columnSorted) {
+    if (state.columnSorted != columnSorted) {
+      state.columnSorted = columnSorted;
+      _controller.sink.add(state);
+    }
+  }
+
+  void setRequestInProgress(bool requestInProgress) {
+    if (state.requestInProgress != requestInProgress) {
+      state.requestInProgress = requestInProgress;
+      _controller.sink.add(state);
+    }
+  }
+
+  void setRequestSucceeded(bool requestSucceeded) {
+    if (state.requestSucceeded != requestSucceeded) {
+      state.requestSucceeded = requestSucceeded;
+      _controller.sink.add(state);
+    }
+  }
+
+  void setChangeType(ChangeTypes? changeType) {
+    if (state.changeType != changeType) {
+      state.changeType = changeType;
+      _controller.sink.add(state);
+    }
   }
 
   void dispose() {
