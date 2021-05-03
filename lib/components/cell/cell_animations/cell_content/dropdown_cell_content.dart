@@ -9,6 +9,7 @@ class DropdownCellContent extends StatefulWidget {
   final Widget? icon;
 
   final TextStyle? textStyle;
+  final Alignment horizontalAlignment;
 
   /// cannot be edited or selected
   final bool enabled;
@@ -27,6 +28,7 @@ class DropdownCellContent extends StatefulWidget {
     required this.dropdownList,
     this.icon,
     this.textStyle,
+    this.horizontalAlignment = Alignment.centerLeft,
     this.enabled = true,
     this.inputDecoration = const InputDecoration(
       border: InputBorder.none,
@@ -67,56 +69,59 @@ class _DropdownCellContentState extends State<DropdownCellContent> {
       builder: (FormFieldState<String> state) {
         return InputDecorator(
           decoration: widget.inputDecoration,
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              icon: widget.icon,
+          child: Align(
+            alignment: widget.horizontalAlignment,
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                icon: widget.icon,
 
-              /// Expand dropdown button to size of parent widget
-              isExpanded: true,
+                /// Expand dropdown button to size of parent widget
+                isExpanded: true,
 
-              /// TODO - Is this still required?
-              /// conditional application of isDense. False required for correct
-              /// operation on onclick events in tables. True required for
-              /// correct display of dropdowns in formfields.
-              // isDense: isDense,
-              hint: Text(
-                widget.inputDecoration.hintText ?? '',
-                overflow: TextOverflow.ellipsis,
+                /// TODO - Is this still required?
+                /// conditional application of isDense. False required for correct
+                /// operation on onclick events in tables. True required for
+                /// correct display of dropdowns in formfields.
+                // isDense: isDense,
+                hint: Text(
+                  widget.inputDecoration.hintText ?? '',
+                  overflow: TextOverflow.ellipsis,
+                ),
+                value: _value,
+                style: widget.textStyle,
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                  if (widget.onTap != null) {
+                    widget.onTap!();
+                  }
+                },
+                onChanged: (val) {
+                  /// update the dropdown value
+                  state.setState(() {
+                    _value = val ?? '';
+                  });
+
+                  /// excecute on changed callback
+                  if (widget.onChanged != null) {
+                    widget.onChanged!(val ?? '');
+                  }
+                },
+                items: widget.dropdownList.map((String value) {
+                  /// an instance of dropmenu item is returned for each item in
+                  /// the dropdown menu and ALSO the displayed selected item.
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      // Dropdownmenu items must all be aligned left as per the
+                      // issue currently logged on the git flutter repo.
+                      // https://github.com/flutter/flutter/issues/3759
+                      // textAlign: widget.textAlign,
+                      style: widget.textStyle,
+                    ),
+                  );
+                }).toList(),
               ),
-              value: _value,
-              style: widget.textStyle,
-              onTap: () {
-                FocusScope.of(context).unfocus();
-                if (widget.onTap != null) {
-                  widget.onTap!();
-                }
-              },
-              onChanged: (val) {
-                /// update the dropdown value
-                state.setState(() {
-                  _value = val ?? '';
-                });
-
-                /// excecute on changed callback
-                if (widget.onChanged != null) {
-                  widget.onChanged!(val ?? '');
-                }
-              },
-              items: widget.dropdownList.map((String value) {
-                /// an instance of dropmenu item is returned for each item in
-                /// the dropdown menu and ALSO the displayed selected item.
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(
-                    value,
-                    // Dropdownmenu items must all be aligned left as per the
-                    // issue currently logged on the git flutter repo.
-                    // https://github.com/flutter/flutter/issues/3759
-                    // textAlign: widget.textAlign,
-                    style: widget.textStyle,
-                  ),
-                );
-              }).toList(),
             ),
           ),
         );

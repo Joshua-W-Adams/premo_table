@@ -25,8 +25,10 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
   /// Column based configuration options
   final double Function(int uiColumnIndex) columnWidthBuilder;
   final bool Function(int uiColumnIndex) columnReadOnlyBuilder;
-  final TextAlign Function(T? item, int uiRowIndex, int uiColumnIndex)
-      columnAlignmentBuilder;
+  final Alignment Function(T? item, int uiRowIndex, int uiColumnIndex)
+      columnHorizontalAlignmentBuilder;
+  final Alignment Function(T? item, int uiRowIndex, int uiColumnIndex)
+      columnVerticalAlignmentBuilder;
   final CellTypes Function(int uiColumnIndex) columnTypeBuilder;
   final List<String>? Function(T? item, int uiRowIndex, int uiColumnIndex)
       columnDropdownBuilder;
@@ -48,12 +50,20 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
     return false;
   }
 
-  static TextAlign defaultColumnAlignmentBuilder(
+  static Alignment defaultColumnHorizontalAlignmentBuilder(
     dynamic item,
     int uiRowIndex,
     int uiColumnIndex,
   ) {
-    return TextAlign.center;
+    return Alignment.center;
+  }
+
+  static Alignment defaultColumnVerticalAlignmentBuilder(
+    dynamic item,
+    int uiRowIndex,
+    int uiColumnIndex,
+  ) {
+    return Alignment.center;
   }
 
   static CellTypes defaultColumnTypeBuilder(int uiColumnIndex) {
@@ -92,7 +102,9 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
     this.cellBorderColor = const Color(0xFFE0E0E0), // Colors.grey[300]
     this.columnWidthBuilder = defaultColumnWidthBuilder,
     this.columnReadOnlyBuilder = defaultColumnReadOnlyBuilder,
-    this.columnAlignmentBuilder = defaultColumnAlignmentBuilder,
+    this.columnHorizontalAlignmentBuilder =
+        defaultColumnHorizontalAlignmentBuilder,
+    this.columnVerticalAlignmentBuilder = defaultColumnVerticalAlignmentBuilder,
     this.columnTypeBuilder = defaultColumnTypeBuilder,
     this.columnDropdownBuilder = defaultColumnDropdownBuilder,
     this.columnValidatorBuilder = defaultColumnValidatorBuilder,
@@ -192,8 +204,10 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
               bool readOnly = columnReadOnlyBuilder(uiColumnIndex);
               TextStyle? textStyle =
                   cellTextStyleBuilder(item, uiRowIndex, uiColumnIndex);
-              TextAlign textAlign =
-                  columnAlignmentBuilder(item, uiRowIndex, uiColumnIndex);
+              Alignment horizontalAlignment = columnHorizontalAlignmentBuilder(
+                  item, uiRowIndex, uiColumnIndex);
+              Alignment verticalAlignment = columnVerticalAlignmentBuilder(
+                  item, uiRowIndex, uiColumnIndex);
               List<String>? dropdownList =
                   columnDropdownBuilder(item, uiRowIndex, uiColumnIndex);
               String? Function(String?)? validator =
@@ -210,7 +224,8 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
                 cellType: cellType,
                 readOnly: readOnly,
                 textStyle: textStyle,
-                textAlign: textAlign,
+                horizontalAlignment: horizontalAlignment,
+                verticalAlignment: verticalAlignment,
                 dropdownList: dropdownList,
                 validator: validator,
                 customCellContent: customCellContent,

@@ -170,15 +170,15 @@ class _PremoTableBuilderState extends State<PremoTableBuilder> {
               ];
               return readOnly[col];
             },
-            columnAlignmentBuilder: (_, __, col) {
-              List<TextAlign> alignments = [
-                TextAlign.center,
-                TextAlign.left,
-                TextAlign.center,
-                TextAlign.center,
-                TextAlign.center,
-                TextAlign.center,
-                TextAlign.center,
+            columnHorizontalAlignmentBuilder: (_, __, col) {
+              List<Alignment> alignments = [
+                Alignment.center,
+                Alignment.centerLeft,
+                Alignment.center,
+                Alignment.center,
+                Alignment.center,
+                Alignment.center,
+                Alignment.center,
               ];
               return alignments[col];
             },

@@ -4,7 +4,8 @@ part of premo_table;
 class DateCellContent extends StatefulWidget {
   final CellBlocState cellBlocState;
   final TextStyle? textStyle;
-  final TextAlign textAlign;
+
+  final Alignment horizontalAlignment;
 
   /// cannot be edited but can be selected
   final bool readOnly;
@@ -30,7 +31,7 @@ class DateCellContent extends StatefulWidget {
   DateCellContent({
     required this.cellBlocState,
     this.textStyle,
-    this.textAlign = TextAlign.left,
+    this.horizontalAlignment = Alignment.centerLeft,
     this.readOnly = true,
     this.enabled = true,
     this.inputDecoration = const InputDecoration(
@@ -105,7 +106,8 @@ class _DateCellContentState extends State<DateCellContent> {
 
       /// api properties
       style: widget.textStyle,
-      textAlign: widget.textAlign,
+      textAlign: CellContentFunctions.getHorizontalAlignment(
+          widget.horizontalAlignment),
       readOnly: widget.readOnly,
       enabled: widget.enabled,
       decoration: widget.inputDecoration,

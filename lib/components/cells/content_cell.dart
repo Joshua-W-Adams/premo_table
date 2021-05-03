@@ -17,7 +17,8 @@ class ContentCell extends StatelessWidget {
   final CellTypes cellType;
   final bool readOnly;
   final TextStyle? textStyle;
-  final TextAlign textAlign;
+  final Alignment horizontalAlignment;
+  final Alignment verticalAlignment;
   final List<String>? dropdownList;
   final String? Function(String?)? validator;
   final Widget? customCellContent;
@@ -32,7 +33,8 @@ class ContentCell extends StatelessWidget {
     required this.cellType,
     required this.readOnly,
     this.textStyle,
-    required this.textAlign,
+    this.horizontalAlignment = Alignment.center,
+    this.verticalAlignment = Alignment.center,
     this.dropdownList,
     this.validator,
     this.customCellContent,
@@ -49,6 +51,7 @@ class ContentCell extends StatelessWidget {
       cellBloc: cellBloc,
       height: 50,
       width: width,
+      verticalAlignment: verticalAlignment,
       decoration: BoxDecoration(
         color: readOnly == true ? disabledCellColor : null,
         border: Border(
@@ -99,7 +102,7 @@ class ContentCell extends StatelessWidget {
             enabled: !cellBlocState.requestInProgress,
             readOnly: readOnly,
             textStyle: textStyle,
-            textAlign: textAlign,
+            horizontalAlignment: horizontalAlignment,
             validator: validator,
             inputFormatters: inputFormatters,
             inputParser: inputParser,
@@ -138,6 +141,7 @@ class ContentCell extends StatelessWidget {
             cellBlocState: cellBlocState,
             enabled: !cellBlocState.requestInProgress && !readOnly,
             textStyle: textStyle,
+            horizontalAlignment: horizontalAlignment,
             dropdownList: dropdownList!,
             onTap: () {
               tableBloc.select(uiRowIndex, uiColumnIndex);
@@ -157,6 +161,7 @@ class ContentCell extends StatelessWidget {
           return SwitchCellContent(
             cellBlocState: cellBlocState,
             enabled: !cellBlocState.requestInProgress && !readOnly,
+            horizontalAlignment: horizontalAlignment,
             onChanged: (newValue) {
               tableBloc.select(uiRowIndex, uiColumnIndex);
               if (uiRow.rowState.rowModel != null) {
@@ -175,7 +180,7 @@ class ContentCell extends StatelessWidget {
             enabled: !cellBlocState.requestInProgress,
             readOnly: readOnly,
             textStyle: textStyle,
-            textAlign: textAlign,
+            horizontalAlignment: horizontalAlignment,
             inputParser: DataFormatter.toDate,
             onTap: () {
               tableBloc.select(uiRowIndex, uiColumnIndex);

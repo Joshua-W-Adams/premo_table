@@ -22,7 +22,7 @@ class Cell extends StatelessWidget {
 
   /// styling
   final EdgeInsetsGeometry? padding;
-  final Alignment alignment;
+  final Alignment verticalAlignment;
   final BoxDecoration? decoration;
 
   /// user events
@@ -43,7 +43,7 @@ class Cell extends StatelessWidget {
       top: 5.0,
       bottom: 5.0,
     ),
-    this.alignment = Alignment.centerLeft,
+    this.verticalAlignment = Alignment.center,
     this.decoration,
     this.onTap,
     this.onHover,
@@ -119,7 +119,6 @@ class Cell extends StatelessWidget {
               /// and width constraints passed, it must be wrapped in an alignment widget
               /// so that it has a height, width, x and y position and can be painted correctly.
               child: Align(
-                alignment: alignment,
                 child: MouseRegion(
                   onHover: onHover,
                   onEnter: onMouseEnter,
@@ -142,7 +141,10 @@ class Cell extends StatelessWidget {
                                   ? color
                                   : _colorTween.value,
                             ),
-                      child: builder(cellBlocState),
+                      child: Align(
+                        alignment: verticalAlignment,
+                        child: builder(cellBlocState),
+                      ),
                     ),
                   ),
                 ),

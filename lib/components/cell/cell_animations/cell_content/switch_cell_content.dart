@@ -12,6 +12,8 @@ class SwitchCellContent extends StatefulWidget {
 
   final void Function(String)? onChanged;
 
+  final Alignment horizontalAlignment;
+
   SwitchCellContent({
     required this.cellBlocState,
     this.enabled = true,
@@ -24,6 +26,7 @@ class SwitchCellContent extends StatefulWidget {
       isDense: true,
     ),
     required this.onChanged,
+    this.horizontalAlignment = Alignment.centerLeft,
   });
 
   @override
@@ -51,14 +54,17 @@ class _SwitchCellContentState extends State<SwitchCellContent> {
       builder: (FormFieldState<String> state) {
         return InputDecorator(
           decoration: widget.inputDecoration,
-          child: Switch(
-            value: _value!,
-            onChanged: (val) {
-              FocusScope.of(context).unfocus();
-              if (widget.onChanged != null) {
-                widget.onChanged!(val == true ? 'true' : 'false');
-              }
-            },
+          child: Align(
+            alignment: widget.horizontalAlignment,
+            child: Switch(
+              value: _value!,
+              onChanged: (val) {
+                FocusScope.of(context).unfocus();
+                if (widget.onChanged != null) {
+                  widget.onChanged!(val == true ? 'true' : 'false');
+                }
+              },
+            ),
           ),
         );
       },
