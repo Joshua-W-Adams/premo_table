@@ -790,6 +790,20 @@ class TableBloc<T extends IUniqueIdentifier> {
     if (oldFilter != newFilter) {
       /// update state
       columnState.filterValue = newFilter;
+
+      /// inform column header to rebuild
+      CellBloc columnHeader = tableState!.uiColumnHeaders[col];
+
+      /// determine filter status
+      if ([null, ''].contains(newFilter)) {
+        /// case 1 - no filter applied
+        columnHeader.setColumnFiltered(false);
+      } else {
+        /// case 2 - filter applied
+        columnHeader.setColumnFiltered(true);
+      }
+
+      /// update displayed data
       _setViewableData();
     }
   }

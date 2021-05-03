@@ -24,6 +24,9 @@ class CellBlocState<T> {
   /// sort details
   bool? columnSorted;
 
+  /// filter details
+  bool columnFiltered;
+
   /// if there is an aysnc request on the cell in operation
   bool requestInProgress;
 
@@ -44,6 +47,7 @@ class CellBlocState<T> {
     this.colHovered = false,
     this.rowChecked,
     this.columnSorted,
+    this.columnFiltered = false,
     this.requestInProgress = false,
     this.requestSucceeded,
     this.changeType,
@@ -161,6 +165,13 @@ class CellBloc<T> {
   void setColumnSorted(bool? columnSorted) {
     if (state.columnSorted != columnSorted) {
       state.columnSorted = columnSorted;
+      _controller.sink.add(state);
+    }
+  }
+
+  void setColumnFiltered(bool columnFiltered) {
+    if (state.columnFiltered != columnFiltered) {
+      state.columnFiltered = columnFiltered;
       _controller.sink.add(state);
     }
   }
