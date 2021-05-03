@@ -18,6 +18,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
   final bool enableChecking;
 
   /// Styling configuration options for table
+  final double? rowHeight;
   final Color? columnBackgroundColor;
   final Color disabledCellColor;
   final Color cellBorderColor;
@@ -97,6 +98,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
     this.enableFilters = true,
     this.enableSorting = true,
     this.enableChecking = true,
+    this.rowHeight,
     this.columnBackgroundColor,
     this.disabledCellColor = const Color(0xFFF5F5F5), // Colors.grey[100]
     this.cellBorderColor = const Color(0xFFE0E0E0), // Colors.grey[300]
@@ -114,6 +116,10 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+    final double effectiveDataRowHeight = rowHeight ??
+        theme.dataTableTheme.dataRowHeight ??
+        kMinInteractiveDimension;
     return StreamBuilder<TableState<T>>(
       /// Stream of entire table state
       stream: tableBloc.stream,
@@ -160,6 +166,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
             /// *********** cell at position 0,0 ***********
             legendCell: LegendCell(
               tableBloc: tableBloc,
+              height: effectiveDataRowHeight,
               cellBorderColor: cellBorderColor,
             ),
 
@@ -172,6 +179,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
                 tableBloc: tableBloc,
                 uiColumnIndex: uiColumnIndex,
                 width: width,
+                height: effectiveDataRowHeight,
                 cellBorderColor: cellBorderColor,
                 columnBackgroundColor: columnBackgroundColor,
                 enableFilters: enableFilters,
@@ -184,6 +192,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
               return RowHeaderCell(
                 tableBloc: tableBloc,
                 uiRowIndex: uiRowIndex,
+                height: effectiveDataRowHeight,
                 cellBorderColor: cellBorderColor,
               );
             },
@@ -221,6 +230,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
                 uiRowIndex: uiRowIndex,
                 uiColumnIndex: uiColumnIndex,
                 width: width,
+                height: effectiveDataRowHeight,
                 cellType: cellType,
                 readOnly: readOnly,
                 textStyle: textStyle,

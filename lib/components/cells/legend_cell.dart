@@ -8,9 +8,12 @@ class LegendCell extends StatelessWidget {
   /// configurable style properties
   final Color cellBorderColor;
 
+  final double height;
+
   LegendCell({
     required this.tableBloc,
     required this.cellBorderColor,
+    this.height = 50,
   });
 
   @override
@@ -22,7 +25,7 @@ class LegendCell extends StatelessWidget {
     return Cell(
       cellBloc: cellBloc,
       width: 50,
-      height: 50,
+      height: height,
       decoration: BoxDecoration(
         border: Border(
           right: BorderSide(

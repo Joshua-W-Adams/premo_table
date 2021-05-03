@@ -12,6 +12,7 @@ class ContentCell extends StatelessWidget {
 
   /// configurable style properties
   final double width;
+  final double height;
   final Color cellBorderColor;
   final Color disabledCellColor;
   final CellTypes cellType;
@@ -28,6 +29,7 @@ class ContentCell extends StatelessWidget {
     required this.uiRowIndex,
     required this.uiColumnIndex,
     required this.width,
+    this.height = 50,
     required this.cellBorderColor,
     required this.disabledCellColor,
     required this.cellType,
@@ -46,10 +48,9 @@ class ContentCell extends StatelessWidget {
     /// values within the cell and the cells state will
     CellBloc cellBloc =
         tableBloc.tableState!.uiRows[uiRowIndex].cellBlocs[uiColumnIndex];
-
     return Cell(
       cellBloc: cellBloc,
-      height: 50,
+      height: height,
       width: width,
       verticalAlignment: verticalAlignment,
       decoration: BoxDecoration(

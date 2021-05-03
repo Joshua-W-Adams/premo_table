@@ -11,6 +11,7 @@ class ColumnHeaderCell extends StatelessWidget {
 
   /// configurable style properties
   final double width;
+  final double height;
   final Color? columnBackgroundColor;
   final Color cellBorderColor;
 
@@ -22,6 +23,7 @@ class ColumnHeaderCell extends StatelessWidget {
     required this.tableBloc,
     required this.uiColumnIndex,
     required this.width,
+    this.height = 50,
     this.columnBackgroundColor,
     required this.cellBorderColor,
     this.enableSorting = true,
@@ -36,7 +38,7 @@ class ColumnHeaderCell extends StatelessWidget {
         tableBloc.tableState!.uiColumnHeaders[uiColumnIndex];
     return Cell(
       cellBloc: columnHeaderBloc,
-      height: 50,
+      height: height,
       width: width,
       decoration: BoxDecoration(
         color: columnBackgroundColor,

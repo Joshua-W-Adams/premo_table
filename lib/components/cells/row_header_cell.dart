@@ -12,10 +12,13 @@ class RowHeaderCell extends StatelessWidget {
   /// configurable style properties
   final Color cellBorderColor;
 
+  final double height;
+
   RowHeaderCell({
     required this.tableBloc,
     required this.uiRowIndex,
     required this.cellBorderColor,
+    this.height = 50,
   });
 
   @override
@@ -26,7 +29,7 @@ class RowHeaderCell extends StatelessWidget {
     return Cell(
       cellBloc: rowHeaderBloc,
       width: 50,
-      height: 50,
+      height: height,
       onHover: (_) {
         tableBloc.dehover();
       },
