@@ -10,14 +10,16 @@ class RowHeaderCell extends StatelessWidget {
   final int uiRowIndex;
 
   /// configurable style properties
-  final Color cellBorderColor;
+  final Color cellRightBorderColor;
+  final Color cellBottomBorderColor;
 
   final double height;
 
   RowHeaderCell({
     required this.tableBloc,
     required this.uiRowIndex,
-    required this.cellBorderColor,
+    required this.cellRightBorderColor,
+    required this.cellBottomBorderColor,
     this.height = 50,
   });
 
@@ -39,7 +41,10 @@ class RowHeaderCell extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           right: BorderSide(
-            color: cellBorderColor,
+            color: cellRightBorderColor,
+          ),
+          bottom: BorderSide(
+            color: cellBottomBorderColor,
           ),
         ),
       ),

@@ -123,6 +123,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
     final double effectiveDataRowHeight = rowHeight ??
         theme.dataTableTheme.dataRowHeight ??
         kMinInteractiveDimension;
+    final Color cellBottomBorderColor = theme.canvasColor;
     return StreamBuilder<TableState<T>>(
       /// Stream of entire table state
       stream: tableBloc.stream,
@@ -197,7 +198,11 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
                 tableBloc: tableBloc,
                 uiRowIndex: uiRowIndex,
                 height: effectiveDataRowHeight,
-                cellBorderColor: cellBorderColor,
+                cellRightBorderColor: cellBorderColor,
+
+                /// bottom cell border color required to ensure row Header and
+                /// row cell highlighting lines up correctly.
+                cellBottomBorderColor: cellBottomBorderColor,
               );
             },
 
