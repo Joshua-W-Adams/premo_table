@@ -7,6 +7,7 @@ class SampleDataModel implements IUniqueIdentifier {
   bool? enabled;
   DateTime? dateOfBirth;
   String? city;
+  num? salary;
 
   SampleDataModel({
     required this.uid,
@@ -15,6 +16,7 @@ class SampleDataModel implements IUniqueIdentifier {
     this.enabled,
     this.dateOfBirth,
     this.city,
+    this.salary,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,6 +27,7 @@ class SampleDataModel implements IUniqueIdentifier {
       'enabled': enabled,
       'dateOfBirth': dateOfBirth,
       'city': city,
+      'salary': salary,
     };
   }
 }

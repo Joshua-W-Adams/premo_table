@@ -39,6 +39,7 @@ class MockDataService {
       enabled: true,
       dateOfBirth: DateTime(1988, 2, 1),
       city: 'Perth',
+      salary: 100,
     ),
     SampleDataModel(
       uid: '2',
@@ -47,6 +48,7 @@ class MockDataService {
       enabled: true,
       dateOfBirth: DateTime(1995, 4, 28),
       city: 'Melbourne',
+      salary: 200,
     ),
     SampleDataModel(
       uid: '3',
@@ -55,6 +57,7 @@ class MockDataService {
       enabled: true,
       dateOfBirth: DateTime(1985, 9, 30),
       city: 'Sydney',
+      salary: 300,
     ),
     SampleDataModel(
       uid: '4',
@@ -63,6 +66,7 @@ class MockDataService {
       enabled: true,
       dateOfBirth: DateTime(1958, 2, 12),
       city: 'Darwin',
+      salary: 400,
     ),
     SampleDataModel(
       uid: '5',
@@ -71,6 +75,7 @@ class MockDataService {
       enabled: true,
       dateOfBirth: DateTime(1953, 6, 20),
       city: 'Brisbane',
+      salary: 500,
     ),
     SampleDataModel(
       uid: '6',
@@ -79,6 +84,7 @@ class MockDataService {
       enabled: true,
       dateOfBirth: DateTime(1930, 6, 12),
       city: 'Adelaide',
+      salary: 600,
     ),
     SampleDataModel(
       uid: '7',
@@ -87,6 +93,7 @@ class MockDataService {
       enabled: true,
       dateOfBirth: DateTime(1988, 2, 4),
       city: 'Darwin',
+      salary: 700,
     ),
     SampleDataModel(
       uid: '8',
@@ -95,6 +102,7 @@ class MockDataService {
       enabled: true,
       dateOfBirth: DateTime(1988, 7, 15),
       city: 'Darwin',
+      salary: 800,
     ),
     SampleDataModel(
       uid: '9',
@@ -103,6 +111,7 @@ class MockDataService {
       enabled: true,
       dateOfBirth: DateTime(1988, 12, 25),
       city: 'Adelaide',
+      salary: 900,
     ),
     SampleDataModel(
       uid: '10',
@@ -111,6 +120,7 @@ class MockDataService {
       enabled: true,
       dateOfBirth: DateTime(1988, 8, 26),
       city: 'Perth',
+      salary: 1000,
     ),
   ];
 

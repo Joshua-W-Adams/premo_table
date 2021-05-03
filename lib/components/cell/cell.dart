@@ -25,9 +25,6 @@ class Cell extends StatelessWidget {
   final Alignment alignment;
   final BoxDecoration? decoration;
 
-  /// for hiding the display of cells
-  final bool visible;
-
   /// user events
   final VoidCallback? onTap;
   final void Function(PointerHoverEvent)? onHover;
@@ -48,7 +45,6 @@ class Cell extends StatelessWidget {
     ),
     this.alignment = Alignment.centerLeft,
     this.decoration,
-    this.visible = true,
     this.onTap,
     this.onHover,
     this.onMouseEnter,
@@ -103,14 +99,20 @@ class Cell extends StatelessWidget {
         /// determine cell effect to apply based on state
         Color? color = _applyCellEffects(cellBlocState, _context);
 
+        /// get visibility
+        bool visible = cellBlocState.visible;
+
         return CellAnimations(
           cellBlocState: cellBlocState,
           endAnimationColor: color,
           animationHeight: height,
           widgetBuilder: (_, _colorTween, _sizeTween) {
             return Visibility(
-              visible:
-                  _sizeTween != null && _sizeTween.value == 0 ? false : visible,
+              visible: visible == false
+                  ? false
+                  : _sizeTween != null && _sizeTween.value == 0
+                      ? false
+                      : true,
 
               /// https://stackoverflow.com/questions/54717748/why-flutter-container-does-not-respects-its-width-and-height-constraints-when-it
               /// for the container widget inherently in the cell to respect the height

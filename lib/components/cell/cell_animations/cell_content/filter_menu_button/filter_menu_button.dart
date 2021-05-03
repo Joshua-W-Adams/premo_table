@@ -6,6 +6,8 @@ class FilterMenuButton extends StatefulWidget {
   /// callback function to execute when the filter value changes
   final Function(String value) onFilter;
 
+  final VoidCallback? onTap;
+
   /// icon to display for the filter button
   final Widget icon;
 
@@ -17,6 +19,7 @@ class FilterMenuButton extends StatefulWidget {
 
   FilterMenuButton({
     required this.onFilter,
+    this.onTap,
     this.icon = const Icon(
       Icons.filter_list,
     ),
@@ -40,67 +43,74 @@ class _FilterMenuButtonState extends State<FilterMenuButton> {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<int>(
-      color: _getFilterColor(),
-      child: widget.icon,
-      itemBuilder: (context) {
-        List<PopupMenuEntry<int>> items = [
-          PopupMenuItem(
-            value: 1,
-            child: Container(
-              width: widget.menuItemWidth,
-              child: TextFormField(
-                initialValue: _filterValue,
-                decoration: InputDecoration(
-                  labelText: 'Enter Filter Value',
-                  hintText: '...',
-                ),
-                onChanged: (value) {
-                  _filterValue = value;
-                  widget.onFilter(_filterValue);
-                },
-              ),
-            ),
-          ),
-          PopupMenuItem(
-            value: 2,
-            child: Container(
-              width: widget.menuItemWidth,
-              child: Row(
-                children: [
-                  ElevatedButton(
-                    child: Text('Clear'),
-                    onPressed: () {
-                      /// clear current filter value
-                      setState(() {
-                        _filterValue = '';
-                      });
-
-                      widget.onFilter(_filterValue);
-
-                      /// clear dropdown menu item
-                      // Navigator.of(context).pop();
-                    },
-                  ),
-                  Expanded(
-                    child: Container(),
-                  ),
-                  // ElevatedButton(
-                  //   child: Text('Apply'),
-                  //   onPressed: () {
-                  //     widget.onFilter(_filterValue);
-
-                  //     /// clear dropdown menu item
-                  //     Navigator.of(context).pop();
-                  //   },
-                  // ),
-                ],
-              ),
-            ),
-          ),
-        ];
-        return items;
+    return Listener(
+      onPointerDown: (event) {
+        if (widget.onTap != null) {
+          widget.onTap!();
+        }
       },
+      child: PopupMenuButton<int>(
+        color: _getFilterColor(),
+        child: widget.icon,
+        itemBuilder: (context) {
+          List<PopupMenuEntry<int>> items = [
+            PopupMenuItem(
+              value: 1,
+              child: Container(
+                width: widget.menuItemWidth,
+                child: TextFormField(
+                  initialValue: _filterValue,
+                  decoration: InputDecoration(
+                    labelText: 'Enter Filter Value',
+                    hintText: '...',
+                  ),
+                  onChanged: (value) {
+                    _filterValue = value;
+                    widget.onFilter(_filterValue);
+                  },
+                ),
+              ),
+            ),
+            PopupMenuItem(
+              value: 2,
+              child: Container(
+                width: widget.menuItemWidth,
+                child: Row(
+                  children: [
+                    ElevatedButton(
+                      child: Text('Clear'),
+                      onPressed: () {
+                        /// clear current filter value
+                        setState(() {
+                          _filterValue = '';
+                        });
+
+                        widget.onFilter(_filterValue);
+
+                        /// clear dropdown menu item
+                        // Navigator.of(context).pop();
+                      },
+                    ),
+                    Expanded(
+                      child: Container(),
+                    ),
+                    // ElevatedButton(
+                    //   child: Text('Apply'),
+                    //   onPressed: () {
+                    //     widget.onFilter(_filterValue);
+
+                    //     /// clear dropdown menu item
+                    //     Navigator.of(context).pop();
+                    //   },
+                    // ),
+                  ],
+                ),
+              ),
+            ),
+          ];
+          return items;
+        },
+      ),
     );
   }
 }

@@ -3,7 +3,7 @@ import 'package:premo_table/premo_table.dart';
 import 'package:example/models/sample_data_model.dart';
 import 'package:example/services/mock_data_service.dart';
 
-class PremoTableBuilder extends StatelessWidget {
+class PremoTableBuilder extends StatefulWidget {
   final MockDataService mockDataService;
 
   PremoTableBuilder({
@@ -11,14 +11,28 @@ class PremoTableBuilder extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    /// properties to standardise colours across table instance
-    ThemeData _theme = Theme.of(context);
+  _PremoTableBuilderState createState() => _PremoTableBuilderState();
+}
+
+class _PremoTableBuilderState extends State<PremoTableBuilder> {
+  TableBloc<SampleDataModel>? _tableBloc;
+
+  @override
+  void initState() {
+    super.initState();
 
     /// create BLoC
-    TableBloc<SampleDataModel> _tableBloc = TableBloc(
-      inputStream: mockDataService.stream,
-      columnNames: ['Id', 'Name', 'Age', 'Enabled', 'Date of Birth', 'City'],
+    _tableBloc = TableBloc(
+      inputStream: widget.mockDataService.stream,
+      columnNames: [
+        'Id',
+        'Name',
+        'Age',
+        'Enabled',
+        'Date of Birth',
+        'City',
+        'Salary'
+      ],
       cellValueBuilder: (rowModel, columnIndex) {
         /// rowModels can be null if the location being generated in the user
         /// interface is a deleted row.
@@ -34,6 +48,8 @@ class PremoTableBuilder extends StatelessWidget {
           return rowModel?.dateOfBirth.toString();
         } else if (columnIndex == 5) {
           return rowModel?.city;
+        } else if (columnIndex == 6) {
+          return rowModel?.salary.toString();
         }
       },
 
@@ -103,6 +119,18 @@ class PremoTableBuilder extends StatelessWidget {
       //   return Future.delayed(Duration(milliseconds: 1000));
       // },
     );
+  }
+
+  @override
+  void dispose() {
+    _tableBloc!.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    /// properties to standardise colours across table instance
+    ThemeData _theme = Theme.of(context);
 
     /// interference with gesture detector in cell.
     // GestureDetector(
@@ -114,29 +142,32 @@ class PremoTableBuilder extends StatelessWidget {
     /// generate instance of table
     return Column(
       children: [
-        /// title and actions
-        TableHeader(
-          title: Text('Sample Premo Table'),
-          actions: TableActions(
-            onUndo: () {},
-            onRedo: () {},
-            onAdd: () {},
-            onDelete: () {},
-          ),
+        /// Table header
+        TableActions(
+          onUndo: () {},
+          onRedo: () {},
+          onAdd: () {},
+          onDelete: () {},
         ),
+        SizedBox(height: 16.0),
         Expanded(
           child: PremoTable<SampleDataModel>(
-            tableBloc: _tableBloc,
+            tableBloc: _tableBloc!,
             columnBackgroundColor: _theme.accentColor.withOpacity(0.25),
-            disabledCellColor: _theme.accentColor.withOpacity(0.25),
-            highlightedCellColor: _theme.accentColor.withOpacity(0.5),
-            highlightedCellBorderColor: _theme.accentColor,
             columnWidthBuilder: (col) {
-              List<double> widths = [125, 200, 125, 125, 125, 125];
+              List<double> widths = [125, 200, 125, 125, 125, 125, 125];
               return widths[col];
             },
             columnReadOnlyBuilder: (col) {
-              List<bool> readOnly = [true, false, false, false, false, false];
+              List<bool> readOnly = [
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+              ];
               return readOnly[col];
             },
             columnAlignmentBuilder: (_, __, col) {
@@ -146,7 +177,8 @@ class PremoTableBuilder extends StatelessWidget {
                 TextAlign.center,
                 TextAlign.center,
                 TextAlign.center,
-                TextAlign.center
+                TextAlign.center,
+                TextAlign.center,
               ];
               return alignments[col];
             },
@@ -158,6 +190,7 @@ class PremoTableBuilder extends StatelessWidget {
                 CellTypes.cellswitch,
                 CellTypes.date,
                 CellTypes.dropdown,
+                CellTypes.currency,
               ];
               return types[col];
             },
@@ -175,7 +208,8 @@ class PremoTableBuilder extends StatelessWidget {
                   'Darwin',
                   'Brisbane',
                   'Adelaide'
-                ]
+                ],
+                null,
               ];
               return dropdowns[col];
             },
@@ -187,12 +221,6 @@ class PremoTableBuilder extends StatelessWidget {
             // cellWidgetBuilder: (item, row, col) {
             /// replace entire widget in a specific cell
             // return Widget;
-            // },
-            // rowKeyBuilder: (item, _) {
-            //   /// Assign unique key for a row...
-            //   /// prevents on change cell functions firing on removal of existing
-            //   /// rows.
-            //   return item.id;
             // },
           ),
         ),

@@ -10,6 +10,7 @@ class ColumnHeaderCellContent extends StatelessWidget {
   final bool ascending;
   final VoidCallback? onSort;
   final Function(String value)? onFilter;
+  final VoidCallback? onFilterButtonTap;
 
   ColumnHeaderCellContent({
     Key? key,
@@ -21,6 +22,7 @@ class ColumnHeaderCellContent extends StatelessWidget {
     required this.ascending,
     this.onSort,
     this.onFilter,
+    this.onFilterButtonTap,
   }) : super(key: key);
 
   /// The default padding between the heading content and sort arrow or filter
@@ -58,6 +60,7 @@ class ColumnHeaderCellContent extends StatelessWidget {
         if (onFilter != null) ...<Widget>[
           FilterMenuButton(
             onFilter: onFilter!,
+            onTap: onFilterButtonTap,
           ),
           const SizedBox(width: _padding),
         ],
