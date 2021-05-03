@@ -51,11 +51,10 @@ class _FilterMenuButtonState extends State<FilterMenuButton> {
         }
       },
       child: PopupMenuButton<int>(
-        color: _getFilterColor(),
         child: widget.icon ??
             Icon(
               Icons.filter_list,
-              color: widget.iconColor,
+              color: _getFilterColor() ?? widget.iconColor,
             ),
         itemBuilder: (context) {
           List<PopupMenuEntry<int>> items = [
