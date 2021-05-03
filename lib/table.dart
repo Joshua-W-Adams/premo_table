@@ -23,6 +23,8 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
   final Color disabledCellColor;
   final Color cellBorderColor;
 
+  final TextStyle? columnTextStyle;
+
   /// Column based configuration options
   final double Function(int uiColumnIndex) columnWidthBuilder;
   final bool Function(int uiColumnIndex) columnReadOnlyBuilder;
@@ -102,6 +104,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
     this.columnBackgroundColor,
     this.disabledCellColor = const Color(0xFFF5F5F5), // Colors.grey[100]
     this.cellBorderColor = const Color(0xFFE0E0E0), // Colors.grey[300]
+    this.columnTextStyle,
     this.columnWidthBuilder = defaultColumnWidthBuilder,
     this.columnReadOnlyBuilder = defaultColumnReadOnlyBuilder,
     this.columnHorizontalAlignmentBuilder =
@@ -182,6 +185,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
                 height: effectiveDataRowHeight,
                 cellBorderColor: cellBorderColor,
                 columnBackgroundColor: columnBackgroundColor,
+                textStyle: columnTextStyle,
                 enableFilters: enableFilters,
                 enableSorting: enableSorting,
               );

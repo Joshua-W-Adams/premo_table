@@ -52,6 +52,7 @@ class ColumnHeaderCellContent extends StatelessWidget {
             visible: sorted,
             up: sorted ? ascending : false,
             duration: _sortArrowAnimationDuration,
+            iconColor: textStyle?.color,
           ),
           const SizedBox(width: _padding),
         ],
@@ -61,6 +62,7 @@ class ColumnHeaderCellContent extends StatelessWidget {
           FilterMenuButton(
             onFilter: onFilter!,
             onTap: onFilterButtonTap,
+            iconColor: textStyle?.color,
           ),
           const SizedBox(width: _padding),
         ],

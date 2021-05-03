@@ -9,7 +9,9 @@ class FilterMenuButton extends StatefulWidget {
   final VoidCallback? onTap;
 
   /// icon to display for the filter button
-  final Widget icon;
+  final Widget? icon;
+
+  final Color? iconColor;
 
   /// color to change the filter button to when the filter is applied
   final Color activeFilterColor;
@@ -20,9 +22,8 @@ class FilterMenuButton extends StatefulWidget {
   FilterMenuButton({
     required this.onFilter,
     this.onTap,
-    this.icon = const Icon(
-      Icons.filter_list,
-    ),
+    this.icon,
+    this.iconColor,
     this.activeFilterColor = const Color(0xFF81C784), // Colors.green[300]
     this.menuItemWidth = 100,
   });
@@ -51,7 +52,11 @@ class _FilterMenuButtonState extends State<FilterMenuButton> {
       },
       child: PopupMenuButton<int>(
         color: _getFilterColor(),
-        child: widget.icon,
+        child: widget.icon ??
+            Icon(
+              Icons.filter_list,
+              color: widget.iconColor,
+            ),
         itemBuilder: (context) {
           List<PopupMenuEntry<int>> items = [
             PopupMenuItem(

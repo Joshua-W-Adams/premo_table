@@ -5,12 +5,14 @@ class SortArrow extends StatefulWidget {
   final bool visible;
   final bool? up;
   final Duration duration;
+  final Color? iconColor;
 
   const SortArrow({
     Key? key,
     required this.visible,
     required this.up,
     required this.duration,
+    this.iconColor,
   }) : super(key: key);
 
   @override
@@ -114,9 +116,10 @@ class SortArrowState extends State<SortArrow> with TickerProviderStateMixin {
             Matrix4.rotationZ(_orientationOffset + _orientationAnimation.value)
               ..setTranslationRaw(0.0, _arrowIconBaselineOffset, 0.0),
         alignment: Alignment.center,
-        child: const Icon(
+        child: Icon(
           Icons.arrow_upward,
           size: _arrowIconSize,
+          color: widget.iconColor,
         ),
       ),
     );

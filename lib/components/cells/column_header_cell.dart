@@ -14,6 +14,7 @@ class ColumnHeaderCell extends StatelessWidget {
   final double height;
   final Color? columnBackgroundColor;
   final Color cellBorderColor;
+  final TextStyle? textStyle;
 
   /// configurable functionality
   final bool enableSorting;
@@ -26,6 +27,7 @@ class ColumnHeaderCell extends StatelessWidget {
     this.height = 50,
     this.columnBackgroundColor,
     required this.cellBorderColor,
+    this.textStyle,
     this.enableSorting = true,
     this.enableFilters = true,
   });
@@ -66,6 +68,7 @@ class ColumnHeaderCell extends StatelessWidget {
         return ColumnHeaderCellContent(
           cellBlocState: cellBlocState,
           textAlign: TextAlign.center,
+          textStyle: textStyle,
           sorted: tableState.sortColumnIndex == uiColumnIndex &&
               tableState.isAscending != null,
           ascending: tableState.isAscending ?? false,
