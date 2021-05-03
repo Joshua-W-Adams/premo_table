@@ -3,19 +3,22 @@ part of premo_table;
 /// Manages all content of type dropdown in a [Cell].
 class DropdownCellContent extends StatefulWidget {
   final CellBlocState cellBlocState;
-  final List<String> dropdownList;
 
   /// the icon to display for the dropdown button
   final Widget? icon;
+  final List<String> dropdownList;
+
+  /// label text, hint text, helper text, prefix icon, suffix icon
+  final InputDecoration inputDecoration;
 
   final TextStyle? textStyle;
   final Alignment horizontalAlignment;
 
+  /// Expand dropdown button to size of parent widget
+  final bool isExpanded;
+
   /// cannot be edited or selected
   final bool enabled;
-
-  /// label text, hint text, helper text, prefix icon, suffix icon
-  final InputDecoration inputDecoration;
 
   final void Function(String)? onChanged;
 
@@ -25,11 +28,8 @@ class DropdownCellContent extends StatefulWidget {
   DropdownCellContent({
     Key? key,
     required this.cellBlocState,
-    required this.dropdownList,
     this.icon,
-    this.textStyle,
-    this.horizontalAlignment = Alignment.centerLeft,
-    this.enabled = true,
+    required this.dropdownList,
     this.inputDecoration = const InputDecoration(
       border: InputBorder.none,
       contentPadding: EdgeInsets.all(0),
@@ -39,6 +39,10 @@ class DropdownCellContent extends StatefulWidget {
       /// field is centered within the parent widget.
       isDense: true,
     ),
+    this.textStyle,
+    this.horizontalAlignment = Alignment.centerLeft,
+    this.isExpanded = false,
+    this.enabled = true,
     this.onChanged,
     this.onTap,
   }) : super(key: key);
@@ -76,7 +80,7 @@ class _DropdownCellContentState extends State<DropdownCellContent> {
                 icon: widget.icon,
 
                 /// Expand dropdown button to size of parent widget
-                isExpanded: true,
+                isExpanded: widget.isExpanded,
 
                 /// TODO - Is this still required?
                 /// conditional application of isDense. False required for correct
