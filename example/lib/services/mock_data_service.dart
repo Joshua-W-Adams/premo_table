@@ -33,7 +33,7 @@ class MockDataService {
 
   List<SampleDataModel> dataTemplate = [
     SampleDataModel(
-      uid: '1',
+      id: '1',
       name: 'Josh',
       age: 33,
       enabled: true,
@@ -42,7 +42,7 @@ class MockDataService {
       salary: 100,
     ),
     SampleDataModel(
-      uid: '2',
+      id: '2',
       name: 'Rachel',
       age: 28,
       enabled: false,
@@ -51,7 +51,7 @@ class MockDataService {
       salary: 200,
     ),
     SampleDataModel(
-      uid: '3',
+      id: '3',
       name: 'Shannon',
       age: 36,
       enabled: false,
@@ -60,7 +60,7 @@ class MockDataService {
       salary: 300,
     ),
     SampleDataModel(
-      uid: '4',
+      id: '4',
       name: 'Robin',
       age: 62,
       enabled: false,
@@ -69,7 +69,7 @@ class MockDataService {
       salary: 400,
     ),
     SampleDataModel(
-      uid: '5',
+      id: '5',
       name: 'Bill',
       age: 65,
       enabled: true,
@@ -78,7 +78,7 @@ class MockDataService {
       salary: 500,
     ),
     SampleDataModel(
-      uid: '6',
+      id: '6',
       name: 'Jessie',
       age: 90,
       enabled: true,
@@ -87,7 +87,7 @@ class MockDataService {
       salary: 600,
     ),
     SampleDataModel(
-      uid: '7',
+      id: '7',
       name: 'Peter',
       age: 33,
       enabled: true,
@@ -96,7 +96,7 @@ class MockDataService {
       salary: 700,
     ),
     SampleDataModel(
-      uid: '8',
+      id: '8',
       name: 'Jas',
       age: 33,
       enabled: false,
@@ -105,7 +105,7 @@ class MockDataService {
       salary: 800,
     ),
     SampleDataModel(
-      uid: '9',
+      id: '9',
       name: 'Craig',
       age: 33,
       enabled: false,
@@ -114,7 +114,7 @@ class MockDataService {
       salary: 900,
     ),
     SampleDataModel(
-      uid: '10',
+      id: '10',
       name: 'George',
       age: 33,
       enabled: true,
@@ -124,12 +124,12 @@ class MockDataService {
     ),
   ];
 
-  RowState<SampleDataModel> _getRow(int pos, int uid) {
+  RowState<SampleDataModel> _getRow(int pos, int id) {
     /// create data model
     SampleDataModel record = dataTemplate[pos];
 
-    /// update uid
-    record.uid = uid.toString();
+    /// update id
+    record.id = id.toString();
 
     /// create row to load into table
     return RowState<SampleDataModel>(

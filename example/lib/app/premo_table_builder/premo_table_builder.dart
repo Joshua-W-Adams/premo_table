@@ -29,7 +29,7 @@ class _PremoTableBuilderState extends State<PremoTableBuilder> {
         /// rowModels can be null if the location being generated in the user
         /// interface is a deleted row.
         if (columnIndex == 0) {
-          return rowModel?.uid;
+          return rowModel?.id;
         } else if (columnIndex == 1) {
           return rowModel?.name;
         } else if (columnIndex == 2) {
@@ -48,7 +48,7 @@ class _PremoTableBuilderState extends State<PremoTableBuilder> {
       /// sort to applied to all input data before it is released on the table
       /// bloc stream
       defaultSortCompare: (a, b) {
-        return a.uid.compareTo(b.uid);
+        return a.id.compareTo(b.id);
       },
 
       /// sort function to run on each column
@@ -79,9 +79,9 @@ class _PremoTableBuilderState extends State<PremoTableBuilder> {
         if (value != '') {
           /// test less than filter
           // if (col == 0) {
-          //   int uid = int.parse(rowModel.uid);
+          //   int id = int.parse(rowModel.id);
           //   int filterValue = int.parse(value);
-          //   return uid < filterValue;
+          //   return id < filterValue;
           // }
 
           /// convert objects to Maps. Enabling referencing of map positions.

@@ -4,8 +4,8 @@ part of premo_table;
 /// functionality can operate correctly. E.g. update, delete, add, ui state
 /// peristance etc.
 abstract class IUniqueIdentifier {
-  final String uid;
-  IUniqueIdentifier({required this.uid});
+  final String id;
+  IUniqueIdentifier({required this.id});
 }
 
 enum ChangeTypes { update, add, delete }

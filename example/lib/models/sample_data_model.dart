@@ -1,7 +1,7 @@
 import 'package:premo_table/premo_table.dart';
 
 class SampleDataModel implements IUniqueIdentifier {
-  String uid;
+  String id;
   String? name;
   num? age;
   bool? enabled;
@@ -10,7 +10,7 @@ class SampleDataModel implements IUniqueIdentifier {
   num? salary;
 
   SampleDataModel({
-    required this.uid,
+    required this.id,
     this.name,
     this.age,
     this.enabled,
@@ -21,7 +21,7 @@ class SampleDataModel implements IUniqueIdentifier {
 
   Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
+      'id': id,
       'name': name,
       'age': age,
       'enabled': enabled,
