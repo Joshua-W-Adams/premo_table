@@ -22,8 +22,8 @@ class TextCellContent extends StatefulWidget {
   /// text field validator
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
-  final void Function(String value)? onEditingComplete;
-  final void Function(String)? onFieldSubmitted;
+  // final void Function(String value)? onEditingComplete;
+  // final void Function(String)? onFieldSubmitted;
   final void Function(String)? onFocusLost;
 
   /// user events
@@ -60,8 +60,8 @@ class TextCellContent extends StatefulWidget {
     ),
     this.validator,
     this.onChanged,
-    this.onEditingComplete,
-    this.onFieldSubmitted,
+    // this.onEditingComplete,
+    // this.onFieldSubmitted,
     this.onFocusLost,
     this.onTap,
     this.inputParser,
@@ -146,25 +146,40 @@ class _TextCellContentState extends State<TextCellContent> {
       keyboardType: widget.keyboardType,
       decoration: widget.inputDecoration,
       validator: widget.validator,
+      inputFormatters: widget.inputFormatters,
+
+      /// cell functions
+      onTap: widget.onTap,
       onChanged: (val) {
         if (_key.currentState?.validate() == true && widget.onChanged != null) {
           widget.onChanged!(_removeValueFormat(val));
         }
       },
-      onEditingComplete: () {
-        if (_key.currentState?.validate() == true &&
-            widget.onEditingComplete != null) {
-          widget.onEditingComplete!(_removeValueFormat(_textController.text));
-        }
-      },
-      onFieldSubmitted: (val) {
-        if (_key.currentState?.validate() == true &&
-            widget.onFieldSubmitted != null) {
-          widget.onFieldSubmitted!(_removeValueFormat(val));
-        }
-      },
-      onTap: widget.onTap,
-      inputFormatters: widget.inputFormatters,
+
+      /// both the onEditingComplete and onFieldSubmitted callbacks have been
+      /// disabled so that the onFocusLost callback is used instead.
+      /// onFocusLost will fire when the user submits the TextFormField and also
+      /// when they click out of the cell or get kicked out of the cell on other
+      /// user events.
+      ///
+      /// Assigning the same function to the onFocusLost and onEditingComplete ||
+      /// onFieldSubmitted callbacks was causing the same function to run twice.
+      /// For example the same update changes to database function to run twice.
+      ///
+      /// overwriting this method will cause the focus node to persist focus
+      /// on the text field even after editing is completed
+      // onEditingComplete: () {
+      //   if (_key.currentState?.validate() == true &&
+      //       widget.onEditingComplete != null) {
+      //     widget.onEditingComplete!(_removeValueFormat(_textController.text));
+      //   }
+      // },
+      // onFieldSubmitted: (val) {
+      //   if (_key.currentState?.validate() == true &&
+      //       widget.onFieldSubmitted != null) {
+      //     widget.onFieldSubmitted!(_removeValueFormat(val));
+      //   }
+      // },
     );
   }
 }

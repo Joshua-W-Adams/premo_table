@@ -24,15 +24,7 @@ class _PremoTableBuilderState extends State<PremoTableBuilder> {
     /// create BLoC
     _tableBloc = TableBloc(
       inputStream: widget.mockDataService.stream,
-      columnNames: [
-        'Id',
-        'Name',
-        'Age',
-        'Enabled',
-        'Date of Birth',
-        'City',
-        'Salary'
-      ],
+      columnNames: ['Id', 'Name', 'Age', 'Enabled', 'DOB', 'City', 'Salary'],
       cellValueBuilder: (rowModel, columnIndex) {
         /// rowModels can be null if the location being generated in the user
         /// interface is a deleted row.
@@ -153,7 +145,8 @@ class _PremoTableBuilderState extends State<PremoTableBuilder> {
         Expanded(
           child: PremoTable<SampleDataModel>(
             tableBloc: _tableBloc!,
-            columnBackgroundColor: _theme.accentColor.withOpacity(0.25),
+            columnBackgroundColor: _theme.primaryColor,
+            columnTextStyle: _theme.primaryTextTheme.bodyText1,
             columnWidthBuilder: (col) {
               List<double> widths = [125, 200, 125, 125, 125, 125, 125];
               return widths[col];
@@ -186,7 +179,7 @@ class _PremoTableBuilderState extends State<PremoTableBuilder> {
               List<CellTypes> types = [
                 CellTypes.text,
                 CellTypes.text,
-                CellTypes.text,
+                CellTypes.number,
                 CellTypes.cellswitch,
                 CellTypes.date,
                 CellTypes.dropdown,

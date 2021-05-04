@@ -82,7 +82,7 @@ class TableBloc<T extends IUniqueIdentifier> {
     this.enableRowSelectionEvents = true,
     this.enableColumnSelectionEvents = false,
     this.enableRowHeaderSelectionEvents = true,
-    this.enableColumnHeaderSelectionEvents = true,
+    this.enableColumnHeaderSelectionEvents = false,
     this.enableCellHoverEvents = true,
     this.enableRowHoverEvents = true,
     this.enableColumnHoverEvents = false,

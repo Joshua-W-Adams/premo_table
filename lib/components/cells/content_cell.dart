@@ -112,16 +112,9 @@ class ContentCell extends StatelessWidget {
             onTap: () {
               tableBloc.select(uiRowIndex, uiColumnIndex);
             },
-            onFieldSubmitted: (newValue) {
-              if (uiRow.rowState.rowModel != null) {
-                tableBloc.userUpdate(
-                  uiRow.rowState.rowModel!,
-                  uiColumnIndex,
-                  newValue,
-                  cellBloc.state.value,
-                );
-              }
-            },
+
+            /// On focus lost fired when the user clicks out of the text cell
+            /// or completes editing / submits value
             onFocusLost: (newValue) {
               /// TODO - test that change only processed if the focus wasn't
               /// lost due to a server modification
@@ -178,8 +171,7 @@ class ContentCell extends StatelessWidget {
         } else if (cellType == CellTypes.date) {
           return DateCellContent(
             cellBlocState: cellBlocState,
-            enabled: !cellBlocState.requestInProgress,
-            readOnly: readOnly,
+            enabled: !cellBlocState.requestInProgress && !readOnly,
             textStyle: textStyle,
             horizontalAlignment: horizontalAlignment,
             inputParser: DataFormatter.toDate,

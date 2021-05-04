@@ -39,7 +39,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
       T? item, int uiRowIndex, int uiColumnIndex) columnValidatorBuilder;
 
   /// Cell based configuration options
-  final TextStyle? Function(T? item, int uiRowIndex, int uiColumnIndex)
+  final TextStyle? Function(T? item, int uiRowIndex, int uiColumnIndex)?
       cellTextStyleBuilder;
   final Widget Function(T? item, int uiRowIndex, int uiColumnIndex)?
       cellWidgetBuilder;
@@ -89,11 +89,6 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
     return null;
   }
 
-  static TextStyle? defaultColumnTextStyleBuilder(
-      dynamic item, int uiRowIndex, int uiColumnIndex) {
-    return null;
-  }
-
   PremoTable({
     Key? key,
     required this.tableBloc,
@@ -113,7 +108,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
     this.columnTypeBuilder = defaultColumnTypeBuilder,
     this.columnDropdownBuilder = defaultColumnDropdownBuilder,
     this.columnValidatorBuilder = defaultColumnValidatorBuilder,
-    this.cellTextStyleBuilder = defaultColumnTextStyleBuilder,
+    this.cellTextStyleBuilder,
     this.cellWidgetBuilder,
   }) : super(key: key);
 
@@ -124,6 +119,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
         theme.dataTableTheme.dataRowHeight ??
         kMinInteractiveDimension;
     final Color cellBottomBorderColor = theme.canvasColor;
+    final TextStyle? defaultCellTextStyle = theme.textTheme.bodyText1;
     return StreamBuilder<TableState<T>>(
       /// Stream of entire table state
       stream: tableBloc.stream,
@@ -220,8 +216,9 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
               double width = columnWidthBuilder(uiColumnIndex);
               CellTypes cellType = columnTypeBuilder(uiColumnIndex);
               bool readOnly = columnReadOnlyBuilder(uiColumnIndex);
-              TextStyle? textStyle =
-                  cellTextStyleBuilder(item, uiRowIndex, uiColumnIndex);
+              TextStyle? textStyle = cellTextStyleBuilder != null
+                  ? cellTextStyleBuilder!(item, uiRowIndex, uiColumnIndex)
+                  : defaultCellTextStyle;
               Alignment horizontalAlignment = columnHorizontalAlignmentBuilder(
                   item, uiRowIndex, uiColumnIndex);
               Alignment verticalAlignment = columnVerticalAlignmentBuilder(

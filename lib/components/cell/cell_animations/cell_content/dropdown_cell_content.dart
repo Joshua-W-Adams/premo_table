@@ -99,17 +99,21 @@ class _DropdownCellContentState extends State<DropdownCellContent> {
                     widget.onTap!();
                   }
                 },
-                onChanged: (val) {
-                  /// update the dropdown value
-                  state.setState(() {
-                    _value = val ?? '';
-                  });
 
-                  /// excecute on changed callback
-                  if (widget.onChanged != null) {
-                    widget.onChanged!(val ?? '');
-                  }
-                },
+                /// if on changed is null the dropdown button will be disabled
+                onChanged: widget.enabled == true
+                    ? (val) {
+                        /// update the dropdown value
+                        state.setState(() {
+                          _value = val ?? '';
+                        });
+
+                        /// excecute on changed callback
+                        if (widget.onChanged != null) {
+                          widget.onChanged!(val ?? '');
+                        }
+                      }
+                    : null,
                 items: widget.dropdownList.map((String value) {
                   /// an instance of dropmenu item is returned for each item in
                   /// the dropdown menu and ALSO the displayed selected item.

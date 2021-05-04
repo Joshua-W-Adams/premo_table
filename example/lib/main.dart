@@ -79,45 +79,51 @@ class TestCases extends StatelessWidget {
     List<TextCase> testCases = [];
     testCases.add(
       TextCase(
-        name: 'multi update',
+        name: '>1 update',
         test: mockDataService.multiUpdate,
       ),
     );
     testCases.add(
       TextCase(
-        name: 'multi add',
+        name: '>1 add',
         test: mockDataService.multiAdd,
       ),
     );
     testCases.add(
       TextCase(
-        name: 'multi delete',
+        name: '>1 delete',
         test: mockDataService.multiDelete,
       ),
     );
     testCases.add(
       TextCase(
-        name: 'multi u a d',
+        name: '>1 u a d',
         test: mockDataService.multiUpdateAddDelete,
       ),
     );
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Wrap(
-        alignment: WrapAlignment.spaceEvenly,
-        runSpacing: 8.0,
-        spacing: 16.0,
-        children: List.generate(testCases.length, (index) {
-          TextCase testCase = testCases[index];
+      child: Row(
+        children: [
+          Expanded(
+            child: Wrap(
+              alignment: WrapAlignment.start,
+              runSpacing: 8.0,
+              spacing: 16.0,
+              children: List.generate(testCases.length, (index) {
+                TextCase testCase = testCases[index];
 
-          return ActionButton(
-            text: testCase.name,
-            icon: Icon(Icons.play_arrow),
-            onPressed: testCase.test,
-            width: 150.0,
-          );
-        }),
+                return ActionButton(
+                  text: testCase.name,
+                  icon: Icon(Icons.play_arrow),
+                  onPressed: testCase.test,
+                  width: 125.0,
+                );
+              }),
+            ),
+          ),
+        ],
       ),
     );
   }
