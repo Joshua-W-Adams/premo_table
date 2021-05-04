@@ -85,7 +85,17 @@ class _DateCellContentState extends State<DateCellContent> {
 
     /// prevent onChange callback firing on same date selected
     if (newDate != _textController.text) {
+      /// update text form field data
+      /// Note: will NOT fire the [TextFormField] [onChanged] event. Therefore
+      /// change management must be handled
       _textController.text = newDate;
+
+      if (widget.outputParser != null) {
+        newDate = widget.outputParser!(newDate) ?? '';
+      }
+      if (widget.onChanged != null) {
+        widget.onChanged!(newDate);
+      }
     }
   }
 
@@ -113,14 +123,6 @@ class _DateCellContentState extends State<DateCellContent> {
       readOnly: widget.readOnly,
       enabled: widget.enabled,
       decoration: widget.inputDecoration,
-      onChanged: (val) {
-        if (widget.outputParser != null) {
-          val = widget.outputParser!(val) ?? '';
-        }
-        if (widget.onChanged != null) {
-          widget.onChanged!(val);
-        }
-      },
       onTap: () {
         /// load date selector
         _selectDate();
