@@ -140,26 +140,61 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        _tableBloc!.deselect();
-      },
-      child: Column(
-        children: [
-          TestCases(
+    return Column(
+      children: [
+        Listener(
+          /// deselection of table fired on all child widgets
+          onPointerDown: (_) {
+            _tableBloc!.deselect();
+          },
+          behavior: HitTestBehavior.opaque,
+          child: TestCases(
             mockDataService: mockDataService,
           ),
-          Expanded(
+        ),
+        Expanded(
+          child: GestureDetector(
+            /// deselect fired on tapping padding
+            onTap: () {
+              _tableBloc!.deselect();
+            },
             child: ListView.builder(
               itemCount: 2,
               itemBuilder: (context, index) {
                 Widget child;
                 if (index == 0) {
-                  child = PremoTableBuilder<SampleDataModel>(
-                    tableBloc: _tableBloc!,
+                  child = Column(
+                    children: [
+                      /// Table header
+                      TableActions(
+                        onUndo: () {
+                          _tableBloc!.deselect();
+                        },
+                        onRedo: () {
+                          _tableBloc!.deselect();
+                        },
+                        onAdd: () {
+                          _tableBloc!.deselect();
+                        },
+                        onDelete: () {
+                          _tableBloc!.deselect();
+                        },
+                      ),
+                      SizedBox(height: 16.0),
+                      Expanded(
+                        child: PremoTableBuilder<SampleDataModel>(
+                          tableBloc: _tableBloc!,
+                        ),
+                      ),
+                    ],
                   );
                 } else if (index == 1) {
-                  child = SampleDataTable();
+                  child = Listener(
+                    onPointerDown: (_) {
+                      _tableBloc!.deselect();
+                    },
+                    child: SampleDataTable(),
+                  );
                 } else {
                   child = Container();
                 }
@@ -174,8 +209,8 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
