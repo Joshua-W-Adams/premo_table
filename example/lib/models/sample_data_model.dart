@@ -30,4 +30,15 @@ class SampleDataModel implements IUniqueIdentifier {
       'salary': salary,
     };
   }
+
+  SampleDataModel.clone(SampleDataModel b)
+      : this(
+          id: b.id,
+          name: b.name,
+          age: b.age,
+          enabled: b.enabled,
+          dateOfBirth: b.dateOfBirth,
+          city: b.city,
+          salary: b.salary,
+        );
 }

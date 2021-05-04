@@ -126,7 +126,7 @@ class MockDataService {
 
   RowState<SampleDataModel> _getRow(int pos, int id) {
     /// create data model
-    SampleDataModel record = dataTemplate[pos];
+    SampleDataModel record = SampleDataModel.clone(dataTemplate[pos]);
 
     /// update id
     record.id = id.toString();
