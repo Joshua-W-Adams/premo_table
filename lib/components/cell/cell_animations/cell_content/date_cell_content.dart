@@ -73,7 +73,9 @@ class _DateCellContentState extends State<DateCellContent> {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: DateTime(2000),
+      firstDate: initialDate.subtract(
+        Duration(days: 20 * 365),
+      ),
       lastDate: DateTime.now().add(
         Duration(days: 20 * 365),
       ),
