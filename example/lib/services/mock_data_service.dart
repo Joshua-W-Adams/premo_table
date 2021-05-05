@@ -126,7 +126,7 @@ class MockDataService {
 
   RowState<SampleDataModel> _getRow({
     required int templateIndex,
-    required int newId,
+    required double newId,
   }) {
     /// create data model
     SampleDataModel record = SampleDataModel.clone(dataTemplate[templateIndex]);
@@ -172,13 +172,13 @@ class MockDataService {
 
   void addFirst() {
     _releaseTestCase((data) {
-      data.insert(0, _getRow(templateIndex: 0, newId: data.length + 1));
+      data.insert(0, _getRow(templateIndex: 0, newId: 0));
     });
   }
 
   void addMiddle() {
     _releaseTestCase((data) {
-      data.insert(3, _getRow(templateIndex: 0, newId: data.length + 1));
+      data.insert(3, _getRow(templateIndex: 0, newId: 3.5));
     });
   }
 
@@ -190,8 +190,8 @@ class MockDataService {
 
   void multiAdd() {
     _releaseTestCase((data) {
-      data.insert(0, _getRow(templateIndex: 0, newId: data.length + 1));
-      data.insert(3, _getRow(templateIndex: 0, newId: data.length + 1));
+      data.insert(0, _getRow(templateIndex: 0, newId: 0));
+      data.insert(3, _getRow(templateIndex: 0, newId: 3.5));
       data.add(_getRow(templateIndex: 0, newId: data.length + 1));
     });
   }
@@ -257,13 +257,13 @@ class MockDataService {
 
   void duplicateFirst() {
     _releaseTestCase((data) {
-      data.insert(0, _getRow(templateIndex: 0, newId: 0));
+      data.insert(0, _getRow(templateIndex: 0, newId: 1));
     });
   }
 
   void duplicateMiddle() {
     _releaseTestCase((data) {
-      data.insert(3, _getRow(templateIndex: 3, newId: 3));
+      data.insert(3, _getRow(templateIndex: 3, newId: 4));
     });
   }
 
@@ -271,7 +271,7 @@ class MockDataService {
     _releaseTestCase((data) {
       int lastIndex = data.length - 1;
       data.add(
-        _getRow(templateIndex: lastIndex, newId: lastIndex),
+        _getRow(templateIndex: lastIndex, newId: lastIndex.toDouble() + 1),
       );
     });
   }
@@ -279,12 +279,11 @@ class MockDataService {
   void multiDuplicate() {
     _releaseTestCase((data) {
       int lastIndex = data.length - 1;
-      data.insert(
-        lastIndex,
-        _getRow(templateIndex: lastIndex, newId: lastIndex),
+      data.add(
+        _getRow(templateIndex: lastIndex, newId: lastIndex.toDouble() + 1),
       );
-      data.insert(0, _getRow(templateIndex: 0, newId: 0));
-      data.insert(3, _getRow(templateIndex: 3, newId: 3));
+      data.insert(0, _getRow(templateIndex: 0, newId: 1));
+      data.insert(3, _getRow(templateIndex: 3, newId: 4));
     });
   }
 
@@ -298,16 +297,15 @@ class MockDataService {
     _releaseTestCase((data) {
       /// duplicate extents
       int lastIndex = data.length - 1;
-      data.insert(
-        lastIndex,
-        _getRow(templateIndex: lastIndex, newId: lastIndex),
+      data.add(
+        _getRow(templateIndex: lastIndex, newId: lastIndex.toDouble() + 1),
       );
-      data.insert(0, _getRow(templateIndex: 0, newId: 0));
-      data.insert(3, _getRow(templateIndex: 3, newId: 3));
+      data.insert(0, _getRow(templateIndex: 0, newId: 1));
+      data.insert(3, _getRow(templateIndex: 3, newId: 4));
 
       /// add at extents
-      data.insert(0, _getRow(templateIndex: 0, newId: data.length + 1));
-      data.insert(3, _getRow(templateIndex: 0, newId: data.length + 1));
+      data.insert(0, _getRow(templateIndex: 0, newId: 0));
+      data.insert(3, _getRow(templateIndex: 0, newId: 3.5));
       data.add(_getRow(templateIndex: 0, newId: data.length + 1));
 
       /// update extents

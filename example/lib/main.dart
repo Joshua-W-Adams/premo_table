@@ -67,7 +67,7 @@ class _HomePageState extends State<HomePage> {
       /// sort to applied to all input data before it is released on the table
       /// bloc stream
       defaultSortCompare: (a, b) {
-        return a.id.compareTo(b.id);
+        return double.parse(a.id).compareTo(double.parse(b.id));
       },
 
       /// sort function to run on each column
@@ -142,9 +142,10 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Listener(
+        /// only run deselect in empty space
+        GestureDetector(
           /// deselection of table fired on all child widgets
-          onPointerDown: (_) {
+          onTap: () {
             _tableBloc!.deselect();
           },
           behavior: HitTestBehavior.opaque,
@@ -167,18 +168,10 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       /// Table header
                       TableActions(
-                        onUndo: () {
-                          _tableBloc!.deselect();
-                        },
-                        onRedo: () {
-                          _tableBloc!.deselect();
-                        },
-                        onAdd: () {
-                          _tableBloc!.deselect();
-                        },
-                        onDelete: () {
-                          _tableBloc!.deselect();
-                        },
+                        onUndo: () {},
+                        onRedo: () {},
+                        onAdd: () {},
+                        onDelete: () {},
                       ),
                       SizedBox(height: 16.0),
                       Expanded(
