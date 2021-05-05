@@ -501,28 +501,8 @@ class TableBloc<T extends IUniqueIdentifier> {
     );
   }
 
-  bool _cellBlocStatesChanged(CellBlocState a, CellBlocState b) {
-    return !(a.value == b.value &&
-        a.visible == b.visible &&
-        a.selected == b.selected &&
-        a.rowSelected == b.rowSelected &&
-        a.colSelected == b.colSelected &&
-        a.hovered == b.hovered &&
-        a.rowHovered == b.rowHovered &&
-        a.colHovered == b.colHovered &&
-        a.rowChecked == b.rowChecked &&
-        a.columnSorted == b.columnSorted &&
-        a.requestInProgress == b.requestInProgress &&
-        a.requestSucceeded == b.requestSucceeded &&
-        a.changeType == b.changeType);
-  }
-
   void _renderCell(CellBloc cell, CellBlocState newState) {
-    bool stateChanged = _cellBlocStatesChanged(newState, cell.state);
-    if (stateChanged == true) {
-      /// case 1 - state changed - render
-      cell.setCellBlocState(newState);
-    }
+    cell.setState(newState);
   }
 
   void _renderRowHeader(
@@ -595,33 +575,25 @@ class TableBloc<T extends IUniqueIdentifier> {
   void _renderRowChanges(
       List<UiRow<T>> uiRows,
       int uiPos,
-      RowState<T> newRowToRender,
+      RowState<T>? newRowToRender,
       RowState<T>? oldRowRendered,
       ChangeTypes? rowChangeType) {
     UiRow<T> uiRow;
 
-    /// confirm there is a row available at the requested render position
-    if (uiPos < uiRows.length) {
-      /// case 1 - row available
-      uiRow = uiRows[uiPos];
-    } else {
-      /// case 2 - no row available
-      RowState<T> rowState = RowState(
-        rowModel: null,
-        cellStates: Map<int, CellState>(),
-      );
-      uiRow = _createUiRow(rowState);
-      uiRows.add(uiRow);
-    }
+    /// get row to render
+    uiRow = uiRows[uiPos];
 
     if (rowChangeType == ChangeTypes.update) {
       /// case 1 - update to render
       _renderRow(newRowToRender, oldRowRendered, uiRow, null, true);
+    } else if (rowChangeType == ChangeTypes.duplicate) {
+      /// case 2 - duplicate to render
+      _renderRow(newRowToRender, null, uiRow, rowChangeType, false);
     } else if (rowChangeType == ChangeTypes.add) {
-      /// case 2 - add to render
-      _renderRow(newRowToRender, oldRowRendered, uiRow, rowChangeType, false);
+      /// case 3 - add to render
+      _renderRow(newRowToRender, null, uiRow, rowChangeType, false);
     } else if (rowChangeType == ChangeTypes.delete) {
-      /// case 3 - delete to render
+      /// case 4 - delete to render
       _renderRow(null, null, uiRow, rowChangeType, false);
     }
   }
@@ -867,6 +839,8 @@ class TableBloc<T extends IUniqueIdentifier> {
     int added = 0;
     // rows removed in newData
     int deleted = 0;
+    // duplicate rows in newData
+    int duplicates = 0;
 
     /// required for detecting when new or deleted rows should be rendered
     int rowsAvailableForRender = uiRows.length;
@@ -894,20 +868,34 @@ class TableBloc<T extends IUniqueIdentifier> {
     int uiPos = 0;
     // count of rows deleted from the ui
     int uiDeleted = 0;
+    // count of duplicate rows rendered in ui
+    int uiDuplicates = 0;
+    // count of rows in old data that exceed the newData length
+    int excessOldData = 0;
 
-    for (var newDataPos = 0; newDataPos < newDataSorted.length; newDataPos++) {
+    for (var newDataPos = 0;
+        newDataPos < newDataSorted.length + excessOldData;
+        newDataPos++) {
       // old data row to compare with newData row
       // if a row has been deleted compare against the next item
       // if a row has been added  then compare against the previous item
-      int oldDataPos = newDataPos + deleted - added;
+      int oldDataPos = newDataPos + deleted - added - duplicates;
 
       // update ui position
-      uiPos = newUiPos + uiDeleted;
+      // duplicates and adds are rendered in the newUiPos parameter
+      uiPos = newUiPos + uiDeleted + uiDuplicates;
 
       /// get rows to compare
-      RowState<T> newDataRow = newDataSorted[newDataPos];
+      RowState<T>? newDataRow =
+          newDataPos < newDataSorted.length ? newDataSorted[newDataPos] : null;
       RowState<T>? oldDataRow =
           oldDataPos < oldDataSorted.length ? oldDataSorted[oldDataPos] : null;
+
+      /// Rows for duplicate checks
+      RowState<T>? previousNewDataRow =
+          newDataPos != 0 && newDataPos - 1 < newDataSorted.length
+              ? newDataSorted[newDataPos - 1]
+              : null;
 
       /// get rows to be rendered
       RowState<T>? newUiRow =
@@ -917,20 +905,27 @@ class TableBloc<T extends IUniqueIdentifier> {
 
       /// compare rows and determine change case
       ChangeTypes? changeType;
-      if (newDataRow.rowModel!.uid == oldDataRow?.rowModel!.uid) {
+      if (newDataRow != null &&
+          newDataRow.rowModel!.id == oldDataRow?.rowModel!.id) {
         /// case 1 - UPDATE
         changeType = ChangeTypes.update;
-      } else if (!_rowExistsInArray(newDataRow.rowModel, oldDataSorted)) {
+      } else if (newDataRow != null &&
+          (newDataRow.rowModel!.id == previousNewDataRow?.rowModel!.id)) {
+        /// case 2 - DUPLICATE
+        changeType = ChangeTypes.duplicate;
+      } else if (newDataRow != null &&
+          !_rowExistsInArray(newDataRow.rowModel, oldDataSorted)) {
         /// case 2 - ADD
         changeType = ChangeTypes.add;
-      } else if (!_rowExistsInArray(oldDataRow?.rowModel!, newDataSorted)) {
+      } else if (oldDataRow != null &&
+          !_rowExistsInArray(oldDataRow.rowModel, newDataSorted)) {
         /// case 3 - DELETE
         changeType = ChangeTypes.delete;
       }
 
       /// roll over rowState
       /// only time there is existing state is if an old row exists
-      if (oldDataRow != null) {
+      if (oldDataRow != null && newDataRow != null) {
         if (changeType == ChangeTypes.update) {
           newDataRow.checked = oldDataRow.checked;
           newDataRow.hovered = oldDataRow.hovered;
@@ -949,27 +944,59 @@ class TableBloc<T extends IUniqueIdentifier> {
             tableState!.uiHoveredRow = newDataPos;
             tableState!.hoveredRowState = newDataRow;
           }
-        } else if (changeType == ChangeTypes.delete &&
-            tableState!.checkedRowCount != 0) {
-          tableState!.checkedRowCount--;
         }
+      } else if (oldDataRow != null &&
+          changeType == ChangeTypes.delete &&
+          oldDataRow.checked == true) {
+        tableState!.checkedRowCount--;
       }
 
       /// *********************** commence rendering data **********************
+      // old or new data must exist for it to be possible to render a row
 
-      /// update the old ui position
-      if (oldDataRow == oldUiRow) {
+      /// ensure new render rows are made available for dataset
+      if (newDataPos + deleted >= uiRows.length) {
+        /// case 1 - no row available
+        RowState<T> rowState = RowState(
+          rowModel: null,
+          cellStates: Map<int, CellState>(),
+        );
+        UiRow<T> uiRow = _createUiRow(rowState);
+        uiRows.add(uiRow);
+      }
+
+      /// case 2 - row available... do nothing
+
+      // current old data row was rendered in the ui
+      if (oldDataRow != null &&
+          oldDataRow == oldUiRow &&
+          changeType != ChangeTypes.duplicate &&
+          changeType != ChangeTypes.add) {
+        /// update old ui position to check in next loop
         oldUiPos++;
       }
 
-      if (changeType == ChangeTypes.delete && oldDataRow == oldUiRow) {
-        /// case 1 - rendering a deleted row
-        _renderRowChanges(uiRows, uiPos, newDataRow, oldDataRow, changeType);
+      /// handle all render cases
+      if (changeType == ChangeTypes.delete) {
+        if (oldDataRow == oldUiRow) {
+          /// case 1 - rendering a deleted row
+          _renderRowChanges(uiRows, uiPos, newDataRow, oldDataRow, changeType);
 
-        /// track that a deleted row has been rendered
-        uiDeleted++;
-      } else if (newDataRow == newUiRow) {
-        /// case 2 - rendering a added or updated row
+          /// track that a deleted row has been rendered
+          uiDeleted++;
+        }
+      } else if (newDataRow != null &&
+          newDataRow == newUiRow &&
+          changeType == ChangeTypes.duplicate) {
+        /// case 2 - rendering a duplicate row
+        if (newUiPos < uiRenderLimit) {
+          _renderRowChanges(uiRows, uiPos, newDataRow, oldDataRow, changeType);
+        }
+
+        /// track that that a duplicated row has been rendered
+        uiDuplicates++;
+      } else if (newDataRow != null && newDataRow == newUiRow) {
+        /// case 3 - rendering a added or updated row
         /// data within render criteria
         if (newUiPos < uiRenderLimit) {
           _renderRowChanges(uiRows, uiPos, newDataRow, oldDataRow, changeType);
@@ -979,6 +1006,8 @@ class TableBloc<T extends IUniqueIdentifier> {
         newUiPos++;
       }
 
+      /// *********************** end rendering data **********************
+
       /// update position details
       if (changeType == ChangeTypes.add) {
         added++;
@@ -986,6 +1015,23 @@ class TableBloc<T extends IUniqueIdentifier> {
         deleted++;
         // repeat comparison for current row
         newDataPos--;
+      } else if (changeType == ChangeTypes.duplicate) {
+        duplicates++;
+      }
+
+      /// Check for loop end conditions
+      /// must look at every row in the new and old data set to determine what
+      /// render case should be applied for each item.
+      /// note: >= used to prevent infinite loops when lists are of different
+      /// lengths
+      // case 1 - all newData has been assessed
+      bool allNewDataCompared = newDataPos >= newDataSorted.length - 1;
+      // case 2 - all oldData has been assessed
+      bool allOldDataCompared = oldDataPos >= oldDataSorted.length - 1;
+
+      if (allNewDataCompared && !allOldDataCompared) {
+        /// repeat until all old data has been assessed
+        excessOldData++;
       }
     }
 
@@ -1052,7 +1098,7 @@ class TableBloc<T extends IUniqueIdentifier> {
   // UiRow? _findUIRow(T rowModel) {
   //   return tableState!.uiRows.firstWhere(
   //     (element) {
-  //       return element.rowState.rowModel?.uid == rowModel.uid;
+  //       return element.rowState.rowModel?.id == rowModel.id;
   //     },
   //   );
   // }

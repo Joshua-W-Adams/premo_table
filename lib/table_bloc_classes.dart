@@ -8,7 +8,7 @@ abstract class IUniqueIdentifier {
   IUniqueIdentifier({required this.id});
 }
 
-enum ChangeTypes { update, add, delete }
+enum ChangeTypes { update, add, delete, duplicate }
 
 class CellState {
   /// user selected row

@@ -259,6 +259,12 @@ class TestCases extends StatelessWidget {
         test: mockDataService.multiUpdateAddDelete,
       ),
     );
+    testCases.add(
+      TextCase(
+        name: '>1 dups',
+        test: mockDataService.duplicates,
+      ),
+    );
 
     return Padding(
       padding: const EdgeInsets.all(8.0),

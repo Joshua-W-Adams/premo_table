@@ -90,11 +90,14 @@ class _CellAnimationsState extends State<CellAnimations>
     } else if (cellBlocState.changeType == ChangeTypes.delete) {
       /// case 3 - deleted row
       return Colors.red;
+    } else if (cellBlocState.changeType == ChangeTypes.duplicate) {
+      /// case 3 - deleted row
+      return Colors.red[900];
     } else if (cellBlocState.requestSucceeded == true) {
-      /// case 4 - client/user change passed
+      /// case 5 - client/user change passed
       return Colors.green;
     } else if (cellBlocState.requestSucceeded == false) {
-      /// case 5 - client/user change failed
+      /// case 6 - client/user change failed
       return Colors.red;
     }
 
@@ -124,7 +127,8 @@ class _CellAnimationsState extends State<CellAnimations>
 
   /// Tween for collapsing and expanding rows
   Animation<double>? _getSizeTween(CellBlocState cellBlocState) {
-    if (cellBlocState.changeType == ChangeTypes.add) {
+    if (cellBlocState.changeType == ChangeTypes.add ||
+        cellBlocState.changeType == ChangeTypes.duplicate) {
       /// case 1 - newly added row
       return Tween<double>(
         begin: 0.0,
