@@ -357,20 +357,27 @@ class TableBloc<T extends IUniqueIdentifier> {
   /// true = ascending sort
   /// false = descending sort
   /// null = data left in original order
-  void _sort(List<RowState<T>> data) {
-    TableState state = tableState!;
-    int? sortColumnIndex = state.sortColumnIndex;
-    bool? isAscending = state.isAscending;
+  List<RowState<T>> _sort(List<RowState<T>> data) {
+    int? sortColumnIndex = tableState!.sortColumnIndex;
+    bool? isAscending = tableState!.isAscending;
 
     if (sortColumnIndex != null && isAscending != null && sortCompare != null) {
-      /// case 1 - user sort can applied
-      data.sort((a, b) {
+      /// case 1 - sort
+      // create new list to prevent loosing the sort order of the original data
+      List<RowState<T>> sortData = List.from(data);
+      sortData.sort((a, b) {
         return sortCompare!(
-            sortColumnIndex, isAscending, a.rowModel!, b.rowModel!);
+          sortColumnIndex,
+          isAscending,
+          a.rowModel!,
+          b.rowModel!,
+        );
       });
+      return sortData;
     }
 
-    /// case 2 - leave data in original sort
+    /// case 2 - no sort
+    return data;
   }
 
   List<RowState<T>> _filter(List<RowState<T>> data) {
@@ -422,7 +429,7 @@ class TableBloc<T extends IUniqueIdentifier> {
 
   void _setViewableData() {
     /// update sort state if applicable
-    _sort(tableState!.sortedDataCache);
+    tableState!.sortedDataCache = _sort(tableState!.dataCache);
 
     /// apply filters to data, returns a new list if filters are applied and
     /// a list reference if no filters are applied.
@@ -820,8 +827,11 @@ class TableBloc<T extends IUniqueIdentifier> {
 
     /// copy of newData required so existing ui sorts can be applied without
     /// effecting the original sort order
-    List<RowState<T>> newDataSorted = List.from(newData);
-    List<RowState<T>> newUiData = newDataSorted;
+    /// sync ui data arrangement with newData (apply filters and sort)
+    List<RowState<T>> newDataSorted = _sort(newData);
+    // filter will return a new list if a filter is applied and a list reference
+    // if no filter is applied
+    List<RowState<T>> newUiData = _filter(newDataSorted);
 
     /// data references used in comparison
     // List<RowState<T>> oldData = tableState!.dataCache;
@@ -845,12 +855,6 @@ class TableBloc<T extends IUniqueIdentifier> {
     /// required for detecting when new or deleted rows should be rendered
     int rowsAvailableForRender = uiRows.length;
     int oldCheckedRowCount = tableState!.checkedRowCount;
-
-    /// sync ui data arrangement with newData (apply filters and sort)
-    _sort(newDataSorted);
-    // filter will return a new list if a filter is applied and a list reference
-    // if no filter is applied
-    newUiData = _filter(newDataSorted);
 
     /// *********************** commence data comparison ***********************
     /// compare all underlying data so all state is rolled over and new

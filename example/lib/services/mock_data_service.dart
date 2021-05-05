@@ -295,14 +295,6 @@ class MockDataService {
 
   void multiUpdateAddDelete() {
     _releaseTestCase((data) {
-      /// duplicate extents
-      int lastIndex = data.length - 1;
-      data.add(
-        _getRow(templateIndex: lastIndex, newId: lastIndex.toDouble() + 1),
-      );
-      data.insert(0, _getRow(templateIndex: 0, newId: 1));
-      data.insert(3, _getRow(templateIndex: 3, newId: 4));
-
       /// add at extents
       data.insert(0, _getRow(templateIndex: 0, newId: 0));
       data.insert(3, _getRow(templateIndex: 0, newId: 3.5));

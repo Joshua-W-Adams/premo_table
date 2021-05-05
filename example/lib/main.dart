@@ -142,7 +142,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        /// only run deselect in empty space
+        /// only run deselect in empty space . i.e. when to persist select for
+        /// all test case runs
         GestureDetector(
           /// deselection of table fired on all child widgets
           onTap: () {
