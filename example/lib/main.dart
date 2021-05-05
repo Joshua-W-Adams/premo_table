@@ -310,30 +310,31 @@ class TestCases extends StatelessWidget {
         test: mockDataService.multiDelete,
       ),
     );
-    testCases.add(
-      TextCase(
-        name: 'duplicateFirst',
-        test: mockDataService.duplicateFirst,
-      ),
-    );
-    testCases.add(
-      TextCase(
-        name: 'duplicateMiddle',
-        test: mockDataService.duplicateMiddle,
-      ),
-    );
-    testCases.add(
-      TextCase(
-        name: 'duplicateLast',
-        test: mockDataService.duplicateLast,
-      ),
-    );
-    testCases.add(
-      TextCase(
-        name: 'multiDuplicate',
-        test: mockDataService.multiDuplicate,
-      ),
-    );
+    // test cases not required - not occuring in practice
+    // testCases.add(
+    //   TextCase(
+    //     name: 'duplicateFirst',
+    //     test: mockDataService.duplicateFirst,
+    //   ),
+    // );
+    // testCases.add(
+    //   TextCase(
+    //     name: 'duplicateMiddle',
+    //     test: mockDataService.duplicateMiddle,
+    //   ),
+    // );
+    // testCases.add(
+    //   TextCase(
+    //     name: 'duplicateLast',
+    //     test: mockDataService.duplicateLast,
+    //   ),
+    // );
+    // testCases.add(
+    //   TextCase(
+    //     name: 'multiDuplicate',
+    //     test: mockDataService.multiDuplicate,
+    //   ),
+    // );
     testCases.add(
       TextCase(
         name: 'shuffledData',
