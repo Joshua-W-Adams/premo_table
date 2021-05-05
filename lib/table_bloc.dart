@@ -709,22 +709,28 @@ class TableBloc<T extends IUniqueIdentifier> {
     hover(null, null);
   }
 
+  void _updateCheckCount(bool oldChecked, bool newChecked) {
+    /// track checked status
+    if (oldChecked == false && newChecked == true) {
+      tableState!.checkedRowCount++;
+    } else if (oldChecked == true && newChecked == false) {
+      tableState!.checkedRowCount--;
+    }
+  }
+
   void check(int row, bool newChecked) {
     /// get element in ui
     TableState<T> state = tableState!;
     UiRow<T> uiRow = state.uiRows[row];
     RowState<T> rowState = uiRow.rowState;
     bool oldChecked = rowState.checked;
-    if (oldChecked != newChecked) {
+    if (oldChecked != newChecked && rowState.rowModel != null) {
+      bool oldChecked = rowState.checked;
+
+      _updateCheckCount(oldChecked, newChecked);
+
       /// update state
       rowState.checked = newChecked;
-
-      /// track checked status
-      if (newChecked == true) {
-        state.checkedRowCount++;
-      } else {
-        state.checkedRowCount--;
-      }
 
       /// update ui elements
       _informCheckedStatus(uiRow, newChecked);
@@ -743,6 +749,7 @@ class TableBloc<T extends IUniqueIdentifier> {
     List<RowState<T>> rows = tableState!.dataCache;
     for (var r = 0; r < rows.length; r++) {
       RowState<T> row = rows[r];
+      _updateCheckCount(row.checked, newChecked);
       row.checked = newChecked;
     }
 
