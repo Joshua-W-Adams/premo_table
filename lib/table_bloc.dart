@@ -1026,7 +1026,9 @@ class TableBloc<T extends IUniqueIdentifier> {
     /// render remaining rows not included in above render e.g. filtered out data
     /// ensures for case where data has been deleted and rendered. Then refreshed
     /// that the old row positions including the delete count are cleaned up.
-    for (var i = uiPos + 1; i < uiRows.length; i++) {
+    /// only clean from uiPos + 1 if rendering occured above.
+    int rowsToClean = uiPos == 0 ? 0 : uiPos + 1;
+    for (var i = rowsToClean; i < uiRows.length; i++) {
       _renderRow(null, null, uiRows[i], null, false);
     }
 
