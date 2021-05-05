@@ -213,13 +213,25 @@ class MockDataService {
   }
 
   void _duplicates(List<RowState<SampleDataModel>> data) {
-    data.insert(0, _getRow(0, 0));
-    data.insert(0, _getRow(0, 0));
+    data.insert(0, _getRow(0, 1));
+    data.insert(0, _getRow(0, 1));
   }
 
   void duplicates() {
     List<RowState<SampleDataModel>> data = _getData();
     _duplicates(data);
+    _controller.sink.add(data);
+  }
+
+  void _excessOldData(List<RowState<SampleDataModel>> data) {
+    data.removeLast();
+    data.removeLast();
+    data.removeLast();
+  }
+
+  void excessOldData() {
+    List<RowState<SampleDataModel>> data = _getData();
+    _excessOldData(data);
     _controller.sink.add(data);
   }
 

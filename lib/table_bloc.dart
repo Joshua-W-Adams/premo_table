@@ -868,8 +868,6 @@ class TableBloc<T extends IUniqueIdentifier> {
     int uiPos = 0;
     // count of rows deleted from the ui
     int uiDeleted = 0;
-    // count of duplicate rows rendered in ui
-    int uiDuplicates = 0;
     // count of rows in old data that exceed the newData length
     int excessOldData = 0;
 
@@ -883,7 +881,7 @@ class TableBloc<T extends IUniqueIdentifier> {
 
       // update ui position
       // duplicates and adds are rendered in the newUiPos parameter
-      uiPos = newUiPos + uiDeleted + uiDuplicates;
+      uiPos = newUiPos + uiDeleted;
 
       /// get rows to compare
       RowState<T>? newDataRow =
@@ -985,16 +983,6 @@ class TableBloc<T extends IUniqueIdentifier> {
           /// track that a deleted row has been rendered
           uiDeleted++;
         }
-      } else if (newDataRow != null &&
-          newDataRow == newUiRow &&
-          changeType == ChangeTypes.duplicate) {
-        /// case 2 - rendering a duplicate row
-        if (newUiPos < uiRenderLimit) {
-          _renderRowChanges(uiRows, uiPos, newDataRow, oldDataRow, changeType);
-        }
-
-        /// track that that a duplicated row has been rendered
-        uiDuplicates++;
       } else if (newDataRow != null && newDataRow == newUiRow) {
         /// case 3 - rendering a added or updated row
         /// data within render criteria

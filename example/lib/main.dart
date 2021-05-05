@@ -265,6 +265,12 @@ class TestCases extends StatelessWidget {
         test: mockDataService.duplicates,
       ),
     );
+    testCases.add(
+      TextCase(
+        name: 'excess old',
+        test: mockDataService.excessOldData,
+      ),
+    );
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
