@@ -440,7 +440,7 @@ class TableBloc<T extends IUniqueIdentifier> {
       return false;
     }
     return array.any((element) {
-      return element.rowModel?.uid == row.uid;
+      return element.rowModel?.id == row.id;
     });
   }
 
@@ -923,6 +923,11 @@ class TableBloc<T extends IUniqueIdentifier> {
 
       /// roll over rowState
       /// only time there is existing state is if an old row exists
+      if (oldDataRow != null &&
+          changeType == ChangeTypes.delete &&
+          oldDataRow.checked == true) {
+        tableState!.checkedRowCount--;
+      }
       if (oldDataRow != null && newDataRow != null) {
         if (changeType == ChangeTypes.update) {
           newDataRow.checked = oldDataRow.checked;
@@ -933,20 +938,16 @@ class TableBloc<T extends IUniqueIdentifier> {
 
           if (newDataRow.selected == true) {
             /// update selected row references
-            tableState!.uiSelectedRow = newDataPos;
+            tableState!.uiSelectedRow = uiPos;
             tableState!.selectedRowState = newDataRow;
           }
 
           if (newDataRow.hovered == true) {
             /// update hovered row references
-            tableState!.uiHoveredRow = newDataPos;
+            tableState!.uiHoveredRow = uiPos;
             tableState!.hoveredRowState = newDataRow;
           }
         }
-      } else if (oldDataRow != null &&
-          changeType == ChangeTypes.delete &&
-          oldDataRow.checked == true) {
-        tableState!.checkedRowCount--;
       }
 
       /// *********************** commence rendering data **********************
@@ -1026,9 +1027,7 @@ class TableBloc<T extends IUniqueIdentifier> {
     /// render remaining rows not included in above render e.g. filtered out data
     /// ensures for case where data has been deleted and rendered. Then refreshed
     /// that the old row positions including the delete count are cleaned up.
-    /// only clean from uiPos + 1 if rendering occured above.
-    int rowsToClean = uiPos == 0 ? 0 : uiPos + 1;
-    for (var i = rowsToClean; i < uiRows.length; i++) {
+    for (var i = newUiPos + uiDeleted; i < uiRows.length; i++) {
       _renderRow(null, null, uiRows[i], null, false);
     }
 
