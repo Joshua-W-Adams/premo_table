@@ -235,40 +235,122 @@ class TestCases extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<TextCase> testCases = [];
+
     testCases.add(
       TextCase(
-        name: '>1 update',
+        name: 'addFirst',
+        test: mockDataService.addFirst,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'addMiddle',
+        test: mockDataService.addMiddle,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'addLast',
+        test: mockDataService.addLast,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'multiAdd',
+        test: mockDataService.multiAdd,
+      ),
+    );
+
+    testCases.add(
+      TextCase(
+        name: 'updateFirst',
+        test: mockDataService.updateFirst,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'updateMiddle',
+        test: mockDataService.updateMiddle,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'updateLast',
+        test: mockDataService.updateLast,
+      ),
+    );
+
+    testCases.add(
+      TextCase(
+        name: 'multiUpdate',
         test: mockDataService.multiUpdate,
       ),
     );
     testCases.add(
       TextCase(
-        name: '>1 add',
-        test: mockDataService.multiAdd,
+        name: 'randomUpdate',
+        test: mockDataService.randomUpdate,
       ),
     );
     testCases.add(
       TextCase(
-        name: '>1 delete',
+        name: 'deleteFirst',
+        test: mockDataService.deleteFirst,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'deleteMiddle',
+        test: mockDataService.deleteMiddle,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'deleteLast',
+        test: mockDataService.deleteLast,
+      ),
+    );
+
+    testCases.add(
+      TextCase(
+        name: 'multiDelete',
         test: mockDataService.multiDelete,
       ),
     );
     testCases.add(
       TextCase(
-        name: '>1 u a d',
+        name: 'duplicateFirst',
+        test: mockDataService.duplicateFirst,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'duplicateMiddle',
+        test: mockDataService.duplicateMiddle,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'duplicateLast',
+        test: mockDataService.duplicateLast,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'multiDuplicate',
+        test: mockDataService.multiDuplicate,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'shuffledData',
+        test: mockDataService.shuffledData,
+      ),
+    );
+    testCases.add(
+      TextCase(
+        name: 'multiUAD',
         test: mockDataService.multiUpdateAddDelete,
-      ),
-    );
-    testCases.add(
-      TextCase(
-        name: '>1 dups',
-        test: mockDataService.duplicates,
-      ),
-    );
-    testCases.add(
-      TextCase(
-        name: 'excess old',
-        test: mockDataService.excessOldData,
       ),
     );
 
@@ -288,7 +370,7 @@ class TestCases extends StatelessWidget {
                   text: testCase.name,
                   icon: Icon(Icons.play_arrow),
                   onPressed: testCase.test,
-                  width: 125.0,
+                  width: 150.0,
                 );
               }),
             ),

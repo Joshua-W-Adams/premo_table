@@ -124,12 +124,15 @@ class MockDataService {
     ),
   ];
 
-  RowState<SampleDataModel> _getRow(int pos, int id) {
+  RowState<SampleDataModel> _getRow({
+    required int templateIndex,
+    required int newId,
+  }) {
     /// create data model
-    SampleDataModel record = SampleDataModel.clone(dataTemplate[pos]);
+    SampleDataModel record = SampleDataModel.clone(dataTemplate[templateIndex]);
 
     /// update id
-    record.id = id.toString();
+    record.id = newId.toString();
 
     /// create row to load into table
     return RowState<SampleDataModel>(
@@ -143,10 +146,22 @@ class MockDataService {
     for (var i = 0; i < rowCount; i++) {
       int pos = i % 10;
       data.add(
-        _getRow(pos, i + 1),
+        _getRow(templateIndex: pos, newId: i + 1),
       );
     }
     return data;
+  }
+
+  void _releaseTestCase(
+      Function(List<RowState<SampleDataModel>> data) changes) {
+    /// create a new dataset
+    List<RowState<SampleDataModel>> data = _getData();
+
+    /// perform specific changes
+    changes(data);
+
+    /// release on stream
+    _controller.sink.add(data);
   }
 
   /// ******************************* Public API *******************************
@@ -155,84 +170,154 @@ class MockDataService {
   /// All test cases for external data updates
   ///
 
-  void shuffledData() {
-    List<RowState<SampleDataModel>> data = _getData();
-    data.shuffle();
-    _controller.sink.add(data);
+  void addFirst() {
+    _releaseTestCase((data) {
+      data.insert(0, _getRow(templateIndex: 0, newId: data.length + 1));
+    });
   }
 
-  void randomUpdate() {
-    List<RowState<SampleDataModel>> data = _getData();
-    int randomPosition = _rnd.nextInt(data.length - 1);
-    data[randomPosition].rowModel!.name = getRandomString(5);
-    _controller.sink.add(data);
+  void addMiddle() {
+    _releaseTestCase((data) {
+      data.insert(3, _getRow(templateIndex: 0, newId: data.length + 1));
+    });
   }
 
-  void _multiUpdate(List<RowState<SampleDataModel>> data) {
-    data[0].rowModel!.name = getRandomString(5);
-    data[3].rowModel!.name = getRandomString(5);
-    data[5].rowModel!.name = getRandomString(5);
-    data[7].rowModel!.name = getRandomString(5);
-  }
-
-  void multiUpdate() {
-    List<RowState<SampleDataModel>> data = _getData();
-    _multiUpdate(data);
-    _controller.sink.add(data);
-  }
-
-  void _multiAdd(List<RowState<SampleDataModel>> data) {
-    data.insert(3, _getRow(0, data.length + 1));
-    data.insert(data.length, _getRow(0, data.length + 1));
+  void addLast() {
+    _releaseTestCase((data) {
+      data.add(_getRow(templateIndex: 0, newId: data.length + 1));
+    });
   }
 
   void multiAdd() {
-    List<RowState<SampleDataModel>> data = _getData();
-    _multiAdd(data);
-    _controller.sink.add(data);
+    _releaseTestCase((data) {
+      data.insert(0, _getRow(templateIndex: 0, newId: data.length + 1));
+      data.insert(3, _getRow(templateIndex: 0, newId: data.length + 1));
+      data.add(_getRow(templateIndex: 0, newId: data.length + 1));
+    });
   }
 
-  void _multiDelete(List<RowState<SampleDataModel>> data) {
-    data.removeAt(0);
-    data.removeAt(3);
-    data.removeLast();
+  void updateFirst() {
+    _releaseTestCase((data) {
+      data[0].rowModel!.name = getRandomString(5);
+    });
+  }
+
+  void updateMiddle() {
+    _releaseTestCase((data) {
+      data[3].rowModel!.name = getRandomString(5);
+    });
+  }
+
+  void updateLast() {
+    _releaseTestCase((data) {
+      data[data.length - 1].rowModel!.name = getRandomString(5);
+    });
+  }
+
+  void multiUpdate() {
+    _releaseTestCase((data) {
+      data[0].rowModel!.name = getRandomString(5);
+      data[3].rowModel!.name = getRandomString(5);
+      data[data.length - 1].rowModel!.name = getRandomString(5);
+    });
+  }
+
+  void randomUpdate() {
+    _releaseTestCase((data) {
+      int randomPosition = _rnd.nextInt(data.length - 1);
+      data[randomPosition].rowModel!.name = getRandomString(5);
+    });
+  }
+
+  void deleteFirst() {
+    _releaseTestCase((data) {
+      data.removeAt(0);
+    });
+  }
+
+  void deleteMiddle() {
+    _releaseTestCase((data) {
+      data.removeAt(3);
+    });
+  }
+
+  void deleteLast() {
+    _releaseTestCase((data) {
+      data.removeLast();
+    });
   }
 
   void multiDelete() {
-    List<RowState<SampleDataModel>> data = _getData();
-    _multiDelete(data);
-    _controller.sink.add(data);
+    _releaseTestCase((data) {
+      data.removeAt(0);
+      data.removeAt(3);
+      data.removeLast();
+    });
+  }
+
+  void duplicateFirst() {
+    _releaseTestCase((data) {
+      data.insert(0, _getRow(templateIndex: 0, newId: 0));
+    });
+  }
+
+  void duplicateMiddle() {
+    _releaseTestCase((data) {
+      data.insert(3, _getRow(templateIndex: 3, newId: 3));
+    });
+  }
+
+  void duplicateLast() {
+    _releaseTestCase((data) {
+      int lastIndex = data.length - 1;
+      data.add(
+        _getRow(templateIndex: lastIndex, newId: lastIndex),
+      );
+    });
+  }
+
+  void multiDuplicate() {
+    _releaseTestCase((data) {
+      int lastIndex = data.length - 1;
+      data.insert(
+        lastIndex,
+        _getRow(templateIndex: lastIndex, newId: lastIndex),
+      );
+      data.insert(0, _getRow(templateIndex: 0, newId: 0));
+      data.insert(3, _getRow(templateIndex: 3, newId: 3));
+    });
+  }
+
+  void shuffledData() {
+    _releaseTestCase((data) {
+      data.shuffle();
+    });
   }
 
   void multiUpdateAddDelete() {
-    List<RowState<SampleDataModel>> data = _getData();
-    _multiDelete(data);
-    _multiAdd(data);
-    _multiUpdate(data);
-    _controller.sink.add(data);
-  }
+    _releaseTestCase((data) {
+      /// duplicate extents
+      int lastIndex = data.length - 1;
+      data.insert(
+        lastIndex,
+        _getRow(templateIndex: lastIndex, newId: lastIndex),
+      );
+      data.insert(0, _getRow(templateIndex: 0, newId: 0));
+      data.insert(3, _getRow(templateIndex: 3, newId: 3));
 
-  void _duplicates(List<RowState<SampleDataModel>> data) {
-    data.insert(0, _getRow(0, 1));
-    data.insert(0, _getRow(0, 1));
-  }
+      /// add at extents
+      data.insert(0, _getRow(templateIndex: 0, newId: data.length + 1));
+      data.insert(3, _getRow(templateIndex: 0, newId: data.length + 1));
+      data.add(_getRow(templateIndex: 0, newId: data.length + 1));
 
-  void duplicates() {
-    List<RowState<SampleDataModel>> data = _getData();
-    _duplicates(data);
-    _controller.sink.add(data);
-  }
+      /// update extents
+      data[0].rowModel!.name = getRandomString(5);
+      data[3].rowModel!.name = getRandomString(5);
+      data[data.length - 1].rowModel!.name = getRandomString(5);
 
-  void _excessOldData(List<RowState<SampleDataModel>> data) {
-    data.removeLast();
-    data.removeLast();
-    data.removeLast();
-  }
-
-  void excessOldData() {
-    List<RowState<SampleDataModel>> data = _getData();
-    _excessOldData(data);
-    _controller.sink.add(data);
+      /// remove a row
+      data.removeAt(3);
+    });
   }
 
   void dispose() {
