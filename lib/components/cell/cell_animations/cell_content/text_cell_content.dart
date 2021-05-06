@@ -101,6 +101,14 @@ class _TextCellContentState extends State<TextCellContent> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(TextCellContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_focusNode.hasFocus && widget.cellBlocState.selected == false) {
+      FocusScope.of(context).unfocus();
+    }
+  }
+
   String _setValueFormat(String? value) {
     if (widget.inputParser != null) {
       return widget.inputParser!(value) ?? '';
