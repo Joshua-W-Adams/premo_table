@@ -113,24 +113,30 @@ class CellBloc<T> {
     }
   }
 
+  void _clearChangeType() {
+    /// clear changeType state to prevent server animations running
+    state.changeType = null;
+    _controller.sink.add(state);
+  }
+
   void setSelected(bool selected) {
     if (state.selected != selected) {
       state.selected = selected;
-      _controller.sink.add(state);
+      _clearChangeType();
     }
   }
 
   void setRowSelected(bool rowSelected) {
     if (state.rowSelected != rowSelected) {
       state.rowSelected = rowSelected;
-      _controller.sink.add(state);
+      _clearChangeType();
     }
   }
 
   void setColSelected(bool colSelected) {
     if (state.colSelected != colSelected) {
       state.colSelected = colSelected;
-      _controller.sink.add(state);
+      _clearChangeType();
     }
   }
 
@@ -139,7 +145,7 @@ class CellBloc<T> {
     /// unnecessary cell rebuild and the user loosing current edits in the
     /// selected cell.
     if (state.selected != true) {
-      _controller.sink.add(state);
+      _clearChangeType();
     }
   }
 
