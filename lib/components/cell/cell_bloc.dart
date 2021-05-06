@@ -134,31 +134,40 @@ class CellBloc<T> {
     }
   }
 
+  void _checkSelectionStatus() {
+    /// never rebuild a selected cell on the hover event to prevent an
+    /// unnecessary cell rebuild and the user loosing current edits in the
+    /// selected cell.
+    if (state.selected != true) {
+      _controller.sink.add(state);
+    }
+  }
+
   void setHovered(bool hovered) {
     if (state.hovered != hovered) {
       state.hovered = hovered;
-      _controller.sink.add(state);
+      _checkSelectionStatus();
     }
   }
 
   void setRowHovered(bool rowHovered) {
     if (state.rowHovered != rowHovered) {
       state.rowHovered = rowHovered;
-      _controller.sink.add(state);
+      _checkSelectionStatus();
     }
   }
 
   void setColHovered(bool colHovered) {
     if (state.colHovered != colHovered) {
       state.colHovered = colHovered;
-      _controller.sink.add(state);
+      _checkSelectionStatus();
     }
   }
 
   void setRowChecked(bool? rowChecked) {
     if (state.rowChecked != rowChecked) {
       state.rowChecked = rowChecked;
-      _controller.sink.add(state);
+      _checkSelectionStatus();
     }
   }
 

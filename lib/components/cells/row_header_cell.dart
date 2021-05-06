@@ -53,7 +53,6 @@ class RowHeaderCell extends StatelessWidget {
         return Checkbox(
           value: uiRow.rowState.checked,
           onChanged: (newValue) {
-            tableBloc.deselect();
             tableBloc.check(uiRowIndex, newValue ?? false);
           },
         );

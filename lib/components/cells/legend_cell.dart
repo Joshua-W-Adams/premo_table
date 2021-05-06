@@ -46,7 +46,6 @@ class LegendCell extends StatelessWidget {
           /// display a dash in the checkbox when the value is null
           tristate: true,
           onChanged: (newValue) {
-            tableBloc.deselect();
             tableBloc.checkAll(newValue ?? false);
           },
         );
