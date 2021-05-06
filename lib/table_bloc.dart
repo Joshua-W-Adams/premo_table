@@ -524,7 +524,11 @@ class TableBloc<T extends IUniqueIdentifier> {
       uiRowHeaderState = _getRowHeaderCellBlocState(rowToRender, rowChangeType);
     } else {
       /// case 2 - data does not exist for render location
-      uiRowHeaderState = CellBlocState(value: null, changeType: rowChangeType);
+      uiRowHeaderState = CellBlocState(
+        value: null,
+        visible: false,
+        changeType: rowChangeType,
+      );
     }
 
     /// render new rowheader state
@@ -549,7 +553,11 @@ class TableBloc<T extends IUniqueIdentifier> {
         uiCellState = _getCellBlocState(newRenderRow, col, rowChangeType);
       } else {
         /// case 2 - data does not exist for render location
-        uiCellState = CellBlocState(value: null, changeType: rowChangeType);
+        uiCellState = CellBlocState(
+          value: null,
+          visible: false,
+          changeType: rowChangeType,
+        );
       }
 
       if (informCellUpdates && newRenderRow != null && oldRenderRow != null) {
