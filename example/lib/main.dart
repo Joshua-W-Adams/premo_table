@@ -123,7 +123,7 @@ class _HomePageState extends State<HomePage> {
         } else if (col == 3) {
           item.enabled = (value.toLowerCase() == 'true');
         } else if (col == 4) {
-          item.dateOfBirth = DateTime.parse(value);
+          item.dateOfBirth = DateTime.tryParse(value);
         } else if (col == 5) {
           item.city = value;
         } else if (col == 6) {

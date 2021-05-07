@@ -1128,7 +1128,7 @@ class TableBloc<T extends IUniqueIdentifier> {
         /// case 1 - async request performed successfully
         /// update state
         cellState.requestPending = false;
-        cellState.requestSucceeded = true;
+        // cellState.requestSucceeded = true;
 
         /// release details on stream
         /// N/A - updated cell recieved in new table data stream event
@@ -1136,7 +1136,7 @@ class TableBloc<T extends IUniqueIdentifier> {
         /// case 1 - error in async request
         /// update state
         cellState.requestPending = false;
-        cellState.requestSucceeded = false;
+        // cellState.requestSucceeded = false;
 
         /// inform user of failed update
         // print(e.toString());

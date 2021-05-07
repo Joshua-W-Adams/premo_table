@@ -113,30 +113,35 @@ class CellBloc<T> {
     }
   }
 
-  void _clearChangeType() {
+  void _clearAnimationState() {
     /// clear changeType state to prevent server animations running
     state.changeType = null;
-    _controller.sink.add(state);
+    state.requestSucceeded = null;
   }
 
   void setSelected(bool selected) {
+    _clearAnimationState();
     if (state.selected != selected) {
       state.selected = selected;
-      _clearChangeType();
+      _controller.sink.add(state);
     }
   }
 
   void setRowSelected(bool rowSelected) {
+    _clearAnimationState();
     if (state.rowSelected != rowSelected) {
       state.rowSelected = rowSelected;
-      _clearChangeType();
+
+      _controller.sink.add(state);
     }
   }
 
   void setColSelected(bool colSelected) {
+    _clearAnimationState();
     if (state.colSelected != colSelected) {
       state.colSelected = colSelected;
-      _clearChangeType();
+
+      _controller.sink.add(state);
     }
   }
 
@@ -145,11 +150,12 @@ class CellBloc<T> {
     /// unnecessary cell rebuild and the user loosing current edits in the
     /// selected cell.
     if (state.selected != true) {
-      _clearChangeType();
+      _controller.sink.add(state);
     }
   }
 
   void setHovered(bool hovered) {
+    _clearAnimationState();
     if (state.hovered != hovered) {
       state.hovered = hovered;
       _checkSelectionStatus();
@@ -157,6 +163,7 @@ class CellBloc<T> {
   }
 
   void setRowHovered(bool rowHovered) {
+    _clearAnimationState();
     if (state.rowHovered != rowHovered) {
       state.rowHovered = rowHovered;
       _checkSelectionStatus();
@@ -164,6 +171,7 @@ class CellBloc<T> {
   }
 
   void setColHovered(bool colHovered) {
+    _clearAnimationState();
     if (state.colHovered != colHovered) {
       state.colHovered = colHovered;
       _checkSelectionStatus();
@@ -171,6 +179,7 @@ class CellBloc<T> {
   }
 
   void setRowChecked(bool? rowChecked) {
+    _clearAnimationState();
     if (state.rowChecked != rowChecked) {
       state.rowChecked = rowChecked;
       _checkSelectionStatus();

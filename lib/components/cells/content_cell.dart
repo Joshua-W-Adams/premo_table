@@ -116,17 +116,15 @@ class ContentCell extends StatelessWidget {
             /// On focus lost fired when the user clicks out of the text cell
             /// or completes editing / submits value
             onFocusLost: (newValue) {
-              /// TODO - test that change only processed if the focus wasn't
-              /// lost due to a server modification
-              if (cellBlocState.changeType == null) {
-                if (uiRow.rowState.rowModel != null) {
-                  tableBloc.update(
-                    uiRow,
-                    uiColumnIndex,
-                    newValue,
-                    cellBloc.state.value,
-                  );
-                }
+              /// server modifications never loose focus so checking the change
+              /// state is not required.
+              if (uiRow.rowState.rowModel != null) {
+                tableBloc.update(
+                  uiRow,
+                  uiColumnIndex,
+                  newValue,
+                  cellBloc.state.value,
+                );
               }
             },
           );
