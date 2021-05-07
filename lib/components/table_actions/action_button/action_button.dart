@@ -54,7 +54,7 @@ class _ActionButtonState extends State<ActionButton> {
           children: [
             if (widget.icon != null) ...[
               widget.icon!,
-              SizedBox(width: 8.0),
+              SizedBox(width: 4.0),
             ],
             Expanded(
               child: Text(
@@ -62,15 +62,15 @@ class _ActionButtonState extends State<ActionButton> {
                 textAlign: TextAlign.center,
               ),
             ),
-            if (_requestProcessing == true) ...[
-              SizedBox(
-                height: 15,
-                width: 15,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.0,
-                ),
-              ),
-            ]
+            SizedBox(
+              height: 15,
+              width: 15,
+              child: _requestProcessing == true
+                  ? CircularProgressIndicator(
+                      strokeWidth: 2.0,
+                    )
+                  : Container(),
+            ),
           ],
         ),
       ),
