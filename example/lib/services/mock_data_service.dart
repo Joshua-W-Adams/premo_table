@@ -328,7 +328,7 @@ class MockDataService {
     /// release on data stream after simulated server delay
     return Future.delayed(Duration(milliseconds: 5000), () {
       /// release on stream
-      _controller.sink.add(data);
+      _controller.sink.add(clone);
     });
   }
 
@@ -338,13 +338,15 @@ class MockDataService {
     });
   }
 
-  Future<void> delete(item, data) {
+  Future<void> delete(List<SampleDataModel> deletes, data) {
     return releaseClone(
       data: data,
       changes: (clone) {
         for (var i = 0; i < clone.length; i++) {
-          if (clone[i].rowModel!.id == item.id) {
-            clone.remove(clone[i]);
+          for (var d = 0; d < deletes.length; d++) {
+            if (clone[i].rowModel!.id == deletes[d].id) {
+              clone.remove(clone[i]);
+            }
           }
         }
       },

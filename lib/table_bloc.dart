@@ -38,7 +38,7 @@ class TableBloc<T extends IUniqueIdentifier> {
   final Future<void> Function()? onAdd;
 
   /// delete function to run whenever a row is deleted
-  final Future<void> Function(T rowModel)? onDelete;
+  final Future<void> Function(List<T> rowModel)? onDelete;
 
   /// whether to release events when the cell, row or column selection changes
   final bool enableCellSelectionEvents;
@@ -773,6 +773,12 @@ class TableBloc<T extends IUniqueIdentifier> {
     _informLegendCheckedStatus();
   }
 
+  List<RowState<T>> getChecked() {
+    return tableState!.dataCache.where((e) {
+      return e.checked == true;
+    }).toList();
+  }
+
   bool? allRowsChecked() {
     if (tableState!.checkedRowCount == tableState!.dataCache.length) {
       /// case 1 - all checked
@@ -1156,46 +1162,67 @@ class TableBloc<T extends IUniqueIdentifier> {
 
   /// Not used. all add functionality with external server handled by provided
   /// onAdd callback.
-  void add() {
-    onAdd?.call();
+  Future<void>? add() {
+    return onAdd?.call();
   }
 
-  void delete(UiRow<T> uiRow) {
-    RowState<T> rowState = uiRow.rowState;
-    T rowModel = rowState.rowModel!;
-    bool requestPending = true;
-    for (var i = 0; i < columnNames.length; i++) {
-      if (rowState.cellStates[i] == null) {
-        // create cell state if doesnt exist
-        rowState.cellStates[i] = CellState();
-        requestPending = false;
-      } else {
-        if (rowState.cellStates[i]!.requestPending == false) {
+  Future<void>? delete(List<RowState<T>> rowStates) {
+    List<RowState<T>> deletesToProcess = [];
+
+    /// loop through all deletes
+    for (var r = 0; r < rowStates.length; r++) {
+      RowState<T> rowState = rowStates[r];
+
+      /// determine request pending state
+      bool requestPending = true;
+      for (var i = 0; i < columnNames.length; i++) {
+        if (rowState.cellStates[i] == null) {
+          // create cell state if doesnt exist
+          rowState.cellStates[i] = CellState();
           requestPending = false;
+        } else {
+          if (rowState.cellStates[i]!.requestPending == false) {
+            requestPending = false;
+          }
         }
       }
+
+      if (requestPending != true) {
+        /// case 1 - no pending updates
+
+        // update state
+        rowState.cellStates.forEach((key, value) {
+          value.requestPending = true;
+        });
+
+        // find ui element
+        UiRow<T>? uiRow;
+        for (var i = 0; i < tableState!.uiRows.length; i++) {
+          if (tableState!.uiRows[i].rowState == rowState) {
+            uiRow = tableState!.uiRows[i];
+          }
+        }
+        // release state to listeners
+        uiRow?.cellBlocs.forEach((element) {
+          element.setRequestInProgress(true);
+        });
+        // add as delete to process
+        deletesToProcess.add(rowState);
+      }
+
+      /// case 2 - pending updates against cell. Do nothing.
     }
-
-    /// check if there are any pending changes. Prevents the user issuing more
-    /// async requests while one is in progress
-    if (requestPending != true) {
-      /// case 1 - no pending updates
-
-      // update state
-      rowState.cellStates.forEach((key, value) {
-        value.requestPending = true;
-      });
-      // release state to listeners
-      uiRow.cellBlocs.forEach((element) {
-        element.setRequestInProgress(true);
-      });
-
+    if (deletesToProcess.length > 0) {
       /// perform request
-      onDelete?.call(rowModel).then((_) {
+      return onDelete
+          ?.call(deletesToProcess.map((e) => e.rowModel!).toList())
+          .then((_) {
         /// case 1 - async request performed successfully
         /// update state
-        rowState.cellStates.forEach((key, value) {
-          value.requestPending = false;
+        deletesToProcess.forEach((rowState) {
+          rowState.cellStates.forEach((key, value) {
+            value.requestPending = false;
+          });
         });
 
         // cellState.requestSucceeded = true;
@@ -1205,8 +1232,10 @@ class TableBloc<T extends IUniqueIdentifier> {
       }).catchError((e) {
         /// case 1 - error in async request
         /// update state
-        rowState.cellStates.forEach((key, value) {
-          value.requestPending = false;
+        deletesToProcess.forEach((rowState) {
+          rowState.cellStates.forEach((key, value) {
+            value.requestPending = false;
+          });
         });
         // cellState.requestSucceeded = false;
 

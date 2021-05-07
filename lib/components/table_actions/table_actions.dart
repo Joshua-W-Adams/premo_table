@@ -3,10 +3,10 @@ part of premo_table;
 /// Widget that can generate buttons for all various user possible on the Table
 /// Currently supports, undo, redo, add and delete.
 class TableActions extends StatelessWidget {
-  final VoidCallback? onAdd;
-  final VoidCallback? onDelete;
-  final VoidCallback? onUndo;
-  final VoidCallback? onRedo;
+  final Future<void>? Function()? onAdd;
+  final Future<void>? Function()? onDelete;
+  final Future<void>? Function()? onUndo;
+  final Future<void>? Function()? onRedo;
   final double buttonWidth;
 
   TableActions({
@@ -73,44 +73,6 @@ class TableActions extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class ActionButton extends StatelessWidget {
-  final String text;
-  final Icon? icon;
-  final VoidCallback? onPressed;
-  final double width;
-
-  ActionButton({
-    required this.text,
-    this.icon,
-    this.onPressed,
-    this.width = 125.0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        child: Row(
-          children: [
-            if (icon != null) ...[
-              icon!,
-              SizedBox(width: 8.0),
-            ],
-            Expanded(
-              child: Text(
-                text,
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

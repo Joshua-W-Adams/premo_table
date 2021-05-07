@@ -135,8 +135,11 @@ class _HomePageState extends State<HomePage> {
       onAdd: () {
         return mockDataService.add();
       },
-      onDelete: (item) {
-        return mockDataService.delete(item, _tableBloc!.tableState!.dataCache);
+      onDelete: (deletes) {
+        return mockDataService.delete(
+          deletes,
+          _tableBloc!.tableState!.dataCache,
+        );
       },
     );
   }
@@ -173,10 +176,20 @@ class _HomePageState extends State<HomePage> {
               children: [
                 /// Table header
                 TableActions(
-                  onUndo: () {},
-                  onRedo: () {},
-                  onAdd: () {},
-                  onDelete: () {},
+                  onUndo: () {
+                    return Future.delayed(Duration(milliseconds: 2000));
+                  },
+                  onRedo: () {
+                    return Future.delayed(Duration(milliseconds: 2000));
+                  },
+                  onAdd: () {
+                    return _tableBloc!.add();
+                  },
+                  onDelete: () {
+                    List<RowState<SampleDataModel>> checkedRows =
+                        _tableBloc!.getChecked();
+                    return _tableBloc!.delete(checkedRows);
+                  },
                 ),
                 SizedBox(height: 16.0),
                 Expanded(
@@ -390,7 +403,9 @@ class TestCases extends StatelessWidget {
                 return ActionButton(
                   text: testCase.name,
                   icon: Icon(Icons.play_arrow),
-                  onPressed: testCase.test,
+                  onPressed: () {
+                    testCase.test();
+                  },
                   width: 150.0,
                 );
               }),

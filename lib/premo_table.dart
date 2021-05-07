@@ -27,6 +27,7 @@ part 'components/cells/legend_cell.dart';
 part 'components/cells/row_header_cell.dart';
 part 'components/error_message/error_message.dart';
 part 'components/freezeable_table_layout/freezeable_table_layout.dart';
+part 'components/table_actions/action_button/action_button.dart';
 part 'components/table_actions/table_actions.dart';
 part 'table_bloc_classes.dart';
 part 'table_bloc.dart';
