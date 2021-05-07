@@ -2,7 +2,7 @@ part of premo_table;
 
 /// Manages all content within a [Cell] of type date
 class DateCellContent extends StatefulWidget {
-  final CellBlocState cellBlocState;
+  final String? value;
   final TextStyle? textStyle;
 
   final Alignment horizontalAlignment;
@@ -21,15 +21,15 @@ class DateCellContent extends StatefulWidget {
   /// user events
   final VoidCallback? onTap;
 
-  /// parsers for the value within the [CellBlocState] so that the date is
-  /// presented in a certain format
+  /// parsers for the string representation of the date passed to the value
+  /// parameter so that the date is presented in a certain format
   /// applied to all values set in a date cell content
   final String? Function(String?) inputParser;
   // applied to all values returned from date cell content
   final String? Function(String?)? outputParser;
 
   DateCellContent({
-    required this.cellBlocState,
+    required this.value,
     this.textStyle,
     this.horizontalAlignment = Alignment.centerLeft,
     this.readOnly = true,
@@ -101,7 +101,7 @@ class _DateCellContentState extends State<DateCellContent> {
 
   @override
   Widget build(BuildContext context) {
-    String? _date = widget.inputParser(widget.cellBlocState.value);
+    String? _date = widget.inputParser(widget.value);
 
     /// update controller value and selection position on cell state update
     _textController.value = TextEditingValue(

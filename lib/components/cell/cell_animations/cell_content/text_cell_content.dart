@@ -2,7 +2,8 @@ part of premo_table;
 
 /// Manages all content of type text in a [Cell].
 class TextCellContent extends StatefulWidget {
-  final CellBlocState cellBlocState;
+  final String? value;
+  final bool selected;
   final TextStyle? textStyle;
   final Alignment horizontalAlignment;
 
@@ -29,8 +30,8 @@ class TextCellContent extends StatefulWidget {
   /// user events
   final VoidCallback? onTap;
 
-  /// parsers for the value within the [CellBlocState] so that the data is
-  /// presented in a certain format
+  /// parsers for the value property so that the data is can be presented in a
+  /// certain format
   /// applied to all values set in a cell
   final String? Function(String?)? inputParser;
   // applied to all values returned from cell
@@ -41,7 +42,8 @@ class TextCellContent extends StatefulWidget {
 
   TextCellContent({
     Key? key,
-    required this.cellBlocState,
+    required this.value,
+    required this.selected,
     this.textStyle,
     this.horizontalAlignment = Alignment.centerLeft,
     this.readOnly = false,
@@ -104,7 +106,7 @@ class _TextCellContentState extends State<TextCellContent> {
   @override
   void didUpdateWidget(TextCellContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_focusNode.hasFocus && widget.cellBlocState.selected == false) {
+    if (_focusNode.hasFocus && widget.selected == false) {
       FocusScope.of(context).unfocus();
     }
   }
@@ -125,7 +127,7 @@ class _TextCellContentState extends State<TextCellContent> {
 
   @override
   Widget build(BuildContext context) {
-    String? _value = widget.cellBlocState.value;
+    String? _value = widget.value;
     _value = _setValueFormat(_value);
 
     /// update controller value and selection position on cell state update

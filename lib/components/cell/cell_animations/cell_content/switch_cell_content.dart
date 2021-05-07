@@ -2,7 +2,7 @@ part of premo_table;
 
 /// Manages all content within a [Cell] of type switch
 class SwitchCellContent extends StatefulWidget {
-  final CellBlocState cellBlocState;
+  final String? value;
 
   /// cannot be edited or selected
   final bool enabled;
@@ -15,7 +15,7 @@ class SwitchCellContent extends StatefulWidget {
   final Alignment horizontalAlignment;
 
   SwitchCellContent({
-    required this.cellBlocState,
+    required this.value,
     this.enabled = true,
     this.inputDecoration = const InputDecoration(
       border: InputBorder.none,
@@ -38,13 +38,13 @@ class _SwitchCellContentState extends State<SwitchCellContent> {
 
   void initState() {
     super.initState();
-    _value = widget.cellBlocState.value == 'true' ? true : false;
+    _value = widget.value == 'true' ? true : false;
   }
 
   @override
   void didUpdateWidget(SwitchCellContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _value = widget.cellBlocState.value == 'true' ? true : false;
+    _value = widget.value == 'true' ? true : false;
   }
 
   @override

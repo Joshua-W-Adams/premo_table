@@ -99,7 +99,8 @@ class ContentCell extends StatelessWidget {
           }
 
           return TextCellContent(
-            cellBlocState: cellBlocState,
+            value: cellBlocState.value,
+            selected: cellBlocState.selected,
             enabled: !cellBlocState.requestInProgress,
             readOnly: readOnly,
             textStyle: textStyle,
@@ -130,7 +131,7 @@ class ContentCell extends StatelessWidget {
           );
         } else if (cellType == CellTypes.dropdown) {
           return DropdownCellContent(
-            cellBlocState: cellBlocState,
+            value: cellBlocState.value,
             enabled: !cellBlocState.requestInProgress && !readOnly,
             textStyle: textStyle,
             horizontalAlignment: horizontalAlignment,
@@ -151,7 +152,7 @@ class ContentCell extends StatelessWidget {
           );
         } else if (cellType == CellTypes.cellswitch) {
           return SwitchCellContent(
-            cellBlocState: cellBlocState,
+            value: cellBlocState.value,
             enabled: !cellBlocState.requestInProgress && !readOnly,
             horizontalAlignment: horizontalAlignment,
             onChanged: (newValue) {
@@ -168,7 +169,7 @@ class ContentCell extends StatelessWidget {
           );
         } else if (cellType == CellTypes.date) {
           return DateCellContent(
-            cellBlocState: cellBlocState,
+            value: cellBlocState.value,
             enabled: !cellBlocState.requestInProgress && !readOnly,
             textStyle: textStyle,
             horizontalAlignment: horizontalAlignment,

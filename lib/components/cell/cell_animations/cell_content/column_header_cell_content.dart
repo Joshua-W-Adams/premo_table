@@ -2,7 +2,7 @@ part of premo_table;
 
 /// All content within a [Cell] to be loaded as a column header.
 class ColumnHeaderCellContent extends StatelessWidget {
-  final CellBlocState cellBlocState;
+  final String? value;
   final TextStyle? textStyle;
   final TextAlign textAlign;
   final String? tooltip;
@@ -14,7 +14,7 @@ class ColumnHeaderCellContent extends StatelessWidget {
 
   ColumnHeaderCellContent({
     Key? key,
-    required this.cellBlocState,
+    required this.value,
     this.textStyle,
     this.textAlign = TextAlign.left,
     this.tooltip,
@@ -40,7 +40,7 @@ class ColumnHeaderCellContent extends StatelessWidget {
         /// Column heading label
         Expanded(
           child: Text(
-            cellBlocState.value,
+            '${value ?? ''}',
             style: textStyle,
             textAlign: textAlign,
           ),

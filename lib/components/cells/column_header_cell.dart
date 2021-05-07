@@ -66,7 +66,7 @@ class ColumnHeaderCell extends StatelessWidget {
       builder: (cellBlocState) {
         TableState tableState = tableBloc.tableState!;
         return ColumnHeaderCellContent(
-          cellBlocState: cellBlocState,
+          value: cellBlocState.value,
           textAlign: TextAlign.center,
           textStyle: textStyle,
           sorted: tableState.sortColumnIndex == uiColumnIndex &&
