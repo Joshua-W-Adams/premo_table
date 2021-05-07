@@ -112,23 +112,27 @@ class _HomePageState extends State<HomePage> {
         return true;
       },
 
-      // onUpdate: (item, col, value) async {
-      //   /// store item details in model instance
-      //   if (col == 0) {
-      //     /// N/A - non editable column
-      //   } else if (col == 1) {
-      //     item.name = value;
-      //   } else if (col == 2) {
-      //     item.age = num.tryParse(value);
-      //   } else if (col == 3) {
-      //     item.enabled = (value.toLowerCase() == 'true');
-      //   } else if (col == 4) {
-      //     item.dateOfBirth = DateTime.parse(value);
-      //   } else if (col == 5) {
-      //     item.city = value;
-      //   }
-      //   return Future.delayed(Duration(milliseconds: 1000));
-      // },
+      onUpdate: (item, col, value) async {
+        /// store item details in model instance
+        if (col == 0) {
+          /// N/A - non editable column
+        } else if (col == 1) {
+          item.name = value;
+        } else if (col == 2) {
+          item.age = num.tryParse(value);
+        } else if (col == 3) {
+          item.enabled = (value.toLowerCase() == 'true');
+        } else if (col == 4) {
+          item.dateOfBirth = DateTime.parse(value);
+        } else if (col == 5) {
+          item.city = value;
+        } else if (col == 6) {
+          item.salary = num.tryParse(value);
+        }
+        return mockDataService.releaseClone(
+          data: _tableBloc!.tableState!.dataCache,
+        );
+      },
     );
   }
 

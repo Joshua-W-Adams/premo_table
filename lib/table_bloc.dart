@@ -1091,16 +1091,66 @@ class TableBloc<T extends IUniqueIdentifier> {
     tableState!.dispose();
   }
 
-  // TODO items
+  /// Performs update to a row as requested by a user
+  void update(
+    UiRow<T> uiRow,
+    int columnIndex,
+    String newValue,
+    String oldValue,
+  ) {
+    RowState<T> rowState = uiRow.rowState;
+    CellState cellState;
+    if (rowState.cellStates[columnIndex] == null) {
+      // create cell state if doesnt exist
+      cellState = CellState();
+      rowState.cellStates[columnIndex] = cellState;
+    } else {
+      cellState = rowState.cellStates[columnIndex]!;
+    }
+    T rowModel = rowState.rowModel!;
+
+    /// check if there are any pending changes. Prevents the user issuing more
+    /// async requests while one is in progress
+    bool requestPending = cellState.requestPending;
+    bool hasValueChanged = newValue != oldValue;
+
+    if (requestPending != true && hasValueChanged == true) {
+      /// case 1 - value changed and no pending updates
+
+      // update state
+      cellState.requestPending = true;
+      uiRow.cellBlocs[columnIndex].state.value = newValue;
+      // release state to listeners
+      uiRow.cellBlocs[columnIndex].setRequestInProgress(true);
+
+      /// perform onChange request
+      onUpdate?.call(rowModel, columnIndex, newValue).then((_) {
+        /// case 1 - async request performed successfully
+        /// update state
+        cellState.requestPending = false;
+        cellState.requestSucceeded = true;
+
+        /// release details on stream
+        /// N/A - updated cell recieved in new table data stream event
+      }).catchError((e) {
+        /// case 1 - error in async request
+        /// update state
+        cellState.requestPending = false;
+        cellState.requestSucceeded = false;
+
+        /// inform user of failed update
+        // print(e.toString());
+      });
+    }
+
+    /// case 2 - pending updates against cell. Do nothing.
+  }
+
+  void add() {}
+  void delete(RowState<T> rowState) {}
+
   void undo() {}
   void redo() {}
-  void update() {}
-  void add() {}
-  void delete() {}
-
-  ///
-  /// ************************** User CRUD Operations **************************
-  ///
 
   /// TODO - All code below to be completed
   // UiRow? _findUIRow(T rowModel) {
@@ -1134,76 +1184,4 @@ class TableBloc<T extends IUniqueIdentifier> {
   /// Log of all user data modification events
   // EventManager<T> eventManager = EventManager();
 
-  /// Performs update to a row as requested by a user
-  void userUpdate(
-    /// row to be updated
-    T rowModel,
-
-    /// column in row to update
-    int colIndex,
-
-    /// new value to assign to row column
-    String newValue,
-
-    /// current value assigned to row column
-    String oldValue,
-  ) {
-    // /// check if there are any pending changes against cell. Prevent the user
-    // /// spamming multiple async change requests while one is in progress
-    // UpdateEvent? pendingUpdate =
-    //     eventManager.getPendingUpdateEvent(rowModel, colIndex);
-
-    // bool hasValueChanged = newValue != oldValue;
-
-    // if (pendingUpdate == null && hasValueChanged == true) {
-    //   /// case 1 - value changed and no pending updates
-    //   /// create new event
-    //   UpdateEvent<T> updateEvent = UpdateEvent(
-    //     row: rowModel,
-    //     colIndex: colIndex,
-    //     newValue: newValue,
-    //     oldValue: oldValue,
-    //     requestInProgress: true,
-    //     requestSucceeded: null,
-    //   );
-
-    //   /// add to event cache
-    //   eventManager.addUpdateEvent(updateEvent);
-
-    //   /// release event to UI
-    //   _updateCellView(rowModel, updateEvent);
-
-    //   /// perform onChange request
-    //   /// TODO - row number not required
-    //   if (onUpdate != null) {
-    //     onUpdate!(rowModel, colIndex, newValue).then((_) {
-    //       /// case 1 - async request performed successfully
-    //       /// update state
-    //       updateEvent.requestInProgress = false;
-    //       updateEvent.requestSucceeded = true;
-
-    //       /// release on stream
-    //       /// find row in user interface
-    //       UiRow? uiRow = _findUIRow(rowModel);
-
-    //       /// update the ui with new new cell state
-    //       _updateCellView(rowModel, updateEvent);
-    //     }).catchError((e) {
-    //       /// case 1 - error in async request
-    //       /// update state
-    //       updateEvent.requestInProgress = false;
-    //       updateEvent.requestSucceeded = false;
-
-    //       /// release on stream
-    //       /// find row in user interface
-    //       UiRow? uiRow = _findUIRow(rowModel);
-
-    //       /// update the ui with new new cell state
-    //       _updateCellView(rowModel, updateEvent);
-    //     });
-    //   }
-    // }
-
-    // /// case 2 - pending updates against cell. Do nothing.
-  }
 }

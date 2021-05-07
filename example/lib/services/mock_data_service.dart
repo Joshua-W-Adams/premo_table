@@ -310,6 +310,28 @@ class MockDataService {
     });
   }
 
+  Future<void> releaseClone({
+    required List<RowState<SampleDataModel>> data,
+    Function(List<RowState<SampleDataModel>> clone)? changes,
+  }) {
+    /// clone the data array
+    List<RowState<SampleDataModel>> clone = data.map((e) {
+      return RowState<SampleDataModel>(
+        rowModel: SampleDataModel.clone(e.rowModel!),
+        cellStates: Map<int, CellState>(),
+      );
+    }).toList();
+
+    /// execute changes on the cloned array
+    changes?.call(clone);
+
+    /// release on data stream after simulated server delay
+    return Future.delayed(Duration(milliseconds: 1000), () {
+      /// release on stream
+      _controller.sink.add(data);
+    });
+  }
+
   void dispose() {
     _controller.close();
   }

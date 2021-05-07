@@ -17,6 +17,7 @@ part 'components/cell/cell_animations/cell_content/date_cell_content.dart';
 part 'components/cell/cell_animations/cell_content/dropdown_cell_content.dart';
 part 'components/cell/cell_animations/cell_content/switch_cell_content.dart';
 part 'components/cell/cell_animations/cell_content/text_cell_content.dart';
+part 'components/cell/cell_animations/cell_loading_indicator/cell_loading_indicator.dart';
 part 'components/cell/cell_animations/cell_animations.dart';
 part 'components/cell/cell_bloc.dart';
 part 'components/cell/cell.dart';

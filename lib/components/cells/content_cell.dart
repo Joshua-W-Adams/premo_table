@@ -120,8 +120,8 @@ class ContentCell extends StatelessWidget {
               /// lost due to a server modification
               if (cellBlocState.changeType == null) {
                 if (uiRow.rowState.rowModel != null) {
-                  tableBloc.userUpdate(
-                    uiRow.rowState.rowModel!,
+                  tableBloc.update(
+                    uiRow,
                     uiColumnIndex,
                     newValue,
                     cellBloc.state.value,
@@ -142,8 +142,8 @@ class ContentCell extends StatelessWidget {
             },
             onChanged: (newValue) {
               if (uiRow.rowState.rowModel != null) {
-                tableBloc.userUpdate(
-                  uiRow.rowState.rowModel!,
+                tableBloc.update(
+                  uiRow,
                   uiColumnIndex,
                   newValue,
                   cellBloc.state.value,
@@ -159,8 +159,8 @@ class ContentCell extends StatelessWidget {
             onChanged: (newValue) {
               tableBloc.select(uiRowIndex, uiColumnIndex);
               if (uiRow.rowState.rowModel != null) {
-                tableBloc.userUpdate(
-                  uiRow.rowState.rowModel!,
+                tableBloc.update(
+                  uiRow,
                   uiColumnIndex,
                   newValue,
                   cellBloc.state.value,
@@ -180,8 +180,8 @@ class ContentCell extends StatelessWidget {
             },
             onChanged: (newValue) {
               if (uiRow.rowState.rowModel != null) {
-                tableBloc.userUpdate(
-                  uiRow.rowState.rowModel!,
+                tableBloc.update(
+                  uiRow,
                   uiColumnIndex,
                   newValue,
                   cellBloc.state.value,

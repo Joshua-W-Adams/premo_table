@@ -102,6 +102,9 @@ class Cell extends StatelessWidget {
         /// get visibility
         bool visible = cellBlocState.visible;
 
+        /// get requeststatus
+        bool requestInProgress = cellBlocState.requestInProgress;
+
         return CellAnimations(
           cellBlocState: cellBlocState,
           endAnimationColor: color,
@@ -119,31 +122,43 @@ class Cell extends StatelessWidget {
               /// and width constraints passed, it must be wrapped in an alignment widget
               /// so that it has a height, width, x and y position and can be painted correctly.
               child: Align(
-                child: MouseRegion(
-                  onHover: onHover,
-                  onEnter: onMouseEnter,
-                  onExit: onMouseExit,
+                /// Absorb pointer used to disable all user interaction (pointer
+                /// events) if there is a pending async request on the cell
+                child: AbsorbPointer(
+                  absorbing: requestInProgress,
+                  child: MouseRegion(
+                    onHover: onHover,
+                    onEnter: onMouseEnter,
+                    onExit: onMouseExit,
 
-                  /// Gesture detection will not fire if the child widget has an onTap
-                  /// pointer event configured. i.e. in the case of a child TextFormField
-                  /// therefore the onTap must be provided to the [Cell] and the
-                  /// child widgets on tap callback.
-                  child: GestureDetector(
-                    onTap: onTap,
-                    child: Container(
-                      height: _sizeTween == null ? height : _sizeTween.value,
-                      width: width,
-                      padding: padding,
-                      decoration: _colorTween == null
-                          ? decoration?.copyWith(color: color)
-                          : decoration?.copyWith(
-                              color: _colorTween.isCompleted == true
-                                  ? color
-                                  : _colorTween.value,
-                            ),
-                      child: Align(
-                        alignment: verticalAlignment,
-                        child: builder(cellBlocState),
+                    /// Gesture detection will not fire if the child widget has an onTap
+                    /// pointer event configured. i.e. in the case of a child TextFormField
+                    /// therefore the onTap must be provided to the [Cell] and the
+                    /// child widgets on tap callback.
+                    child: GestureDetector(
+                      onTap: onTap,
+                      child: Container(
+                        height: _sizeTween == null ? height : _sizeTween.value,
+                        width: width,
+                        padding: padding,
+                        decoration: _colorTween == null
+                            ? decoration?.copyWith(color: color)
+                            : decoration?.copyWith(
+                                color: _colorTween.isCompleted == true
+                                    ? color
+                                    : _colorTween.value,
+                              ),
+                        child: Align(
+                          alignment: verticalAlignment,
+                          child: requestInProgress == true
+                              ? Row(
+                                  children: [
+                                    Expanded(child: builder(cellBlocState)),
+                                    CellLoadingIndicator(),
+                                  ],
+                                )
+                              : builder(cellBlocState),
+                        ),
                       ),
                     ),
                   ),
