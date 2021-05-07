@@ -111,7 +111,6 @@ class _HomePageState extends State<HomePage> {
 
         return true;
       },
-
       onUpdate: (item, col, value) async {
         /// store item details in model instance
         if (col == 0) {
@@ -132,6 +131,12 @@ class _HomePageState extends State<HomePage> {
         return mockDataService.releaseClone(
           data: _tableBloc!.tableState!.dataCache,
         );
+      },
+      onAdd: () {
+        return mockDataService.add();
+      },
+      onDelete: (item) {
+        return mockDataService.delete(item, _tableBloc!.tableState!.dataCache);
       },
     );
   }
@@ -164,48 +169,65 @@ class _HomePageState extends State<HomePage> {
             onTap: () {
               _tableBloc!.deselect();
             },
-            child: ListView.builder(
-              itemCount: 2,
-              itemBuilder: (context, index) {
-                Widget child;
-                if (index == 0) {
-                  child = Column(
-                    children: [
-                      /// Table header
-                      TableActions(
-                        onUndo: () {},
-                        onRedo: () {},
-                        onAdd: () {},
-                        onDelete: () {},
-                      ),
-                      SizedBox(height: 16.0),
-                      Expanded(
-                        child: PremoTableBuilder<SampleDataModel>(
-                          tableBloc: _tableBloc!,
-                        ),
-                      ),
-                    ],
-                  );
-                } else if (index == 1) {
-                  child = Listener(
-                    onPointerDown: (_) {
-                      _tableBloc!.deselect();
-                    },
-                    child: SampleDataTable(),
-                  );
-                } else {
-                  child = Container();
-                }
-                return Container(
-                  alignment: Alignment.center,
-                  height: 500,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: child,
+            child: Column(
+              children: [
+                /// Table header
+                TableActions(
+                  onUndo: () {},
+                  onRedo: () {},
+                  onAdd: () {},
+                  onDelete: () {},
+                ),
+                SizedBox(height: 16.0),
+                Expanded(
+                  child: PremoTableBuilder<SampleDataModel>(
+                    tableBloc: _tableBloc!,
                   ),
-                );
-              },
+                ),
+              ],
             ),
+            // child: ListView.builder(
+            //   itemCount: 2,
+            //   itemBuilder: (context, index) {
+            //     Widget child;
+            //     if (index == 0) {
+            //       child = Column(
+            //         children: [
+            //           /// Table header
+            //           TableActions(
+            //             onUndo: () {},
+            //             onRedo: () {},
+            //             onAdd: () {},
+            //             onDelete: () {},
+            //           ),
+            //           SizedBox(height: 16.0),
+            //           Expanded(
+            //             child: PremoTableBuilder<SampleDataModel>(
+            //               tableBloc: _tableBloc!,
+            //             ),
+            //           ),
+            //         ],
+            //       );
+            //     } else if (index == 1) {
+            //       child = Listener(
+            //         onPointerDown: (_) {
+            //           _tableBloc!.deselect();
+            //         },
+            //         child: SampleDataTable(),
+            //       );
+            //     } else {
+            //       child = Container();
+            //     }
+            //     return Container(
+            //       alignment: Alignment.center,
+            //       height: 500,
+            //       child: Padding(
+            //         padding: const EdgeInsets.all(8.0),
+            //         child: child,
+            //       ),
+            //     );
+            //   },
+            // ),
           ),
         ),
       ],

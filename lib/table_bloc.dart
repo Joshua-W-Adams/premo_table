@@ -34,6 +34,12 @@ class TableBloc<T extends IUniqueIdentifier> {
   final Future<void> Function(T rowModel, int columnIndex, String newValue)?
       onUpdate;
 
+  /// add function to run whenever a new row is added
+  final Future<void> Function()? onAdd;
+
+  /// delete function to run whenever a row is deleted
+  final Future<void> Function(T rowModel)? onDelete;
+
   /// whether to release events when the cell, row or column selection changes
   final bool enableCellSelectionEvents;
   final bool enableRowSelectionEvents;
@@ -78,6 +84,8 @@ class TableBloc<T extends IUniqueIdentifier> {
     this.sortCompare,
     this.onFilter,
     this.onUpdate,
+    this.onAdd,
+    this.onDelete,
     this.enableCellSelectionEvents = true,
     this.enableRowSelectionEvents = true,
     this.enableColumnSelectionEvents = false,
@@ -469,6 +477,7 @@ class TableBloc<T extends IUniqueIdentifier> {
     bool cellColumnHovered = enableColumnHoverEvents && columnHovered;
     bool cellRowChecked = enableRowCheckedEvents && rowState.checked;
 
+    CellState? cellState = rowState.cellStates[columnIndex];
     return CellBlocState(
       value: cellValueBuilder(rowState.rowModel, columnIndex),
       visible: rowState.visible,
@@ -480,9 +489,8 @@ class TableBloc<T extends IUniqueIdentifier> {
       colHovered: cellColumnHovered,
       rowChecked: cellRowChecked,
       columnSorted: columnSorted,
-      // TODO - management of request status state.
-      requestInProgress: false,
-      requestSucceeded: null,
+      requestInProgress: cellState?.requestPending ?? false,
+      // requestSucceeded: cellState?.requestSucceeded,
       changeType: changeType,
     );
   }
@@ -1146,42 +1154,71 @@ class TableBloc<T extends IUniqueIdentifier> {
     /// case 2 - pending updates against cell. Do nothing.
   }
 
-  void add() {}
-  void delete(RowState<T> rowState) {}
+  /// Not used. all add functionality with external server handled by provided
+  /// onAdd callback.
+  void add() {
+    onAdd?.call();
+  }
+
+  void delete(UiRow<T> uiRow) {
+    RowState<T> rowState = uiRow.rowState;
+    T rowModel = rowState.rowModel!;
+    bool requestPending = true;
+    for (var i = 0; i < columnNames.length; i++) {
+      if (rowState.cellStates[i] == null) {
+        // create cell state if doesnt exist
+        rowState.cellStates[i] = CellState();
+        requestPending = false;
+      } else {
+        if (rowState.cellStates[i]!.requestPending == false) {
+          requestPending = false;
+        }
+      }
+    }
+
+    /// check if there are any pending changes. Prevents the user issuing more
+    /// async requests while one is in progress
+    if (requestPending != true) {
+      /// case 1 - no pending updates
+
+      // update state
+      rowState.cellStates.forEach((key, value) {
+        value.requestPending = true;
+      });
+      // release state to listeners
+      uiRow.cellBlocs.forEach((element) {
+        element.setRequestInProgress(true);
+      });
+
+      /// perform request
+      onDelete?.call(rowModel).then((_) {
+        /// case 1 - async request performed successfully
+        /// update state
+        rowState.cellStates.forEach((key, value) {
+          value.requestPending = false;
+        });
+
+        // cellState.requestSucceeded = true;
+
+        /// release details on stream
+        /// N/A - updated cell recieved in new table data stream event
+      }).catchError((e) {
+        /// case 1 - error in async request
+        /// update state
+        rowState.cellStates.forEach((key, value) {
+          value.requestPending = false;
+        });
+        // cellState.requestSucceeded = false;
+
+        /// inform user of failed update
+        // print(e.toString());
+      });
+
+      /// case 2 - pending updates against cell. Do nothing.
+
+    }
+  }
 
   void undo() {}
   void redo() {}
-
-  /// TODO - All code below to be completed
-  // UiRow? _findUIRow(T rowModel) {
-  //   return tableState!.uiRows.firstWhere(
-  //     (element) {
-  //       return element.rowState.rowModel?.id == rowModel.id;
-  //     },
-  //   );
-  // }
-
-  // void _updateCellView(
-  //   T rowModel,
-  //   UpdateEvent updateEvent,
-  // ) {
-  //   /// find row in user interface
-  //   UiRow? uiRow = _findUIRow(rowModel);
-
-  //   if (uiRow != null) {
-  //     /// get the cell ui bloc
-  //     CellBloc cellBloc = uiRow.cellBlocs[updateEvent.colIndex];
-
-  //     /// release new cell state on cell stream
-  //     cellBloc.applyCellBlocStateToView(
-  //       updateEvent.newValue,
-  //       updateEvent.requestInProgress,
-  //       updateEvent.requestSucceeded,
-  //     );
-  //   }
-  // }
-
-  /// Log of all user data modification events
-  // EventManager<T> eventManager = EventManager();
-
 }
