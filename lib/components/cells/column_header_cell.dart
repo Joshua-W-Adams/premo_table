@@ -1,93 +1,149 @@
 part of premo_table;
 
 class ColumnHeaderCell extends StatelessWidget {
-  /// all cell operations are controlled in the tableBloC so cell state changes
-  /// and operations can be shared through all relevant components in the table
-  final TableBloc tableBloc;
+  /// sizing
+  final double? height;
+  final double? width;
 
-  /// index of the cells column in the displayed ui which is output in the
-  /// [uiRow]s property from the tableBloc
-  final int uiColumnIndex;
+  /// styling
+  final EdgeInsetsGeometry? padding;
+  final Alignment verticalAlignment;
+  final BoxDecoration? decoration;
 
-  /// configurable style properties
-  final double width;
-  final double height;
+  /// misc functionality
+  final bool visible;
+  final bool enabled;
+  final bool showLoadingIndicator;
+
+  /// cell effects to apply on user interaction
+  final bool selected;
+  final bool rowSelected;
+  final bool columnSelected;
+  final bool hovered;
+  final bool rowHovered;
+  final bool columnHovered;
+  final bool rowChecked;
+
+  /// animations to run on cell build
+  final String? animation;
+
+  /// user events
+  final VoidCallback? onTap;
+  final void Function(PointerHoverEvent)? onHover;
+  final void Function(PointerEnterEvent)? onMouseEnter;
+  final void Function(PointerExitEvent)? onMouseExit;
+
+  /// column header specific style properties
   final Color? columnBackgroundColor;
   final Color cellBorderColor;
+
+  /// value to load into the column header
+  final String? value;
+
+  /// configurable style properties
   final TextStyle? textStyle;
+  final TextAlign textAlign;
+  final String? tooltip;
+  final bool sorted;
+  final bool ascending;
 
   /// configurable functionality
-  final bool enableSorting;
-  final bool enableFilters;
+  final VoidCallback? onSort;
+  final Function(String value)? onFilter;
+  final VoidCallback? onFilterButtonTap;
 
   ColumnHeaderCell({
-    required this.tableBloc,
-    required this.uiColumnIndex,
-    required this.width,
+    /// Base [Cell] API
     this.height = 50,
+    this.width = 70,
+    this.padding = const EdgeInsets.only(
+      left: 5.0,
+      right: 5.0,
+      top: 5.0,
+      bottom: 5.0,
+    ),
+    this.verticalAlignment = Alignment.center,
+    this.decoration,
+    this.visible = true,
+    this.enabled = true,
+    this.showLoadingIndicator = false,
+    this.selected = false,
+    this.rowSelected = false,
+    this.columnSelected = false,
+    this.hovered = false,
+    this.rowHovered = false,
+    this.columnHovered = false,
+    this.rowChecked = false,
+    this.animation,
+    this.onTap,
+    this.onHover,
+    this.onMouseEnter,
+    this.onMouseExit,
+
+    /// [ColumnHeaderCell] specific API
     this.columnBackgroundColor,
     required this.cellBorderColor,
+
+    /// child [ColumnHeaderCellContent] API
+    this.value,
     this.textStyle,
-    this.enableSorting = true,
-    this.enableFilters = true,
+    this.textAlign = TextAlign.center,
+    this.tooltip,
+    this.sorted = false,
+    this.ascending = false,
+    this.onSort,
+    this.onFilter,
+    this.onFilterButtonTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    /// block assigned to each header is final and does not change, however the
-    /// values within the cell and the cells state will
-    CellBloc columnHeaderBloc =
-        tableBloc.tableState!.uiColumnHeaders[uiColumnIndex];
     return Cell(
-      cellBloc: columnHeaderBloc,
       height: height,
       width: width,
-      decoration: BoxDecoration(
-        color: columnBackgroundColor,
-        border: Border(
-          top: BorderSide(
-            color: cellBorderColor,
+      padding: padding,
+      verticalAlignment: verticalAlignment,
+      decoration: decoration ??
+          BoxDecoration(
+            color: columnBackgroundColor,
+            border: Border(
+              top: BorderSide(
+                color: cellBorderColor,
+              ),
+              right: BorderSide(
+                color: cellBorderColor,
+              ),
+              bottom: BorderSide(
+                color: cellBorderColor,
+              ),
+            ),
           ),
-          right: BorderSide(
-            color: cellBorderColor,
-          ),
-          bottom: BorderSide(
-            color: cellBorderColor,
-          ),
-        ),
+      visible: visible,
+      enabled: enabled,
+      showLoadingIndicator: showLoadingIndicator,
+      selected: selected,
+      rowSelected: rowSelected,
+      columnSelected: columnSelected,
+      hovered: hovered,
+      rowHovered: rowHovered,
+      columnHovered: columnHovered,
+      rowChecked: rowChecked,
+      animation: animation,
+      onTap: onTap,
+      onHover: onHover,
+      onMouseEnter: onMouseEnter,
+      onMouseExit: onMouseExit,
+      child: ColumnHeaderCellContent(
+        value: value,
+        textStyle: textStyle,
+        textAlign: textAlign,
+        tooltip: tooltip,
+        sorted: sorted,
+        ascending: ascending,
+        onSort: onSort,
+        onFilter: onFilter,
+        onFilterButtonTap: onFilterButtonTap,
       ),
-      onTap: () {
-        tableBloc.deselect();
-        tableBloc.sort(uiColumnIndex);
-      },
-      onHover: (_) {
-        tableBloc.dehover();
-      },
-      builder: (cellBlocState) {
-        TableState tableState = tableBloc.tableState!;
-        return ColumnHeaderCellContent(
-          value: cellBlocState.value,
-          textAlign: TextAlign.center,
-          textStyle: textStyle,
-          sorted: tableState.sortColumnIndex == uiColumnIndex &&
-              tableState.isAscending != null,
-          ascending: tableState.isAscending ?? false,
-          onSort: enableSorting == true
-              ? () {
-                  tableBloc.deselect();
-                  tableBloc.sort(uiColumnIndex);
-                }
-              : null,
-          onFilter: enableFilters == true
-              ? (value) {
-                  tableBloc.filter(uiColumnIndex, value == '' ? null : value);
-                }
-              : null,
-          onFilterButtonTap: () {
-            tableBloc.deselect();
-          },
-        );
-      },
     );
   }
 }
