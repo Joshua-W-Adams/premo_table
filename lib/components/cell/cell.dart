@@ -6,15 +6,11 @@ part of premo_table;
 ///
 /// Content within a cell is managed separately.
 ///
-/// Controls the stream status, cell effects (hover, clicked etc.), cell
-/// animations, cell layout (height, width, alignment), styling and user
-/// interaction.
+/// Manages effects (hover, clicked etc.), animations, layout (height, width,
+/// alignment), styling and user interaction.
 class Cell extends StatelessWidget {
-  /// bloc that controls all Cell state
-  final CellBloc cellBloc;
-
-  /// content
-  final Widget Function(CellBlocState) builder;
+  /// content to load within the cell
+  final Widget child;
 
   /// sizing
   final double? height;
@@ -25,6 +21,23 @@ class Cell extends StatelessWidget {
   final Alignment verticalAlignment;
   final BoxDecoration? decoration;
 
+  /// misc functionality
+  final bool visible;
+  final bool enabled;
+  final bool showLoadingIndicator;
+
+  /// cell effects to apply on user interaction
+  final bool selected;
+  final bool rowSelected;
+  final bool columnSelected;
+  final bool hovered;
+  final bool rowHovered;
+  final bool columnHovered;
+  final bool rowChecked;
+
+  /// animations to run on cell build
+  final String? animation;
+
   /// user events
   final VoidCallback? onTap;
   final void Function(PointerHoverEvent)? onHover;
@@ -33,8 +46,7 @@ class Cell extends StatelessWidget {
 
   Cell({
     Key? key,
-    required this.cellBloc,
-    required this.builder,
+    required this.child,
     this.height = 50,
     this.width = 70,
     this.padding = const EdgeInsets.only(
@@ -45,31 +57,39 @@ class Cell extends StatelessWidget {
     ),
     this.verticalAlignment = Alignment.center,
     this.decoration,
+    this.visible = true,
+    this.enabled = true,
+    this.showLoadingIndicator = false,
+    this.selected = false,
+    this.rowSelected = false,
+    this.columnSelected = false,
+    this.hovered = false,
+    this.rowHovered = false,
+    this.columnHovered = false,
+    this.rowChecked = false,
+    this.animation,
     this.onTap,
     this.onHover,
     this.onMouseEnter,
     this.onMouseExit,
   }) : super(key: key);
 
-  Color? _applyCellEffects(
-    CellBlocState cellBlocState,
-    BuildContext context,
-  ) {
+  Color? _getCellEffect(BuildContext context) {
     Color? color;
     ThemeData theme = Theme.of(context);
-    if (cellBlocState.selected == true) {
+    if (selected == true) {
       /// case 1 - cell is selected
       color = theme.accentColor.withOpacity(0.5);
-    } else if (cellBlocState.hovered == true) {
+    } else if (hovered == true) {
       /// case 2 - cell is hovered
       color = Colors.grey[300];
-    } else if (cellBlocState.rowSelected || cellBlocState.colSelected) {
+    } else if (rowSelected || columnSelected) {
       /// case 3 - cells row or column selected
       color = theme.accentColor.withOpacity(0.25);
-    } else if (cellBlocState.rowHovered || cellBlocState.colHovered) {
+    } else if (rowHovered || columnHovered) {
       /// case 4 - cell row or column hovered
       color = Colors.grey[200]!;
-    } else if (cellBlocState.rowChecked == true) {
+    } else if (rowChecked == true) {
       /// case 5 - cell row checked by user
       color = theme.accentColor.withOpacity(0.10);
     }
@@ -78,94 +98,66 @@ class Cell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<CellBlocState>(
-      stream: cellBloc.stream,
-      builder: (_context, _snapshot) {
-        if (_snapshot.connectionState == ConnectionState.waiting) {
-          /// case 1 - awaiting connection
-          return Center(child: CircularProgressIndicator());
-        } else if (_snapshot.hasError) {
-          /// case 2 - error in snapshot
-          return ErrorMessage(error: '${_snapshot.error.toString()}');
-        } else if (!_snapshot.hasData) {
-          /// case 3 - no data recieved
-          return ErrorMessage(error: 'No data recieved');
-        }
-
-        /// case 4 - all generic state checks passed
-        /// get cell state released on stream
-        CellBlocState cellBlocState = _snapshot.data!;
-
-        /// determine cell effect to apply based on state
-        Color? color = _applyCellEffects(cellBlocState, _context);
-
-        /// get visibility
-        bool visible = cellBlocState.visible;
-
-        /// get requeststatus
-        bool requestInProgress = cellBlocState.requestInProgress;
-
-        return CellAnimations(
-          cellBlocState: cellBlocState,
-          endAnimationColor: color,
-          animationHeight: height,
-          widgetBuilder: (_, _colorTween, _sizeTween) {
-            return Visibility(
-              visible: visible == false
+    Color? effectColor = _getCellEffect(context);
+    return CellAnimations(
+      animation: animation,
+      endAnimationColor: effectColor,
+      animationHeight: height,
+      builder: (_, _colorTween, _sizeTween) {
+        return Visibility(
+          visible: visible == false
+              ? false
+              : _sizeTween != null && _sizeTween.value == 0
                   ? false
-                  : _sizeTween != null && _sizeTween.value == 0
-                      ? false
-                      : true,
+                  : true,
 
-              /// https://stackoverflow.com/questions/54717748/why-flutter-container-does-not-respects-its-width-and-height-constraints-when-it
-              /// for the container widget inherently in the cell to respect the height
-              /// and width constraints passed, it must be wrapped in an alignment widget
-              /// so that it has a height, width, x and y position and can be painted correctly.
-              child: Align(
-                /// Absorb pointer used to disable all user interaction (pointer
-                /// events) if there is a pending async request on the cell
-                child: AbsorbPointer(
-                  absorbing: requestInProgress,
-                  child: MouseRegion(
-                    onHover: onHover,
-                    onEnter: onMouseEnter,
-                    onExit: onMouseExit,
+          /// https://stackoverflow.com/questions/54717748/why-flutter-container-does-not-respects-its-width-and-height-constraints-when-it
+          /// for the container widget inherently in the cell to respect the height
+          /// and width constraints passed, it must be wrapped in an alignment widget
+          /// so that it has a height, width, x and y position and can be painted correctly.
+          child: Align(
+            /// Absorb pointer used to disable all user interaction (pointer
+            /// events) if there is a pending async request on the cell
+            child: AbsorbPointer(
+              absorbing: !enabled,
+              child: MouseRegion(
+                onHover: onHover,
+                onEnter: onMouseEnter,
+                onExit: onMouseExit,
 
-                    /// Gesture detection will not fire if the child widget has an onTap
-                    /// pointer event configured. i.e. in the case of a child TextFormField
-                    /// therefore the onTap must be provided to the [Cell] and the
-                    /// child widgets on tap callback.
-                    child: GestureDetector(
-                      onTap: onTap,
-                      child: Container(
-                        height: _sizeTween == null ? height : _sizeTween.value,
-                        width: width,
-                        padding: padding,
-                        decoration: _colorTween == null
-                            ? decoration?.copyWith(color: color)
-                            : decoration?.copyWith(
-                                color: _colorTween.isCompleted == true
-                                    ? color
-                                    : _colorTween.value,
-                              ),
-                        child: Align(
-                          alignment: verticalAlignment,
-                          child: requestInProgress == true
-                              ? Row(
-                                  children: [
-                                    Expanded(child: builder(cellBlocState)),
-                                    CellLoadingIndicator(),
-                                  ],
-                                )
-                              : builder(cellBlocState),
-                        ),
-                      ),
+                /// Gesture detection will not fire if the child widget has an onTap
+                /// pointer event configured. i.e. in the case of a child TextFormField
+                /// therefore the onTap must be provided to the [Cell] and the
+                /// child widgets on tap callback.
+                child: GestureDetector(
+                  onTap: onTap,
+                  child: Container(
+                    height: _sizeTween == null ? height : _sizeTween.value,
+                    width: width,
+                    padding: padding,
+                    decoration: _colorTween == null
+                        ? decoration?.copyWith(color: effectColor)
+                        : decoration?.copyWith(
+                            color: _colorTween.isCompleted == true
+                                ? effectColor
+                                : _colorTween.value,
+                          ),
+                    child: Align(
+                      alignment: verticalAlignment,
+                      child: showLoadingIndicator == true
+                          ? Row(
+                              children: [
+                                Expanded(child: child),
+                                CellLoadingIndicator(),
+                              ],
+                            )
+                          : child,
                     ),
                   ),
                 ),
               ),
-            );
-          },
+            ),
+          ),
         );
       },
     );
