@@ -66,7 +66,7 @@ class LegendCell extends StatelessWidget {
     this.onMouseExit,
 
     /// [LegendCell] specific API
-    required this.backgroundColor,
+    this.backgroundColor,
     required this.cellBorderColor,
     this.allRowsChecked = false,
     this.onChanged,

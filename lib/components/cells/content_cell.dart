@@ -78,7 +78,7 @@ class ContentCell extends StatelessWidget {
     this.onMouseExit,
 
     /// [ContentCell] specific API
-    required this.backgroundColor,
+    this.backgroundColor,
     required this.cellBorderColor,
     this.horizontalAlignment = Alignment.center,
     this.textStyle,

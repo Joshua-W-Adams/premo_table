@@ -112,6 +112,17 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
     this.cellWidgetBuilder,
   }) : super(key: key);
 
+  String? _getAnimation(CellBlocState cellBlocState) {
+    if (cellBlocState.changeType != null) {
+      return cellBlocState.changeType.toString();
+    } else if (cellBlocState.requestSucceeded == true) {
+      return 'requestPassed';
+    } else if (cellBlocState.requestSucceeded == false) {
+      return 'requestFailed';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
@@ -164,89 +175,205 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
             enableRowHeaders: enableChecking,
 
             /// *********** cell at position 0,0 ***********
-            legendCell: LegendCell(
-              tableBloc: tableBloc,
-              height: effectiveDataRowHeight,
-              cellBorderColor: cellBorderColor,
+            legendCell: CellStreamBuilder(
+              cellBloc: tableBloc.tableState!.uiLegendCell,
+              builder: (cellState) {
+                return LegendCell(
+                  height: effectiveDataRowHeight,
+                  onTap: () {
+                    tableBloc.deselect();
+                  },
+                  onHover: (_) {
+                    tableBloc.dehover();
+                  },
+                  cellBorderColor: cellBorderColor,
+                  allRowsChecked: tableBloc.allRowsChecked(),
+                  onChanged: (newValue) {
+                    tableBloc.checkAll(newValue ?? false);
+                  },
+                );
+              },
             ),
 
             /// *********** COLUMN HEADERS ***********
             columnHeadersBuilder: (uiColumnIndex) {
-              /// get table level configuration
-              double width = columnWidthBuilder(uiColumnIndex);
-
-              return ColumnHeaderCell(
-                tableBloc: tableBloc,
-                uiColumnIndex: uiColumnIndex,
-                width: width,
-                height: effectiveDataRowHeight,
-                cellBorderColor: cellBorderColor,
-                columnBackgroundColor: columnBackgroundColor,
-                textStyle: columnTextStyle,
-                enableFilters: enableFilters,
-                enableSorting: enableSorting,
+              return CellStreamBuilder(
+                cellBloc: tableBloc.tableState!.uiColumnHeaders[uiColumnIndex],
+                builder: (cellBlocState) {
+                  return ColumnHeaderCell(
+                    height: effectiveDataRowHeight,
+                    width: columnWidthBuilder(uiColumnIndex),
+                    visible: cellBlocState.visible,
+                    enabled: !cellBlocState.requestInProgress,
+                    showLoadingIndicator: cellBlocState.requestInProgress,
+                    selected: cellBlocState.selected,
+                    rowSelected: cellBlocState.rowSelected,
+                    columnSelected: cellBlocState.colSelected,
+                    hovered: cellBlocState.hovered,
+                    rowHovered: cellBlocState.rowHovered,
+                    columnHovered: cellBlocState.colHovered,
+                    rowChecked: cellBlocState.rowChecked ?? false,
+                    animation: _getAnimation(cellBlocState),
+                    onTap: () {
+                      tableBloc.deselect();
+                      tableBloc.sort(uiColumnIndex);
+                    },
+                    onHover: (_) {
+                      tableBloc.dehover();
+                    },
+                    backgroundColor: columnBackgroundColor,
+                    cellBorderColor: cellBorderColor,
+                    value: cellBlocState.value,
+                    textStyle: columnTextStyle,
+                    sorted: tableState.sortColumnIndex == uiColumnIndex &&
+                        tableState.isAscending != null,
+                    ascending: tableState.isAscending ?? false,
+                    onSort: enableSorting == true
+                        ? () {
+                            tableBloc.deselect();
+                            tableBloc.sort(uiColumnIndex);
+                          }
+                        : null,
+                    onFilter: (value) {
+                      tableBloc.filter(
+                          uiColumnIndex, value == '' ? null : value);
+                    },
+                    onFilterButtonTap: () {
+                      tableBloc.deselect();
+                    },
+                  );
+                },
               );
             },
 
             /// *********** ROW HEADERS ***********
             rowHeadersBuilder: (uiRowIndex) {
-              return RowHeaderCell(
-                tableBloc: tableBloc,
-                uiRowIndex: uiRowIndex,
-                height: effectiveDataRowHeight,
-                cellRightBorderColor: cellBorderColor,
+              return CellStreamBuilder(
+                cellBloc: tableBloc.tableState!.uiRows[uiRowIndex].rowHeader,
+                builder: (cellBlocState) {
+                  return RowHeaderCell(
+                    height: effectiveDataRowHeight,
+                    visible: cellBlocState.visible,
+                    enabled: !cellBlocState.requestInProgress,
+                    showLoadingIndicator: cellBlocState.requestInProgress,
+                    selected: cellBlocState.selected,
+                    rowSelected: cellBlocState.rowSelected,
+                    columnSelected: cellBlocState.colSelected,
+                    hovered: cellBlocState.hovered,
+                    rowHovered: cellBlocState.rowHovered,
+                    columnHovered: cellBlocState.colHovered,
+                    rowChecked: cellBlocState.rowChecked ?? false,
+                    animation: _getAnimation(cellBlocState),
+                    onTap: () {
+                      tableBloc.deselect();
+                    },
+                    onHover: (_) {
+                      tableBloc.dehover();
+                    },
+                    cellRightBorderColor: cellBorderColor,
 
-                /// bottom cell border color required to ensure row Header and
-                /// row cell highlighting lines up correctly.
-                cellBottomBorderColor: cellBottomBorderColor,
+                    /// bottom cell border color required to ensure row header
+                    /// and row cell highlighting lines up correctly.
+                    cellBottomBorderColor: cellBottomBorderColor,
+                    checked: cellBlocState.rowChecked ?? false,
+                    onChanged: (newValue) {
+                      tableBloc.check(uiRowIndex, newValue ?? false);
+                    },
+                  );
+                },
               );
             },
 
             /// *********** CONTENT ***********
             contentCellBuilder: (uiColumnIndex, uiRowIndex) {
-              /// get item associated to current cell
-              T? item;
+              /// get data model associated to current cell
+              T? rowModel;
               if (uiRowIndex < tableState.uiRows.length) {
-                /// only get an item if the current ui row being built has data
+                /// only get a rowModel if the current ui row being built has data
                 /// attached to it. i.e. it has not been flagged for deletion
-                item = tableState.uiRows[uiRowIndex].rowState.rowModel;
+                rowModel = tableState.uiRows[uiRowIndex].rowState.rowModel;
               }
-
-              /// get styling configuration
-              double width = columnWidthBuilder(uiColumnIndex);
-              CellTypes cellType = columnTypeBuilder(uiColumnIndex);
               bool readOnly = columnReadOnlyBuilder(uiColumnIndex);
-              TextStyle? textStyle = cellTextStyleBuilder != null
-                  ? cellTextStyleBuilder!(item, uiRowIndex, uiColumnIndex)
-                  : defaultCellTextStyle;
-              Alignment horizontalAlignment = columnHorizontalAlignmentBuilder(
-                  item, uiRowIndex, uiColumnIndex);
-              Alignment verticalAlignment = columnVerticalAlignmentBuilder(
-                  item, uiRowIndex, uiColumnIndex);
-              List<String>? dropdownList =
-                  columnDropdownBuilder(item, uiRowIndex, uiColumnIndex);
-              String? Function(String?)? validator =
-                  columnValidatorBuilder(item, uiRowIndex, uiColumnIndex);
-              Widget? customCellContent = cellWidgetBuilder != null
-                  ? cellWidgetBuilder!(item, uiRowIndex, uiColumnIndex)
-                  : null;
 
-              return ContentCell(
-                tableBloc: tableBloc,
-                uiRowIndex: uiRowIndex,
-                uiColumnIndex: uiColumnIndex,
-                width: width,
-                height: effectiveDataRowHeight,
-                cellType: cellType,
-                readOnly: readOnly,
-                textStyle: textStyle,
-                horizontalAlignment: horizontalAlignment,
-                verticalAlignment: verticalAlignment,
-                dropdownList: dropdownList,
-                validator: validator,
-                customCellContent: customCellContent,
-                cellBorderColor: cellBorderColor,
-                disabledCellColor: disabledCellColor,
+              return CellStreamBuilder(
+                cellBloc: tableBloc
+                    .tableState!.uiRows[uiRowIndex].cellBlocs[uiColumnIndex],
+                builder: (cellBlocState) {
+                  return ContentCell(
+                    height: effectiveDataRowHeight,
+                    width: columnWidthBuilder(uiColumnIndex),
+                    verticalAlignment: columnVerticalAlignmentBuilder(
+                      rowModel,
+                      uiRowIndex,
+                      uiColumnIndex,
+                    ),
+                    visible: cellBlocState.visible,
+                    enabled: !cellBlocState.requestInProgress,
+                    showLoadingIndicator: cellBlocState.requestInProgress,
+                    selected: cellBlocState.selected,
+                    rowSelected: cellBlocState.rowSelected,
+                    columnSelected: cellBlocState.colSelected,
+                    hovered: cellBlocState.hovered,
+                    rowHovered: cellBlocState.rowHovered,
+                    columnHovered: cellBlocState.colHovered,
+                    rowChecked: cellBlocState.rowChecked ?? false,
+                    animation: _getAnimation(cellBlocState),
+                    onTap: () {
+                      tableBloc.select(uiRowIndex, uiColumnIndex);
+                    },
+                    onHover: (_) {
+                      tableBloc.hover(uiRowIndex, uiColumnIndex);
+                    },
+                    backgroundColor:
+                        readOnly == true ? disabledCellColor : null,
+                    cellBorderColor: cellBorderColor,
+                    horizontalAlignment: columnHorizontalAlignmentBuilder(
+                      rowModel,
+                      uiRowIndex,
+                      uiColumnIndex,
+                    ),
+                    textStyle: cellTextStyleBuilder != null
+                        ? cellTextStyleBuilder!(
+                            rowModel, uiRowIndex, uiColumnIndex)
+                        : defaultCellTextStyle,
+                    readOnly: readOnly,
+                    onChanged: (newValue) {
+                      /// Note for Content Cells with text, currency or number
+                      /// content the onChanged function is mapped to the
+                      /// onFocusLost function. This is only fired when the user
+                      /// clicks out of the cell or submits the value
+                      UiRow<T> uiRow = tableState.uiRows[uiRowIndex];
+
+                      /// note: server side modifications never cause cells to
+                      /// loose focus so checking the change state is not
+                      /// required.
+                      if (uiRow.rowState.rowModel != null) {
+                        tableBloc.update(
+                          uiRow,
+                          uiColumnIndex,
+                          newValue,
+                          cellBlocState.value,
+                        );
+                      }
+                    },
+                    cellType: columnTypeBuilder(uiColumnIndex),
+                    value: cellBlocState.value,
+                    validator: columnValidatorBuilder(
+                      rowModel,
+                      uiRowIndex,
+                      uiColumnIndex,
+                    ),
+                    dropdownList: columnDropdownBuilder(
+                      rowModel,
+                      uiRowIndex,
+                      uiColumnIndex,
+                    ),
+                    customCellContent: cellWidgetBuilder != null
+                        ? cellWidgetBuilder!(
+                            rowModel, uiRowIndex, uiColumnIndex)
+                        : null,
+                  );
+                },
               );
             },
           ),

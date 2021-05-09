@@ -20,6 +20,7 @@ part 'components/cell/cell_animations/cell_content/text_cell_content.dart';
 part 'components/cell/cell_animations/cell_loading_indicator/cell_loading_indicator.dart';
 part 'components/cell/cell_animations/cell_animations.dart';
 part 'components/cell/cell_bloc.dart';
+part 'components/cell/cell_stream_builder.dart';
 part 'components/cell/cell.dart';
 part 'components/cells/column_header_cell.dart';
 part 'components/cells/content_cell.dart';

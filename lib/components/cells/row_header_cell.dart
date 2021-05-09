@@ -67,7 +67,7 @@ class RowHeaderCell extends StatelessWidget {
     this.onMouseExit,
 
     /// [RowHeaderCell] specific API
-    required this.backgroundColor,
+    this.backgroundColor,
     required this.cellRightBorderColor,
     required this.cellBottomBorderColor,
     this.checked = false,
