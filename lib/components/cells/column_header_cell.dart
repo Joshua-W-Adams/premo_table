@@ -34,7 +34,7 @@ class ColumnHeaderCell extends StatelessWidget {
   final void Function(PointerExitEvent)? onMouseExit;
 
   /// column header specific style properties
-  final Color? columnBackgroundColor;
+  final Color? backgroundColor;
   final Color cellBorderColor;
 
   /// value to load into the column header
@@ -76,7 +76,7 @@ class ColumnHeaderCell extends StatelessWidget {
     this.onMouseExit,
 
     /// [ColumnHeaderCell] specific API
-    this.columnBackgroundColor,
+    this.backgroundColor,
     required this.cellBorderColor,
 
     /// child [ColumnHeaderCellContent] API
@@ -100,7 +100,7 @@ class ColumnHeaderCell extends StatelessWidget {
       verticalAlignment: verticalAlignment,
       decoration: decoration ??
           BoxDecoration(
-            color: columnBackgroundColor,
+            color: backgroundColor,
             border: Border(
               top: BorderSide(
                 color: cellBorderColor,
