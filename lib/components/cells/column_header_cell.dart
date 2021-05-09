@@ -54,14 +54,9 @@ class ColumnHeaderCell extends StatelessWidget {
 
   ColumnHeaderCell({
     /// Base [Cell] API
-    this.height = 50,
-    this.width = 70,
-    this.padding = const EdgeInsets.only(
-      left: 5.0,
-      right: 5.0,
-      top: 5.0,
-      bottom: 5.0,
-    ),
+    this.height,
+    this.width,
+    this.padding,
     this.verticalAlignment = Alignment.center,
     this.decoration,
     this.visible = true,
