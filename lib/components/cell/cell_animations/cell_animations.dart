@@ -3,28 +3,43 @@ part of premo_table;
 /// Controls all cell animations.
 ///
 /// Will animate the both the cell background colours and sizes based on the
-/// provided [CellBlocState].
+/// provided animation string.
 class CellAnimations extends StatefulWidget {
   /// current state of the cell
-  final CellBlocState cellBlocState;
+  final String? animation;
 
   /// widget to be animated
-  final Widget Function(BuildContext context, Animation<Color?>? colorTween,
-      Animation<double>? _sizeTween) widgetBuilder;
+  final Widget Function(
+    BuildContext context,
+    Animation<Color?>? colorTween,
+    Animation<double>? _sizeTween,
+  ) builder;
 
   /// color to finish all animations at
   final Color? endAnimationColor;
 
-  /// height to animate from or too based on the [CellBlocState] reporting an
-  /// add or delete. if no height is provided no size animation will occur.
+  /// height to animate from or too based on the animation specifying an add or
+  /// delete. If no height is provided no size animation will occur.
   final double? animationHeight;
 
   CellAnimations({
-    required this.cellBlocState,
-    required this.widgetBuilder,
+    this.animation,
+    required this.builder,
     this.endAnimationColor,
     this.animationHeight,
-  });
+  }) : assert(animations.contains(animation),
+            'Animation must be one of the following: ${animations.toString()}');
+
+  /// supported list of animations
+  static final animations = [
+    'add',
+    'delete',
+    'update',
+    'duplicate',
+    'requestPassed',
+    'requestFailed',
+    null,
+  ];
 
   @override
   _CellAnimationsState createState() => _CellAnimationsState();
@@ -61,11 +76,11 @@ class _CellAnimationsState extends State<CellAnimations>
     super.didUpdateWidget(oldWidget);
 
     /// set tween to animate
-    _colorTween = _getColorTween(widget.cellBlocState);
-    _sizeTween = _getSizeTween(widget.cellBlocState);
+    _colorTween = _getColorTween(widget.animation);
+    _sizeTween = _getSizeTween(widget.animation);
 
     if (_colorTween != null || _sizeTween != null) {
-      /// case 1 - [CellBlocState] has associated animation
+      /// case 1 - animation string has associated animation
       _animate();
     }
 
@@ -80,23 +95,23 @@ class _CellAnimationsState extends State<CellAnimations>
     super.dispose();
   }
 
-  Color? _getAnimationColor(CellBlocState cellBlocState) {
-    if (cellBlocState.changeType == ChangeTypes.update) {
+  Color? _getAnimationColor(String? animation) {
+    if (animation == 'update') {
       /// case 1 - cell change recieved from server
       return Colors.orange;
-    } else if (cellBlocState.changeType == ChangeTypes.add) {
+    } else if (animation == 'add') {
       /// case 2 - newly added row
       return Colors.green;
-    } else if (cellBlocState.changeType == ChangeTypes.delete) {
+    } else if (animation == 'delete') {
       /// case 3 - deleted row
       return Colors.red;
-    } else if (cellBlocState.changeType == ChangeTypes.duplicate) {
+    } else if (animation == 'duplicate') {
       /// case 3 - deleted row
       return Colors.red[900];
-    } else if (cellBlocState.requestSucceeded == true) {
+    } else if (animation == 'requestPassed') {
       /// case 5 - client/user change passed
       return Colors.green;
-    } else if (cellBlocState.requestSucceeded == false) {
+    } else if (animation == 'requestFailed') {
       /// case 6 - client/user change failed
       return Colors.red;
     }
@@ -111,8 +126,8 @@ class _CellAnimationsState extends State<CellAnimations>
   /// process of generating the frames between two images to create an animation.
 
   /// Tween for animating cell colours
-  Animation<Color?>? _getColorTween(CellBlocState cellBlocState) {
-    Color? animationColor = _getAnimationColor(cellBlocState);
+  Animation<Color?>? _getColorTween(String? animation) {
+    Color? animationColor = _getAnimationColor(animation);
     if (animationColor != null) {
       /// case 1 - animation available
       return ColorTween(
@@ -126,15 +141,14 @@ class _CellAnimationsState extends State<CellAnimations>
   }
 
   /// Tween for collapsing and expanding rows
-  Animation<double>? _getSizeTween(CellBlocState cellBlocState) {
-    if (cellBlocState.changeType == ChangeTypes.add ||
-        cellBlocState.changeType == ChangeTypes.duplicate) {
+  Animation<double>? _getSizeTween(String? animation) {
+    if (['add', 'duplicate'].contains(animation)) {
       /// case 1 - newly added row
       return Tween<double>(
         begin: 0.0,
         end: widget.animationHeight ?? 0,
       ).animate(_animationController!);
-    } else if (cellBlocState.changeType == ChangeTypes.delete) {
+    } else if (animation == 'delete') {
       /// case 2 - deleted row
       return Tween<double>(
         begin: widget.animationHeight ?? 0,
@@ -142,7 +156,7 @@ class _CellAnimationsState extends State<CellAnimations>
       ).animate(_animationController!);
     }
 
-    /// no animation configured for provided [CellBlocState]
+    /// no animation configured for provided animation
     return null;
   }
 
@@ -154,6 +168,6 @@ class _CellAnimationsState extends State<CellAnimations>
 
   @override
   Widget build(BuildContext context) {
-    return widget.widgetBuilder(context, _colorTween, _sizeTween);
+    return widget.builder(context, _colorTween, _sizeTween);
   }
 }
