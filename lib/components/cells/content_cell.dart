@@ -1,200 +1,213 @@
 part of premo_table;
 
 class ContentCell extends StatelessWidget {
-  /// all cell operations are controlled in the tableBloC so cell state changes
-  /// and operations can be shared through all relevant components in the table
-  final TableBloc tableBloc;
+  /// sizing
+  final double? height;
+  final double? width;
 
-  /// indexs of the cell in the displayed ui which is output in the [uiRow]s
-  /// property from the tableBloc
-  final int uiRowIndex;
-  final int uiColumnIndex;
+  /// styling
+  final EdgeInsetsGeometry? padding;
+  final Alignment verticalAlignment;
+  final BoxDecoration? decoration;
+
+  /// misc functionality
+  final bool visible;
+  final bool enabled;
+  final bool showLoadingIndicator;
+
+  /// cell effects to apply on user interaction
+  final bool selected;
+  final bool rowSelected;
+  final bool columnSelected;
+  final bool hovered;
+  final bool rowHovered;
+  final bool columnHovered;
+  final bool rowChecked;
+
+  /// animations to run on cell build
+  final String? animation;
+
+  /// user events
+  final VoidCallback? onTap;
+  final void Function(PointerHoverEvent)? onHover;
+  final void Function(PointerEnterEvent)? onMouseEnter;
+  final void Function(PointerExitEvent)? onMouseExit;
 
   /// configurable style properties
-  final double width;
-  final double height;
+  final Color? backgroundColor;
   final Color cellBorderColor;
-  final Color disabledCellColor;
-  final CellTypes cellType;
-  final bool readOnly;
-  final TextStyle? textStyle;
   final Alignment horizontalAlignment;
-  final Alignment verticalAlignment;
-  final List<String>? dropdownList;
+  final TextStyle? textStyle;
+  final bool readOnly;
+  final void Function(String)? onChanged;
+  final CellTypes cellType;
+
+  /// value to load into cell
+  final String? value;
+
+  /// Text, number, currency specific config
   final String? Function(String?)? validator;
+
+  /// dropdown specific config
+  final List<String>? dropdownList;
+
+  /// custom content to load as cell child
   final Widget? customCellContent;
 
   ContentCell({
-    required this.tableBloc,
-    required this.uiRowIndex,
-    required this.uiColumnIndex,
-    required this.width,
-    this.height = 50,
-    required this.cellBorderColor,
-    required this.disabledCellColor,
-    required this.cellType,
-    required this.readOnly,
-    this.textStyle,
-    this.horizontalAlignment = Alignment.center,
+    /// Base [Cell] API
+    this.height,
+    this.width,
+    this.padding,
     this.verticalAlignment = Alignment.center,
-    this.dropdownList,
+    this.decoration,
+    this.visible = true,
+    this.enabled = true,
+    this.showLoadingIndicator = false,
+    this.selected = false,
+    this.rowSelected = false,
+    this.columnSelected = false,
+    this.hovered = false,
+    this.rowHovered = false,
+    this.columnHovered = false,
+    this.rowChecked = false,
+    this.animation,
+    this.onTap,
+    this.onHover,
+    this.onMouseEnter,
+    this.onMouseExit,
+
+    /// [ContentCell] specific API
+    required this.backgroundColor,
+    required this.cellBorderColor,
+    this.horizontalAlignment = Alignment.center,
+    this.textStyle,
+    this.readOnly = false,
+    this.onChanged,
+    required this.cellType,
+    this.value,
+
+    /// child [TextCellContent] api
     this.validator,
+
+    /// child [DropdownCellContent] api
+    this.dropdownList,
+
+    /// custom [Cell] content override
     this.customCellContent,
   });
 
   @override
   Widget build(BuildContext context) {
-    /// block assigned to each cell is final and does not change, however the
-    /// values within the cell and the cells state will
-    CellBloc cellBloc =
-        tableBloc.tableState!.uiRows[uiRowIndex].cellBlocs[uiColumnIndex];
     return Cell(
-      cellBloc: cellBloc,
       height: height,
       width: width,
+      padding: padding,
       verticalAlignment: verticalAlignment,
-      decoration: BoxDecoration(
-        color: readOnly == true ? disabledCellColor : null,
-        border: Border(
-          right: BorderSide(
-            color: cellBorderColor,
+      decoration: decoration ??
+          BoxDecoration(
+            color: backgroundColor,
+            border: Border(
+              right: BorderSide(
+                color: cellBorderColor,
+              ),
+              bottom: BorderSide(
+                color: cellBorderColor,
+              ),
+            ),
           ),
-          bottom: BorderSide(
-            color: cellBorderColor,
-          ),
-        ),
-      ),
-      onTap: () {
-        tableBloc.select(uiRowIndex, uiColumnIndex);
-      },
-      onHover: (_) {
-        tableBloc.hover(uiRowIndex, uiColumnIndex);
-      },
-      builder: (cellBlocState) {
-        TableState tableState = tableBloc.tableState!;
-        UiRow uiRow = tableState.uiRows[uiRowIndex];
-
-        if (cellType == CellTypes.text ||
-            cellType == CellTypes.number ||
-            cellType == CellTypes.currency) {
-          /// case 1 - text cell
-          String? Function(String?)? inputParser;
-          String? Function(String?)? outputParser;
-          List<TextInputFormatter>? inputFormatters;
-          TextInputType? keyboardType = TextInputType.text;
-
-          if (cellType == CellTypes.number) {
-            /// case 2 - numeric cell
-            inputFormatters = [FilteringTextInputFormatter.digitsOnly];
-            outputParser = DataFormatter.toNumber;
-            keyboardType = TextInputType.number;
-          } else if (cellType == CellTypes.currency) {
-            /// case 3 - currency cell
-            inputFormatters = [
-              InputFormatter(formatterCallback: DataFormatter.toCurrency)
-            ];
-            inputParser = DataFormatter.toCurrency;
-            outputParser = DataFormatter.toNumber;
-            keyboardType = TextInputType.number;
-          }
-
-          return TextCellContent(
-            value: cellBlocState.value,
-            selected: cellBlocState.selected,
-            enabled: !cellBlocState.requestInProgress,
-            readOnly: readOnly,
-            textStyle: textStyle,
-            horizontalAlignment: horizontalAlignment,
-            validator: validator,
-            inputFormatters: inputFormatters,
-            inputParser: inputParser,
-            outputParser: outputParser,
-            keyboardType: keyboardType,
-            onTap: () {
-              tableBloc.select(uiRowIndex, uiColumnIndex);
-            },
-
-            /// On focus lost fired when the user clicks out of the text cell
-            /// or completes editing / submits value
-            onFocusLost: (newValue) {
-              /// server modifications never loose focus so checking the change
-              /// state is not required.
-              if (uiRow.rowState.rowModel != null) {
-                tableBloc.update(
-                  uiRow,
-                  uiColumnIndex,
-                  newValue,
-                  cellBloc.state.value,
-                );
-              }
-            },
-          );
-        } else if (cellType == CellTypes.dropdown) {
-          return DropdownCellContent(
-            value: cellBlocState.value,
-            enabled: !cellBlocState.requestInProgress && !readOnly,
-            textStyle: textStyle,
-            horizontalAlignment: horizontalAlignment,
-            dropdownList: dropdownList!,
-            onTap: () {
-              tableBloc.select(uiRowIndex, uiColumnIndex);
-            },
-            onChanged: (newValue) {
-              if (uiRow.rowState.rowModel != null) {
-                tableBloc.update(
-                  uiRow,
-                  uiColumnIndex,
-                  newValue,
-                  cellBloc.state.value,
-                );
-              }
-            },
-          );
-        } else if (cellType == CellTypes.cellswitch) {
-          return SwitchCellContent(
-            value: cellBlocState.value,
-            enabled: !cellBlocState.requestInProgress && !readOnly,
-            horizontalAlignment: horizontalAlignment,
-            onChanged: (newValue) {
-              tableBloc.select(uiRowIndex, uiColumnIndex);
-              if (uiRow.rowState.rowModel != null) {
-                tableBloc.update(
-                  uiRow,
-                  uiColumnIndex,
-                  newValue,
-                  cellBloc.state.value,
-                );
-              }
-            },
-          );
-        } else if (cellType == CellTypes.date) {
-          return DateCellContent(
-            value: cellBlocState.value,
-            enabled: !cellBlocState.requestInProgress && !readOnly,
-            textStyle: textStyle,
-            horizontalAlignment: horizontalAlignment,
-            inputParser: DataFormatter.toDate,
-            onTap: () {
-              tableBloc.select(uiRowIndex, uiColumnIndex);
-            },
-            onChanged: (newValue) {
-              if (uiRow.rowState.rowModel != null) {
-                tableBloc.update(
-                  uiRow,
-                  uiColumnIndex,
-                  newValue,
-                  cellBloc.state.value,
-                );
-              }
-            },
-          );
-        } else if (cellType == CellTypes.custom) {
-          return customCellContent!;
-        }
-
-        /// Cell type not supported
-        return Container();
-      },
+      visible: visible,
+      enabled: enabled,
+      showLoadingIndicator: showLoadingIndicator,
+      selected: selected,
+      rowSelected: rowSelected,
+      columnSelected: columnSelected,
+      hovered: hovered,
+      rowHovered: rowHovered,
+      columnHovered: columnHovered,
+      rowChecked: rowChecked,
+      animation: animation,
+      onTap: onTap,
+      onHover: onHover,
+      onMouseEnter: onMouseEnter,
+      onMouseExit: onMouseExit,
+      child: _getCellContentType(),
     );
+  }
+
+  Widget _getCellContentType() {
+    if ([CellTypes.text, CellTypes.number, CellTypes.currency]
+        .contains(cellType)) {
+      /// case 1 - text cell
+      String? Function(String?)? inputParser;
+      String? Function(String?)? outputParser;
+      List<TextInputFormatter>? inputFormatters;
+      TextInputType? keyboardType = TextInputType.text;
+
+      if (cellType == CellTypes.number) {
+        /// case 2 - numeric cell
+        inputFormatters = [FilteringTextInputFormatter.digitsOnly];
+        outputParser = DataFormatter.toNumber;
+        keyboardType = TextInputType.number;
+      } else if (cellType == CellTypes.currency) {
+        /// case 3 - currency cell
+        inputFormatters = [
+          InputFormatter(formatterCallback: DataFormatter.toCurrency)
+        ];
+        inputParser = DataFormatter.toCurrency;
+        outputParser = DataFormatter.toNumber;
+        keyboardType = TextInputType.number;
+      }
+      return TextCellContent(
+        value: value,
+        selected: selected,
+        enabled: enabled,
+        readOnly: readOnly,
+        textStyle: textStyle,
+        horizontalAlignment: horizontalAlignment,
+        validator: validator,
+        inputFormatters: inputFormatters,
+        inputParser: inputParser,
+        outputParser: outputParser,
+        keyboardType: keyboardType,
+        onTap: onTap,
+        onFocusLost: onChanged,
+      );
+    } else if (cellType == CellTypes.dropdown) {
+      return DropdownCellContent(
+        value: value,
+        enabled: enabled && !readOnly,
+        textStyle: textStyle,
+        horizontalAlignment: horizontalAlignment,
+        dropdownList: dropdownList!,
+        onTap: onTap,
+        onChanged: onChanged,
+      );
+    } else if (cellType == CellTypes.cellswitch) {
+      return SwitchCellContent(
+        value: value,
+        enabled: enabled && !readOnly,
+        horizontalAlignment: horizontalAlignment,
+        onChanged: (newValue) {
+          onTap?.call();
+          onChanged?.call(newValue);
+        },
+      );
+    } else if (cellType == CellTypes.date) {
+      return DateCellContent(
+        value: value,
+        enabled: enabled && !readOnly,
+        textStyle: textStyle,
+        horizontalAlignment: horizontalAlignment,
+        inputParser: DataFormatter.toDate,
+        onTap: onTap,
+        onChanged: onChanged,
+      );
+    } else if (cellType == CellTypes.custom) {
+      return customCellContent!;
+    }
+
+    /// Cell type not supported
+    return Container();
   }
 }
