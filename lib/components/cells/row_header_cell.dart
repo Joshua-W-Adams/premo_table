@@ -1,62 +1,117 @@
 part of premo_table;
 
 class RowHeaderCell extends StatelessWidget {
-  /// all cell operations are controlled in the tableBloC so cell state changes
-  /// and operations can be shared through all relevant components in the table
-  final TableBloc tableBloc;
+  /// sizing
+  final double? height;
+  final double? width;
 
-  /// index of the cell in the displayed ui which is output in the [uiRow]s
-  /// property from the tableBloc
-  final int uiRowIndex;
+  /// styling
+  final EdgeInsetsGeometry? padding;
+  final Alignment verticalAlignment;
+  final BoxDecoration? decoration;
+
+  /// misc functionality
+  final bool visible;
+  final bool enabled;
+  final bool showLoadingIndicator;
+
+  /// cell effects to apply on user interaction
+  final bool selected;
+  final bool rowSelected;
+  final bool columnSelected;
+  final bool hovered;
+  final bool rowHovered;
+  final bool columnHovered;
+  final bool rowChecked;
+
+  /// animations to run on cell build
+  final String? animation;
+
+  /// user events
+  final VoidCallback? onTap;
+  final void Function(PointerHoverEvent)? onHover;
+  final void Function(PointerEnterEvent)? onMouseEnter;
+  final void Function(PointerExitEvent)? onMouseExit;
 
   /// configurable style properties
+  final Color? backgroundColor;
   final Color cellRightBorderColor;
   final Color cellBottomBorderColor;
 
-  final double height;
+  /// whether to display a check or empty checkbox
+  final bool checked;
+
+  final void Function(bool?)? onChanged;
 
   RowHeaderCell({
-    required this.tableBloc,
-    required this.uiRowIndex,
+    /// Base [Cell] API
+    this.height,
+    this.width = 50,
+    this.padding,
+    this.verticalAlignment = Alignment.center,
+    this.decoration,
+    this.visible = true,
+    this.enabled = true,
+    this.showLoadingIndicator = false,
+    this.selected = false,
+    this.rowSelected = false,
+    this.columnSelected = false,
+    this.hovered = false,
+    this.rowHovered = false,
+    this.columnHovered = false,
+    this.rowChecked = false,
+    this.animation,
+    this.onTap,
+    this.onHover,
+    this.onMouseEnter,
+    this.onMouseExit,
+
+    /// [RowHeaderCell] specific API
+    required this.backgroundColor,
     required this.cellRightBorderColor,
     required this.cellBottomBorderColor,
-    this.height = 50,
+    this.checked = false,
+    this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    /// block assigned to each cell is final and does not change, however the
-    /// values within the cell and the cells state will
-    CellBloc rowHeaderBloc = tableBloc.tableState!.uiRows[uiRowIndex].rowHeader;
     return Cell(
-      cellBloc: rowHeaderBloc,
-      width: 50,
       height: height,
-      onHover: (_) {
-        tableBloc.dehover();
-      },
-      onTap: () {
-        tableBloc.deselect();
-      },
-      decoration: BoxDecoration(
-        border: Border(
-          right: BorderSide(
-            color: cellRightBorderColor,
+      width: width,
+      padding: padding,
+      verticalAlignment: verticalAlignment,
+      decoration: decoration ??
+          BoxDecoration(
+            color: backgroundColor,
+            border: Border(
+              right: BorderSide(
+                color: cellRightBorderColor,
+              ),
+              bottom: BorderSide(
+                color: cellBottomBorderColor,
+              ),
+            ),
           ),
-          bottom: BorderSide(
-            color: cellBottomBorderColor,
-          ),
-        ),
+      visible: visible,
+      enabled: enabled,
+      showLoadingIndicator: showLoadingIndicator,
+      selected: selected,
+      rowSelected: rowSelected,
+      columnSelected: columnSelected,
+      hovered: hovered,
+      rowHovered: rowHovered,
+      columnHovered: columnHovered,
+      rowChecked: rowChecked,
+      animation: animation,
+      onTap: onTap,
+      onHover: onHover,
+      onMouseEnter: onMouseEnter,
+      onMouseExit: onMouseExit,
+      child: Checkbox(
+        value: checked,
+        onChanged: onChanged,
       ),
-      builder: (cellBlocState) {
-        UiRow uiRow = tableBloc.tableState!.uiRows[uiRowIndex];
-        return Checkbox(
-          value: uiRow.rowState.checked,
-          onChanged: (newValue) {
-            tableBloc.check(uiRowIndex, newValue ?? false);
-          },
-        );
-      },
     );
   }
 }
