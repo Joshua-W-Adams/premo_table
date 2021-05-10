@@ -82,14 +82,25 @@ class _TextCellContentState extends State<TextCellContent> {
   /// key required to perform validation on content when the value changes
   final GlobalKey<FormFieldState> _key = GlobalKey<FormFieldState>();
 
+  String? _oldValue;
+
   void initState() {
     super.initState();
+
+    /// store value to enablechange detection
+    _oldValue = _setValueFormat(widget.value);
     _focusNode.addListener(() {
       /// Allow detection of on focus lost events
       if (!_focusNode.hasFocus &&
           widget.onFocusLost != null &&
           _key.currentState?.validate() == true) {
-        widget.onFocusLost!(_removeValueFormat(_textController.text));
+        if (_oldValue != _textController.text) {
+          /// update current value
+          _oldValue = _textController.text;
+
+          /// only fire onFocusLost if the value has changed
+          widget.onFocusLost!(_removeValueFormat(_oldValue));
+        }
       }
     });
   }
@@ -106,6 +117,7 @@ class _TextCellContentState extends State<TextCellContent> {
   @override
   void didUpdateWidget(TextCellContent oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _oldValue = _setValueFormat(widget.value);
     if (_focusNode.hasFocus && widget.selected == false) {
       FocusScope.of(context).unfocus();
     }
@@ -127,14 +139,11 @@ class _TextCellContentState extends State<TextCellContent> {
 
   @override
   Widget build(BuildContext context) {
-    String? _value = widget.value;
-    _value = _setValueFormat(_value);
-
     /// update controller value and selection position on cell state update
     _textController.value = TextEditingValue(
-      text: _value,
+      text: _oldValue!,
       selection: TextSelection.collapsed(
-        offset: _value.length,
+        offset: _oldValue!.length,
       ),
     );
 
