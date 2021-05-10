@@ -44,9 +44,14 @@ class LegendCell extends StatelessWidget {
 
   LegendCell({
     /// Base [Cell] API
-    this.height,
+    this.height = 50,
     this.width = 50,
-    this.padding,
+    this.padding = const EdgeInsets.only(
+      left: 5.0,
+      right: 5.0,
+      top: 5.0,
+      bottom: 5.0,
+    ),
     this.verticalAlignment = Alignment.center,
     this.decoration,
     this.visible = true,
