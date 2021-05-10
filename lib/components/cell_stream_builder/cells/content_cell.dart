@@ -84,7 +84,7 @@ class ContentCell extends StatelessWidget {
 
     /// [ContentCell] specific API
     this.backgroundColor,
-    required this.cellBorderColor,
+    this.cellBorderColor = const Color(4278190080),
     this.horizontalAlignment = Alignment.center,
     this.textStyle,
     this.readOnly = false,

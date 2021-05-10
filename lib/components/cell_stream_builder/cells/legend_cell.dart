@@ -72,7 +72,7 @@ class LegendCell extends StatelessWidget {
 
     /// [LegendCell] specific API
     this.backgroundColor,
-    required this.cellBorderColor,
+    this.cellBorderColor = const Color(4278190080),
     this.allRowsChecked = false,
     this.onChanged,
   });

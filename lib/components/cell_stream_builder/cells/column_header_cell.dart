@@ -82,7 +82,7 @@ class ColumnHeaderCell extends StatelessWidget {
 
     /// [ColumnHeaderCell] specific API
     this.backgroundColor,
-    required this.cellBorderColor,
+    this.cellBorderColor = const Color(4278190080),
 
     /// child [ColumnHeaderCellContent] API
     this.value,

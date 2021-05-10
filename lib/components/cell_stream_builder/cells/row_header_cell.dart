@@ -73,8 +73,8 @@ class RowHeaderCell extends StatelessWidget {
 
     /// [RowHeaderCell] specific API
     this.backgroundColor,
-    required this.cellRightBorderColor,
-    required this.cellBottomBorderColor,
+    this.cellRightBorderColor = const Color(4278190080),
+    this.cellBottomBorderColor = const Color(4278190080),
     this.checked = false,
     this.onChanged,
   });
