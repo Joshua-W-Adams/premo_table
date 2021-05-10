@@ -46,7 +46,7 @@ class ContentCell extends StatelessWidget {
   final String? value;
 
   /// Text, number, currency specific config
-  final InputDecoration? inputDecoration;
+  final InputDecoration inputDecoration;
   final String? Function(String?)? validator;
   final int? minLines;
   final int? maxLines;
@@ -201,6 +201,7 @@ class ContentCell extends StatelessWidget {
         enabled: enabled && !readOnly,
         textStyle: textStyle,
         horizontalAlignment: horizontalAlignment,
+        inputDecoration: inputDecoration,
         dropdownList: dropdownList!,
         onTap: onTap,
         onChanged: onChanged,
@@ -210,6 +211,7 @@ class ContentCell extends StatelessWidget {
         value: value,
         enabled: enabled && !readOnly,
         horizontalAlignment: horizontalAlignment,
+        inputDecoration: inputDecoration,
         onChanged: (newValue) {
           onTap?.call();
           onChanged?.call(newValue);
@@ -221,6 +223,7 @@ class ContentCell extends StatelessWidget {
         enabled: enabled && !readOnly,
         textStyle: textStyle,
         horizontalAlignment: horizontalAlignment,
+        inputDecoration: inputDecoration,
         inputParser: DataFormatter.toDate,
         onTap: onTap,
         onChanged: onChanged,
