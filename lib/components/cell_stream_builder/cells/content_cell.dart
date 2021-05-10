@@ -48,6 +48,8 @@ class ContentCell extends StatelessWidget {
   /// Text, number, currency specific config
   final InputDecoration? inputDecoration;
   final String? Function(String?)? validator;
+  final int? minLines;
+  final int? maxLines;
 
   /// dropdown specific config
   final List<String>? dropdownList;
@@ -96,6 +98,8 @@ class ContentCell extends StatelessWidget {
     /// child [TextCellContent] api
     this.inputDecoration,
     this.validator,
+    this.minLines,
+    this.maxLines,
 
     /// child [DropdownCellContent] api
     this.dropdownList,
@@ -178,6 +182,8 @@ class ContentCell extends StatelessWidget {
         inputParser: inputParser,
         outputParser: outputParser,
         keyboardType: keyboardType,
+        minLines: minLines,
+        maxLines: maxLines,
         onTap: onTap,
         onFocusLost: onChanged,
       );
