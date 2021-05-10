@@ -46,6 +46,7 @@ class ContentCell extends StatelessWidget {
   final String? value;
 
   /// Text, number, currency specific config
+  final InputDecoration? inputDecoration;
   final String? Function(String?)? validator;
 
   /// dropdown specific config
@@ -93,6 +94,7 @@ class ContentCell extends StatelessWidget {
     this.value,
 
     /// child [TextCellContent] api
+    this.inputDecoration,
     this.validator,
 
     /// child [DropdownCellContent] api
@@ -171,6 +173,7 @@ class ContentCell extends StatelessWidget {
         textStyle: textStyle,
         horizontalAlignment: horizontalAlignment,
         validator: validator,
+        inputDecoration: inputDecoration,
         inputFormatters: inputFormatters,
         inputParser: inputParser,
         outputParser: outputParser,
