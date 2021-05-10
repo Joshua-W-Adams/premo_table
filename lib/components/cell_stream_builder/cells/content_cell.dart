@@ -96,7 +96,15 @@ class ContentCell extends StatelessWidget {
     this.value,
 
     /// child [TextCellContent] api
-    this.inputDecoration,
+    this.inputDecoration = const InputDecoration(
+      border: InputBorder.none,
+      contentPadding: EdgeInsets.all(0),
+
+      /// dense display of text cell. Required to ensure the textFormField
+      /// respects the cells alignment property. E.g. so that the text form
+      /// field is centered within the parent widget.
+      isDense: true,
+    ),
     this.validator,
     this.minLines,
     this.maxLines,
