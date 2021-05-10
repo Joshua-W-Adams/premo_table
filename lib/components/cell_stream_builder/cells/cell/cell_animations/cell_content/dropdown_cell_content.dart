@@ -15,7 +15,8 @@ class DropdownCellContent extends StatefulWidget {
   final Alignment horizontalAlignment;
 
   /// Expand dropdown button to size of parent widget
-  final bool isExpanded;
+  final bool isDropdownButtonExpanded;
+  final bool isDropdownButtonDense;
 
   /// cannot be edited or selected
   final bool enabled;
@@ -41,7 +42,8 @@ class DropdownCellContent extends StatefulWidget {
     ),
     this.textStyle,
     this.horizontalAlignment = Alignment.centerLeft,
-    this.isExpanded = false,
+    this.isDropdownButtonExpanded = false,
+    this.isDropdownButtonDense = false,
     this.enabled = true,
     this.onChanged,
     this.onTap,
@@ -80,13 +82,12 @@ class _DropdownCellContentState extends State<DropdownCellContent> {
                 icon: widget.icon,
 
                 /// Expand dropdown button to size of parent widget
-                isExpanded: widget.isExpanded,
+                isExpanded: widget.isDropdownButtonExpanded,
 
-                /// TODO - Is this still required?
                 /// conditional application of isDense. False required for correct
                 /// operation on onclick events in tables. True required for
                 /// correct display of dropdowns in formfields.
-                // isDense: isDense,
+                isDense: widget.isDropdownButtonDense,
                 hint: Text(
                   widget.inputDecoration.hintText ?? '',
                   overflow: TextOverflow.ellipsis,

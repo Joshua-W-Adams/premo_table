@@ -53,6 +53,8 @@ class ContentCell extends StatelessWidget {
 
   /// dropdown specific config
   final List<String>? dropdownList;
+  final bool isDropdownButtonExpanded;
+  final bool isDropdownButtonDense;
 
   /// custom content to load as cell child
   final Widget? customCellContent;
@@ -111,6 +113,8 @@ class ContentCell extends StatelessWidget {
 
     /// child [DropdownCellContent] api
     this.dropdownList,
+    this.isDropdownButtonExpanded = false,
+    this.isDropdownButtonDense = false,
 
     /// custom [Cell] content override
     this.customCellContent,
@@ -203,6 +207,8 @@ class ContentCell extends StatelessWidget {
         horizontalAlignment: horizontalAlignment,
         inputDecoration: inputDecoration,
         dropdownList: dropdownList!,
+        isDropdownButtonExpanded: isDropdownButtonExpanded,
+        isDropdownButtonDense: isDropdownButtonDense,
         onTap: onTap,
         onChanged: onChanged,
       );
