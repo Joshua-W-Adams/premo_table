@@ -12,6 +12,7 @@ class DropdownCellContent extends StatefulWidget {
   final InputDecoration inputDecoration;
 
   final TextStyle? textStyle;
+  final TextStyle? dropdownItemTextStyle;
   final Alignment horizontalAlignment;
 
   /// Expand dropdown button to size of parent widget
@@ -41,6 +42,7 @@ class DropdownCellContent extends StatefulWidget {
       isDense: true,
     ),
     this.textStyle,
+    this.dropdownItemTextStyle,
     this.horizontalAlignment = Alignment.centerLeft,
     this.isDropdownButtonExpanded = false,
     this.isDropdownButtonDense = false,
@@ -126,7 +128,7 @@ class _DropdownCellContentState extends State<DropdownCellContent> {
                       // issue currently logged on the git flutter repo.
                       // https://github.com/flutter/flutter/issues/3759
                       // textAlign: widget.textAlign,
-                      style: widget.textStyle,
+                      style: widget.dropdownItemTextStyle,
                     ),
                   );
                 }).toList(),
