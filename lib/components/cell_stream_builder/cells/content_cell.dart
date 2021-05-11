@@ -41,6 +41,7 @@ class ContentCell extends StatelessWidget {
   final bool readOnly;
   final void Function(String)? onChanged;
   final CellTypes cellType;
+  final Color? cursorColor;
 
   /// value to load into cell
   final String? value;
@@ -95,6 +96,7 @@ class ContentCell extends StatelessWidget {
     this.readOnly = false,
     this.onChanged,
     required this.cellType,
+    this.cursorColor,
     this.value,
 
     /// child [TextCellContent] api
@@ -196,6 +198,7 @@ class ContentCell extends StatelessWidget {
         keyboardType: keyboardType,
         minLines: minLines,
         maxLines: maxLines,
+        cursorColor: cursorColor,
         onTap: onTap,
         onFocusLost: onChanged,
       );
@@ -231,6 +234,7 @@ class ContentCell extends StatelessWidget {
         horizontalAlignment: horizontalAlignment,
         inputDecoration: inputDecoration,
         inputParser: DataFormatter.toDate,
+        cursorColor: cursorColor,
         onTap: onTap,
         onChanged: onChanged,
       );

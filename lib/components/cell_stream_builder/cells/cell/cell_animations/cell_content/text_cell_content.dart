@@ -40,6 +40,8 @@ class TextCellContent extends StatefulWidget {
   /// input formatters applied to all keystrokes in the [TextFormField]
   final List<TextInputFormatter>? inputFormatters;
 
+  final Color? cursorColor;
+
   TextCellContent({
     Key? key,
     required this.value,
@@ -69,6 +71,7 @@ class TextCellContent extends StatefulWidget {
     this.inputParser,
     this.outputParser,
     this.inputFormatters,
+    this.cursorColor,
   }) : super(key: key);
 
   @override
@@ -166,6 +169,7 @@ class _TextCellContentState extends State<TextCellContent> {
       decoration: widget.inputDecoration,
       validator: widget.validator,
       inputFormatters: widget.inputFormatters,
+      cursorColor: widget.cursorColor,
 
       /// cell functions
       onTap: widget.onTap,

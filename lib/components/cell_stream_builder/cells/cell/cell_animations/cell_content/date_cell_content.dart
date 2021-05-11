@@ -28,6 +28,8 @@ class DateCellContent extends StatefulWidget {
   // applied to all values returned from date cell content
   final String? Function(String?)? outputParser;
 
+  final Color? cursorColor;
+
   DateCellContent({
     required this.value,
     this.textStyle,
@@ -46,6 +48,7 @@ class DateCellContent extends StatefulWidget {
     this.onTap,
     this.inputParser = DataFormatter.toDate,
     this.outputParser,
+    this.cursorColor,
   });
 
   @override
@@ -123,6 +126,7 @@ class _DateCellContentState extends State<DateCellContent> {
       readOnly: widget.readOnly,
       enabled: widget.enabled,
       decoration: widget.inputDecoration,
+      cursorColor: widget.cursorColor,
       onTap: () {
         /// load date selector
         _selectDate();
