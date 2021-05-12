@@ -16,6 +16,11 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Colors.blue[300],
+          selectionHandleColor: Colors.blue[300],
+          selectionColor: Colors.blue[300],
+        ),
       ),
       home: Scaffold(
         body: HomePage(),

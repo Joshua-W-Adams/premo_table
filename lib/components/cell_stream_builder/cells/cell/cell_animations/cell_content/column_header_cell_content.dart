@@ -39,7 +39,7 @@ class ColumnHeaderCellContent extends StatelessWidget {
       children: <Widget>[
         /// Column heading label
         Expanded(
-          child: Text(
+          child: SelectableText(
             '${value ?? ''}',
             style: textStyle,
             textAlign: textAlign,
