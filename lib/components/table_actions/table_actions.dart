@@ -7,6 +7,7 @@ class TableActions extends StatelessWidget {
   final Future<void>? Function()? onDelete;
   final Future<void>? Function()? onUndo;
   final Future<void>? Function()? onRedo;
+  final VoidCallback? onDeselect;
   final double buttonWidth;
 
   TableActions({
@@ -14,7 +15,8 @@ class TableActions extends StatelessWidget {
     this.onDelete,
     this.onUndo,
     this.onRedo,
-    this.buttonWidth = 125.0,
+    this.onDeselect,
+    this.buttonWidth = 130.0,
   });
 
   @override
@@ -66,6 +68,18 @@ class TableActions extends StatelessWidget {
                     color: Colors.red,
                   ),
                   onPressed: onDelete,
+                  width: buttonWidth,
+                ),
+              ],
+              if (onDeselect != null) ...[
+                ActionButton(
+                  text: 'Deselect',
+                  icon: Icon(
+                    Icons.indeterminate_check_box_outlined,
+                  ),
+                  onPressed: () {
+                    onDeselect?.call();
+                  },
                   width: buttonWidth,
                 ),
               ],

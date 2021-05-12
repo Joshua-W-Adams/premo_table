@@ -152,96 +152,97 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    /// deselection event can be assigned to the empty space of the page using
+    /// [GestureDetector]s or all elements in the page using [Listener]s.
+    /// However the selection state is left peristed until the user selects a
+    /// new row or fires a deselection event internally within the table widget
+    /// to keep the selection management simple and similar to how excel operates
+    // GestureDetector(
+    //   /// deselect fired on tapping padding
+    //   onTap: () {
+    //     _tableBloc!.deselect();
+    //   },
+    //   behavior: HitTestBehavior.opaque,
+    // );
+
     return Column(
       children: [
-        /// only run deselect in empty space . i.e. when to persist select for
-        /// all test case runs
-        GestureDetector(
-          /// deselection of table fired on all child widgets
-          onTap: () {
-            _tableBloc!.deselect();
-          },
-          behavior: HitTestBehavior.opaque,
-          child: TestCases(
-            mockDataService: mockDataService,
-          ),
+        TestCases(
+          mockDataService: mockDataService,
         ),
         Expanded(
-          child: GestureDetector(
-            /// deselect fired on tapping padding
-            onTap: () {
-              _tableBloc!.deselect();
-            },
-            child: Column(
-              children: [
-                /// Table header
-                TableActions(
-                  onUndo: () {
-                    return Future.delayed(Duration(milliseconds: 2000));
-                  },
-                  onRedo: () {
-                    return Future.delayed(Duration(milliseconds: 2000));
-                  },
-                  onAdd: () {
-                    return _tableBloc!.add();
-                  },
-                  onDelete: () {
-                    List<RowState<SampleDataModel>> checkedRows =
-                        _tableBloc!.getChecked();
-                    return _tableBloc!.delete(checkedRows);
-                  },
+          child: Column(
+            children: [
+              /// Table header
+              TableActions(
+                onUndo: () {
+                  return Future.delayed(Duration(milliseconds: 2000));
+                },
+                onRedo: () {
+                  return Future.delayed(Duration(milliseconds: 2000));
+                },
+                onAdd: () {
+                  return _tableBloc!.add();
+                },
+                onDelete: () {
+                  List<RowState<SampleDataModel>> checkedRows =
+                      _tableBloc!.getChecked();
+                  return _tableBloc!.delete(checkedRows);
+                },
+                onDeselect: () {
+                  _tableBloc!.deselect();
+                },
+              ),
+              SizedBox(height: 16.0),
+              Expanded(
+                child: PremoTableBuilder<SampleDataModel>(
+                  tableBloc: _tableBloc!,
                 ),
-                SizedBox(height: 16.0),
-                Expanded(
-                  child: PremoTableBuilder<SampleDataModel>(
-                    tableBloc: _tableBloc!,
-                  ),
-                ),
-              ],
-            ),
-            // child: ListView.builder(
-            //   itemCount: 2,
-            //   itemBuilder: (context, index) {
-            //     Widget child;
-            //     if (index == 0) {
-            //       child = Column(
-            //         children: [
-            //           /// Table header
-            //           TableActions(
-            //             onUndo: () {},
-            //             onRedo: () {},
-            //             onAdd: () {},
-            //             onDelete: () {},
-            //           ),
-            //           SizedBox(height: 16.0),
-            //           Expanded(
-            //             child: PremoTableBuilder<SampleDataModel>(
-            //               tableBloc: _tableBloc!,
-            //             ),
-            //           ),
-            //         ],
-            //       );
-            //     } else if (index == 1) {
-            //       child = Listener(
-            //         onPointerDown: (_) {
-            //           _tableBloc!.deselect();
-            //         },
-            //         child: SampleDataTable(),
-            //       );
-            //     } else {
-            //       child = Container();
-            //     }
-            //     return Container(
-            //       alignment: Alignment.center,
-            //       height: 500,
-            //       child: Padding(
-            //         padding: const EdgeInsets.all(8.0),
-            //         child: child,
-            //       ),
-            //     );
-            //   },
-            // ),
+              ),
+            ],
           ),
+          // child: ListView.builder(
+          //   itemCount: 2,
+          //   itemBuilder: (context, index) {
+          //     Widget child;
+          //     if (index == 0) {
+          //       child = Column(
+          //         children: [
+          //           /// Table header
+          //           TableActions(
+          //             onUndo: () {},
+          //             onRedo: () {},
+          //             onAdd: () {},
+          //             onDelete: () {},
+          //           ),
+          //           SizedBox(height: 16.0),
+          //           Expanded(
+          //             child: PremoTableBuilder<SampleDataModel>(
+          //               tableBloc: _tableBloc!,
+          //             ),
+          //           ),
+          //         ],
+          //       );
+          //     } else if (index == 1) {
+          //       child = Listener(
+          //         onPointerDown: (_) {
+          //           _tableBloc!.deselect();
+          //         },
+          //         child: SampleDataTable(),
+          //       );
+          //     } else {
+          //       child = Container();
+          //     }
+          //     return Container(
+          //       alignment: Alignment.center,
+          //       height: 500,
+          //       child: Padding(
+          //         padding: const EdgeInsets.all(8.0),
+          //         child: child,
+          //       ),
+          //     );
+          //   },
+          // ),
         ),
       ],
     );
