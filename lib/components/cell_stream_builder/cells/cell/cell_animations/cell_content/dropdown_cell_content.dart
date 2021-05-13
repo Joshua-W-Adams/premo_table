@@ -95,7 +95,6 @@ class _DropdownCellContentState extends State<DropdownCellContent> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 value: _value,
-                style: widget.textStyle,
                 onTap: () {
                   FocusScope.of(context).unfocus();
                   if (widget.onTap != null) {
@@ -128,10 +127,21 @@ class _DropdownCellContentState extends State<DropdownCellContent> {
                       // issue currently logged on the git flutter repo.
                       // https://github.com/flutter/flutter/issues/3759
                       // textAlign: widget.textAlign,
-                      style: widget.dropdownItemTextStyle,
+                      style: widget.dropdownItemTextStyle ?? widget.textStyle,
                     ),
                   );
                 }).toList(),
+                selectedItemBuilder: (context) {
+                  return widget.dropdownList.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(
+                        value,
+                        style: widget.textStyle,
+                      ),
+                    );
+                  }).toList();
+                },
               ),
             ),
           ),
