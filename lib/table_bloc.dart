@@ -1164,6 +1164,8 @@ class TableBloc<T extends IUniqueIdentifier> {
         /// find current location of cell
         CellBloc? newUiCell = _findUICell(rowState, columnIndex);
 
+        print('newUiCell: $newUiCell');
+
         /// if onUpdate is returned after a new stream (refresh) event then the
         /// cell component will be rebuilt to suit
         newUiCell?.setRequestDetails(false, true);
