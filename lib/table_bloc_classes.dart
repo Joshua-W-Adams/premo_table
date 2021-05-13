@@ -15,11 +15,11 @@ class CellState {
   bool requestPending;
 
   /// user is hovering over the row
-  // bool? requestSucceeded;
+  bool? requestSucceeded;
 
   CellState({
     this.requestPending = false,
-    // this.requestSucceeded,
+    this.requestSucceeded,
   });
 }
 

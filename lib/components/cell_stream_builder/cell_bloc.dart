@@ -214,6 +214,15 @@ class CellBloc<T> {
     }
   }
 
+  void setRequestDetails(bool requestInProgress, bool requestSucceeded) {
+    if (state.requestInProgress != requestInProgress ||
+        state.requestSucceeded != requestSucceeded) {
+      state.requestSucceeded = requestSucceeded;
+      state.requestInProgress = requestInProgress;
+      _controller.sink.add(state);
+    }
+  }
+
   void setChangeType(ChangeTypes? changeType) {
     if (state.changeType != changeType) {
       state.changeType = changeType;

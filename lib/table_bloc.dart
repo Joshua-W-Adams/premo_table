@@ -490,7 +490,7 @@ class TableBloc<T extends IUniqueIdentifier> {
       rowChecked: cellRowChecked,
       columnSorted: columnSorted,
       requestInProgress: cellState?.requestPending ?? false,
-      // requestSucceeded: cellState?.requestSucceeded,
+      requestSucceeded: cellState?.requestSucceeded,
       changeType: changeType,
     );
   }
@@ -847,6 +847,18 @@ class TableBloc<T extends IUniqueIdentifier> {
     _setViewableData();
   }
 
+  UiRow<T>? _findUIRow(RowState<T> rowState) {
+    for (var i = 0; i < tableState!.uiRows.length; i++) {
+      if (tableState!.uiRows[i].rowState == rowState) {
+        return tableState!.uiRows[i];
+      }
+    }
+  }
+
+  CellBloc? _findUICell(RowState<T> rowState, int uiColumnIndex) {
+    UiRow<T>? uiRow = _findUIRow(rowState);
+    return uiRow?.cellBlocs[uiColumnIndex];
+  }
   /// aligns the newly recieved [eventData] with the current user interface
   ///
   /// outputs events for updated, added, delete data and persists any user state
@@ -1130,19 +1142,26 @@ class TableBloc<T extends IUniqueIdentifier> {
 
     if (requestPending != true && hasValueChanged == true) {
       /// case 1 - value changed and no pending updates
-
+      CellBloc cellBloc = uiRow.cellBlocs[columnIndex];
       // update state
       cellState.requestPending = true;
-      uiRow.cellBlocs[columnIndex].state.value = newValue;
+      cellBloc.state.value = newValue;
       // release state to listeners
-      uiRow.cellBlocs[columnIndex].setRequestInProgress(true);
+      cellBloc.setRequestInProgress(true);
 
       /// perform onChange request
       onUpdate?.call(rowModel, columnIndex, newValue).then((_) {
         /// case 1 - async request performed successfully
         /// update state
         cellState.requestPending = false;
-        // cellState.requestSucceeded = true;
+        cellState.requestSucceeded = true;
+
+        /// find current location of cell
+        CellBloc? newUiCell = _findUICell(rowState, columnIndex);
+
+        /// if onUpdate is returned after a new stream (refresh) event then the
+        /// cell component will be rebuilt to suit
+        newUiCell?.setRequestDetails(false, true);
 
         /// release details on stream
         /// N/A - updated cell recieved in new table data stream event
@@ -1150,7 +1169,12 @@ class TableBloc<T extends IUniqueIdentifier> {
         /// case 1 - error in async request
         /// update state
         cellState.requestPending = false;
-        // cellState.requestSucceeded = false;
+        cellState.requestSucceeded = false;
+
+        /// find current location of cell
+        CellBloc? newUiCell = _findUICell(rowState, columnIndex);
+
+        newUiCell?.setRequestDetails(false, false);
 
         /// inform user of failed update
         // print(e.toString());
@@ -1181,7 +1205,7 @@ class TableBloc<T extends IUniqueIdentifier> {
           rowState.cellStates[i] = CellState();
           requestPending = false;
         } else {
-          if (rowState.cellStates[i]!.requestPending == false) {
+          if ([false, null].contains(rowState.cellStates[i]!.requestPending)) {
             requestPending = false;
           }
         }
@@ -1196,12 +1220,8 @@ class TableBloc<T extends IUniqueIdentifier> {
         });
 
         // find ui element
-        UiRow<T>? uiRow;
-        for (var i = 0; i < tableState!.uiRows.length; i++) {
-          if (tableState!.uiRows[i].rowState == rowState) {
-            uiRow = tableState!.uiRows[i];
-          }
-        }
+        UiRow<T>? uiRow = _findUIRow(rowState);
+
         // release state to listeners
         uiRow?.cellBlocs.forEach((element) {
           element.setRequestInProgress(true);
@@ -1219,11 +1239,6 @@ class TableBloc<T extends IUniqueIdentifier> {
           .then((_) {
         /// case 1 - async request performed successfully
         /// update state
-        deletesToProcess.forEach((rowState) {
-          rowState.cellStates.forEach((key, value) {
-            value.requestPending = false;
-          });
-        });
 
         // cellState.requestSucceeded = true;
 
@@ -1231,20 +1246,23 @@ class TableBloc<T extends IUniqueIdentifier> {
         /// N/A - updated cell recieved in new table data stream event
       }).catchError((e) {
         /// case 1 - error in async request
-        /// update state
         deletesToProcess.forEach((rowState) {
+          /// update state
           rowState.cellStates.forEach((key, value) {
             value.requestPending = false;
+            value.requestSucceeded = false;
+          });
+
+          /// update ui components
+          UiRow<T>? newUiRow = _findUIRow(rowState);
+          newUiRow?.cellBlocs.forEach((element) {
+            element.setRequestDetails(false, false);
           });
         });
-        // cellState.requestSucceeded = false;
 
         /// inform user of failed update
         // print(e.toString());
       });
-
-      /// case 2 - pending updates against cell. Do nothing.
-
     }
   }
 
