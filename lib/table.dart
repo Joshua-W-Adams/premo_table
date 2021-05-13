@@ -295,19 +295,19 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
 
             /// *********** CONTENT ***********
             contentCellBuilder: (uiColumnIndex, uiRowIndex) {
-              /// get data model associated to current cell
-              T? rowModel;
-              if (uiRowIndex < tableState.uiRows.length) {
-                /// only get a rowModel if the current ui row being built has data
-                /// attached to it. i.e. it has not been flagged for deletion
-                rowModel = tableState.uiRows[uiRowIndex].rowState.rowModel;
-              }
               bool readOnly = columnReadOnlyBuilder(uiColumnIndex);
 
               return CellStreamBuilder(
                 cellBloc: tableBloc
                     .tableState!.uiRows[uiRowIndex].cellBlocs[uiColumnIndex],
                 builder: (cellBlocState) {
+                  /// get data model associated to current cell
+                  T? rowModel;
+                  if (uiRowIndex < tableState.uiRows.length) {
+                    /// only get a rowModel if the current ui row being built has data
+                    /// attached to it. i.e. it has not been flagged for deletion
+                    rowModel = tableState.uiRows[uiRowIndex].rowState.rowModel;
+                  }
                   return ContentCell(
                     height: effectiveDataRowHeight,
                     width: columnWidthBuilder(uiColumnIndex),
