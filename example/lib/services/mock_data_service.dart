@@ -326,19 +326,32 @@ class MockDataService {
     changes?.call(clone);
 
     /// release on data stream after simulated server delay
-    return Future.delayed(Duration(milliseconds: 5000), () {
+    return Future.delayed(Duration(milliseconds: 2000), () {
       /// release on stream
       _controller.sink.add(clone);
     });
   }
 
-  Future<void> add() {
-    return Future.delayed(Duration(milliseconds: 5000), () {
-      addLast();
+  Future<void> update(List<RowState<SampleDataModel>> data) {
+    return releaseClone(data: data).then((_) {
+      /// resolve update future 500ms after cloned stream event
+      return Future.delayed(Duration(milliseconds: 500), () {});
     });
   }
 
-  Future<void> delete(List<SampleDataModel> deletes, data) {
+  Future<void> add() {
+    return Future.delayed(Duration(milliseconds: 2000), () {
+      addLast();
+    }).then((_) {
+      /// resolve update future 500ms after cloned stream event
+      return Future.delayed(Duration(milliseconds: 500), () {});
+    });
+  }
+
+  Future<void> delete(
+    List<SampleDataModel> deletes,
+    List<RowState<SampleDataModel>> data,
+  ) {
     return releaseClone(
       data: data,
       changes: (clone) {
@@ -350,7 +363,10 @@ class MockDataService {
           }
         }
       },
-    );
+    ).then((_) {
+      /// resolve update future 500ms after cloned stream event
+      return Future.delayed(Duration(milliseconds: 500), () {});
+    });
   }
 
   void dispose() {

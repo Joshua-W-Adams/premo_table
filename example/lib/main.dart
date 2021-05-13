@@ -133,8 +133,8 @@ class _HomePageState extends State<HomePage> {
         } else if (col == 6) {
           item.salary = num.tryParse(value);
         }
-        return mockDataService.releaseClone(
-          data: _tableBloc!.tableState!.dataCache,
+        return mockDataService.update(
+          _tableBloc!.tableState!.dataCache,
         );
       },
       onAdd: () {
