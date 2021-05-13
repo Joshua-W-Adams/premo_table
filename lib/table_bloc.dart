@@ -854,7 +854,8 @@ class TableBloc<T extends IUniqueIdentifier> {
 
   UiRow<T>? _findUIRow(RowState<T> rowState) {
     for (var i = 0; i < tableState!.uiRows.length; i++) {
-      if (tableState!.uiRows[i].rowState == rowState) {
+      if (tableState!.uiRows[i].rowState.rowModel?.id ==
+          rowState.rowModel?.id) {
         return tableState!.uiRows[i];
       }
     }
@@ -1163,8 +1164,6 @@ class TableBloc<T extends IUniqueIdentifier> {
 
         /// find current location of cell
         CellBloc? newUiCell = _findUICell(rowState, columnIndex);
-
-        print('newUiCell: $newUiCell');
 
         /// if onUpdate is returned after a new stream (refresh) event then the
         /// cell component will be rebuilt to suit

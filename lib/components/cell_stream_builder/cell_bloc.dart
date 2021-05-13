@@ -219,8 +219,6 @@ class CellBloc<T> {
         state.requestSucceeded != requestSucceeded) {
       state.requestSucceeded = requestSucceeded;
       state.requestInProgress = requestInProgress;
-      print(
-          'state released: value: ${state.value} ,  requestSucceeded: ${state.requestSucceeded}, requestInProgress: ${state.requestInProgress}');
       _controller.sink.add(state);
     }
   }
