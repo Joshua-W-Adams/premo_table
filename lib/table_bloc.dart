@@ -430,6 +430,11 @@ class TableBloc<T extends IUniqueIdentifier> {
         rowToRender = data[i];
       }
 
+      /// clear animation states on sort / filter
+      rowToRender?.cellStates.forEach((key, value) {
+        value.requestSucceeded = null;
+      });
+
       /// render new data in cells
       _renderRow(rowToRender, null, uiRow, null, false);
     }
