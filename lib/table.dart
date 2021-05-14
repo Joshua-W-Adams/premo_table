@@ -172,7 +172,7 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
           onExit: (event) {
             tableBloc.dehover();
           },
-          child: FreezeableTableLayout(
+          child: TableLayout(
             // stickToColumn: 0,
             // enableColHeaders: true,
             // enableRowHeaders: true,
@@ -343,7 +343,10 @@ class PremoTable<T extends IUniqueIdentifier> extends StatelessWidget {
                     ),
                     textStyle: cellTextStyleBuilder != null
                         ? cellTextStyleBuilder!(
-                            rowModel, uiRowIndex, uiColumnIndex)
+                            rowModel,
+                            uiRowIndex,
+                            uiColumnIndex,
+                          )
                         : defaultCellTextStyle,
                     readOnly: readOnly,
                     onChanged: (newValue) {
