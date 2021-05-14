@@ -34,6 +34,7 @@ class MockDataService {
   List<SampleDataModel> dataTemplate = [
     SampleDataModel(
       id: '1',
+      parentId: null,
       name: 'Josh',
       age: 33,
       enabled: true,
@@ -43,6 +44,7 @@ class MockDataService {
     ),
     SampleDataModel(
       id: '2',
+      parentId: '1',
       name: 'Rachel',
       age: 28,
       enabled: false,
@@ -52,6 +54,7 @@ class MockDataService {
     ),
     SampleDataModel(
       id: '3',
+      parentId: '2',
       name: 'Shannon',
       age: 36,
       enabled: false,
@@ -61,6 +64,7 @@ class MockDataService {
     ),
     SampleDataModel(
       id: '4',
+      parentId: null,
       name: 'Robin',
       age: 62,
       enabled: false,
@@ -70,6 +74,7 @@ class MockDataService {
     ),
     SampleDataModel(
       id: '5',
+      parentId: '4',
       name: 'Bill',
       age: 65,
       enabled: true,
@@ -79,6 +84,7 @@ class MockDataService {
     ),
     SampleDataModel(
       id: '6',
+      parentId: '5',
       name: 'Jessie',
       age: 90,
       enabled: true,
@@ -88,6 +94,7 @@ class MockDataService {
     ),
     SampleDataModel(
       id: '7',
+      parentId: null,
       name: 'Peter',
       age: 33,
       enabled: true,
@@ -97,6 +104,7 @@ class MockDataService {
     ),
     SampleDataModel(
       id: '8',
+      parentId: '7',
       name: 'Jas',
       age: 33,
       enabled: false,
@@ -106,6 +114,7 @@ class MockDataService {
     ),
     SampleDataModel(
       id: '9',
+      parentId: '8',
       name: 'Craig',
       age: 33,
       enabled: false,
@@ -115,6 +124,7 @@ class MockDataService {
     ),
     SampleDataModel(
       id: '10',
+      parentId: null,
       name: 'George',
       age: 33,
       enabled: true,
