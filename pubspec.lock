@@ -128,6 +128,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.19"
+  treebuilder:
+    dependency: "direct main"
+    description:
+      path: "packages/treebuilder"
+      ref: HEAD
+      resolved-ref: "197efb18d8b92a45d2bba09848bf060e1a86b668"
+      url: "https://github.com/Joshua-W-Adams/public_flutter_packages.git"
+    source: git
+    version: "0.0.1"
   typed_data:
     dependency: transitive
     description:
