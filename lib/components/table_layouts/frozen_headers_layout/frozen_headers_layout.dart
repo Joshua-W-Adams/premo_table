@@ -16,10 +16,10 @@ part of premo_table;
 /// Each section is wrapped in a [SingleChildScrollView] as required to stick /
 /// freeze the appropriate section.
 class FrozenHeadersLayout extends StatefulWidget {
-  final Row? q1;
-  final Row? q2;
-  final List<Widget> q3;
-  final List<Widget> q4;
+  final Widget? q1;
+  final Widget? q2;
+  final Widget q3;
+  final Widget q4;
 
   FrozenHeadersLayout({
     Key? key,
@@ -110,9 +110,7 @@ class _FrozenHeadersLayoutState extends State<FrozenHeadersLayout> {
               // q3 - Sticky row headers
               NotificationListener<ScrollNotification>(
                 child: SingleChildScrollView(
-                  child: Column(
-                    children: widget.q3,
-                  ),
+                  child: widget.q3,
                   controller: _verticalRowHeadersController,
                 ),
                 onNotification: (ScrollNotification notification) {
@@ -133,9 +131,7 @@ class _FrozenHeadersLayoutState extends State<FrozenHeadersLayout> {
                     child: NotificationListener<ScrollNotification>(
                       child: SingleChildScrollView(
                         controller: _verticalContentController,
-                        child: Column(
-                          children: widget.q4,
-                        ),
+                        child: widget.q4,
                       ),
                       onNotification: (ScrollNotification notification) {
                         _verticalSyncController!.processNotification(

@@ -25,7 +25,7 @@ class TableLayout extends StatefulWidget {
   final bool enableRowHeaders;
   final bool enableColHeaders;
   final Widget legendCell;
-  final Widget Function(int colulmnIndex) columnHeadersBuilder;
+  final Widget Function(int columnIndex) columnHeadersBuilder;
   final Widget Function(int rowIndex) rowHeadersBuilder;
   final Widget Function(int columnIndex, int rowIndex) contentCellBuilder;
   final String Function(int rowIndex)? rowKeyBuilder;
@@ -97,50 +97,9 @@ class _TableLayoutState extends State<TableLayout> {
     return keys;
   }
 
-  /// [_buildLegendAndColumnHeaders] loop through all the provided columns and
-  /// generates the legendCell, frozen and non frozen column headers
-  Map<int, Row?> _buildLegendAndColumnHeaders() {
-    List<Widget> q1Cells = [];
-    List<Widget> q2Cells = [];
-    for (int col = 0; col < widget.columnCount; col++) {
-      // case 1 - row and column headers enabled
-      if (col == 0 && widget.enableColHeaders && widget.enableRowHeaders) {
-        q1Cells.add(widget.legendCell);
-      }
-      // case 2 - row headers enabled only
-      // no specific config required
-      // case 3 - col headers enabled only
-      // no specific config required
-      // case 4 - no row or column headers
-      // no specific config required
-
-      // build TOP HALF - table headers
-      if (widget.enableColHeaders == true) {
-        if (widget.stickToColumn != null && col <= widget.stickToColumn!) {
-          // build q1 - sticky headers
-          q1Cells.add(widget.columnHeadersBuilder(col));
-        } else {
-          // build q2 - scrollable headers
-          q2Cells.add(widget.columnHeadersBuilder(col));
-        }
-      }
-    }
-    Row? q1;
-    Row? q2;
-    // add cells to row and store in quarter
-    if (widget.enableColHeaders == true) {
-      q1 = Row(children: q1Cells);
-      q2 = Row(children: q2Cells);
-    }
-    return {
-      1: q1,
-      2: q2,
-    };
-  }
-
   /// [_buildRowAndRowHeaders] loop through all rows and columns and generate
   /// the row header and row widgets.
-  Map<int, List<Widget>> _buildRowAndRowHeaders() {
+  Map<int, Widget> _buildRowAndRowHeaders() {
     List<Widget> q3 = [];
     List<Widget> q4 = [];
     // loop through table
@@ -188,20 +147,29 @@ class _TableLayoutState extends State<TableLayout> {
       );
     }
     return {
-      1: q3,
-      2: q4,
+      1: Column(children: q3),
+      2: Column(children: q4),
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    Map<int, Row?> top = _buildLegendAndColumnHeaders();
-    Map<int, List<Widget>> bottom = _buildRowAndRowHeaders();
-    return FrozenHeadersLayout(
-      q1: top[1],
-      q2: top[2],
-      q3: bottom[1]!,
-      q4: bottom[2]!,
+    Map<int, Widget> bottom = _buildRowAndRowHeaders();
+    return ColumnHeadersBuilder(
+      columnCount: widget.columnCount,
+      stickToColumn: widget.stickToColumn,
+      enableRowHeaders: widget.enableRowHeaders,
+      enableColHeaders: widget.enableColHeaders,
+      legendCell: widget.legendCell,
+      columnHeadersBuilder: widget.columnHeadersBuilder,
+      builder: (leftColumns, rightColumns) {
+        return FrozenHeadersLayout(
+          q1: leftColumns,
+          q2: rightColumns,
+          q3: bottom[1]!,
+          q4: bottom[2]!,
+        );
+      },
     );
   }
 }
