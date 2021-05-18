@@ -69,8 +69,8 @@ class ColumnHeadersBuilder extends StatelessWidget {
       q2 = Row(children: q2Cells);
     }
     return {
-      1: q1,
-      2: q2,
+      0: q1,
+      1: q2,
     };
   }
 
