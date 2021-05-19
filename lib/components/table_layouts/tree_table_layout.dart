@@ -19,7 +19,7 @@ part of premo_table;
 ///   Scrollable row cells.
 /// Each section is wrapped in a [SingleChildScrollView] as required to stick /
 /// freeze the appropriate section.
-class TreeTableLayout<T extends BaseData> extends StatelessWidget {
+class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
   final int columnCount;
   final int? stickToColumn;
   final bool enableRowHeaders;

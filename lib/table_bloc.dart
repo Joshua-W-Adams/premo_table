@@ -1,6 +1,6 @@
 part of premo_table;
 
-class TableBloc<T extends IUniqueIdentifier> {
+class TableBloc<T extends IUniqueRow> {
   /// Each row provided to the table in the input stream is expected to be
   /// wrapped in a [RowState] class which allows the state of the user
   /// interaction to be persisted no matter where the row is displayed in the ui
@@ -17,11 +17,11 @@ class TableBloc<T extends IUniqueIdentifier> {
   /// count of total rows to render in the user interface
   final int? rowsToRender;
 
-  /// sort [compare] function to run when no sorts are applied to the current
-  /// table. Enforces all external data events to be in the correct order. Can
-  /// be left null if the assumption that all event data will be provided in
-  /// the same order is always true.
-  final int Function(T a, T b)? defaultSortCompare;
+  /// sort function to run when no sorts are applied to the current table.
+  /// Enforces all external data events to be in the correct order. Can be left
+  /// null if the assumption that all event data will be provided in the same
+  /// order is always true.
+  final List<RowState<T>> Function(List<RowState<T>> data)? defaultSort;
 
   /// sort [compare] function to run when the public api [sort] is called
   final int Function(int columnIndex, bool ascending, T a, T b)? sortCompare;
@@ -80,7 +80,7 @@ class TableBloc<T extends IUniqueIdentifier> {
     required this.columnNames,
     required this.cellValueBuilder,
     this.rowsToRender,
-    this.defaultSortCompare,
+    this.defaultSort,
     this.sortCompare,
     this.onFilter,
     this.onUpdate,
@@ -126,17 +126,9 @@ class TableBloc<T extends IUniqueIdentifier> {
     return dataLength;
   }
 
-  void _applyDefaultSort(List<RowState<T>> event) {
-    if (defaultSortCompare != null) {
-      event.sort((a, b) {
-        return defaultSortCompare!(a.rowModel!, b.rowModel!);
-      });
-    }
-  }
-
   void _initBloc(List<RowState<T>> event) {
     /// pre sort event data
-    _applyDefaultSort(event);
+    defaultSort?.call(event);
 
     /// ui layer properties
     CellBloc uiLegendCell = CellBloc(initialValue: '');
@@ -460,7 +452,7 @@ class TableBloc<T extends IUniqueIdentifier> {
       return false;
     }
     return array.any((element) {
-      return element.rowModel?.id == row.id;
+      return element.rowModel?.getId() == row.getId();
     });
   }
 
@@ -854,8 +846,8 @@ class TableBloc<T extends IUniqueIdentifier> {
 
   UiRow<T>? _findUIRow(RowState<T> rowState) {
     for (var i = 0; i < tableState!.uiRows.length; i++) {
-      if (tableState!.uiRows[i].rowState.rowModel?.id ==
-          rowState.rowModel?.id) {
+      if (tableState!.uiRows[i].rowState.rowModel?.getId() ==
+          rowState.rowModel?.getId()) {
         return tableState!.uiRows[i];
       }
     }
@@ -870,7 +862,7 @@ class TableBloc<T extends IUniqueIdentifier> {
   /// outputs events for updated, added, delete data and persists any user state
   void refresh(List<RowState<T>> newData) {
     /// ensure new and old data sets are in the same order
-    _applyDefaultSort(newData);
+    defaultSort?.call(newData);
 
     /// copy of newData required so existing ui sorts can be applied without
     /// effecting the original sort order
@@ -955,11 +947,12 @@ class TableBloc<T extends IUniqueIdentifier> {
       /// compare rows and determine change case
       ChangeTypes? changeType;
       if (newDataRow != null &&
-          newDataRow.rowModel!.id == oldDataRow?.rowModel!.id) {
+          newDataRow.rowModel!.getId() == oldDataRow?.rowModel!.getId()) {
         /// case 1 - UPDATE
         changeType = ChangeTypes.update;
       } else if (newDataRow != null &&
-          (newDataRow.rowModel!.id == previousNewDataRow?.rowModel!.id)) {
+          (newDataRow.rowModel!.getId() ==
+              previousNewDataRow?.rowModel!.getId())) {
         /// case 2 - DUPLICATE
         changeType = ChangeTypes.duplicate;
       } else if (newDataRow != null &&
@@ -1244,10 +1237,6 @@ class TableBloc<T extends IUniqueIdentifier> {
           ?.call(deletesToProcess.map((e) => e.rowModel!).toList())
           .then((_) {
         /// case 1 - async request performed successfully
-        /// update state
-
-        // cellState.requestSucceeded = true;
-
         /// release details on stream
         /// N/A - updated cell recieved in new table data stream event
       }).catchError((e) {
