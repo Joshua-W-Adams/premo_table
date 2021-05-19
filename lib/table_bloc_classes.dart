@@ -14,7 +14,8 @@ class ColumnState {
 /// all rows in a [PremoTable] require a unique identifier so all internal BLoC
 /// functionality can operate correctly. E.g. update, delete, add, ui state
 /// peristance etc.
-class PremoTableRow<T extends IUniqueRow> extends IUniqueRow {
+class PremoTableRow<T extends IUniqueParentChildRow>
+    extends IUniqueParentChildRow {
   T model;
   bool selected;
   bool checked;
@@ -51,6 +52,11 @@ class PremoTableRow<T extends IUniqueRow> extends IUniqueRow {
     return model.getId();
   }
 
+  @override
+  String? getParentId() {
+    return model.getParentId();
+  }
+
   void dispose() {
     cells.forEach((cell) {
       cell.dispose();
@@ -59,33 +65,10 @@ class PremoTableRow<T extends IUniqueRow> extends IUniqueRow {
   }
 }
 
-class PremoTableParentChildRow<T extends IUniqueParentChildRow>
-    extends PremoTableRow implements IUniqueParentChildRow {
-  PremoTableParentChildRow(
-    T model,
-    bool selected,
-    bool checked,
-    bool hovered,
-    bool visible,
-    CellBloc rowHeaderCell,
-    List<CellBloc> cells,
-  ) : super(
-          model: model,
-          selected: selected,
-          checked: checked,
-          hovered: hovered,
-          visible: visible,
-          rowHeaderCell: rowHeaderCell,
-          cells: cells,
-        );
+class TableState<T extends IUniqueParentChildRow> {
+  /// store of latest event released on the input stream
+  List<T> eventCache;
 
-  @override
-  String? getParentId() {
-    return (model as T).getParentId();
-  }
-}
-
-class TableState<T extends IUniqueRow> {
   /// Latest data model recieved from the input stream with each row wrapped
   /// with [PremoTableRow] so that the local state, model and ui streeams
   /// for each rows can be persisted on new data events
@@ -135,6 +118,7 @@ class TableState<T extends IUniqueRow> {
   bool? isAscending;
 
   TableState({
+    required this.eventCache,
     required this.dataCache,
     required this.sortedDataCache,
     required this.uiDataCache,

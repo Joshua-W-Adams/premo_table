@@ -1,6 +1,6 @@
-import 'package:premo_table/premo_table.dart';
+import 'package:treebuilder/treebuilder.dart';
 
-class SampleDataModel implements IUniqueIdentifier {
+class SampleDataModel extends IUniqueParentChildRow {
   String id;
   String? parentId;
   String? name;
@@ -45,4 +45,14 @@ class SampleDataModel implements IUniqueIdentifier {
           city: b.city,
           salary: b.salary,
         );
+
+  @override
+  String getId() {
+    return this.id;
+  }
+
+  @override
+  String? getParentId() {
+    return this.parentId;
+  }
 }

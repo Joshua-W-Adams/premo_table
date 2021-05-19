@@ -1,9 +1,9 @@
-import 'package:example/app/sample_data_table/sample_data_table.dart';
 import 'package:example/models/sample_data_model.dart';
 import 'package:flutter/material.dart';
 import 'package:premo_table/premo_table.dart';
 import 'package:example/app/premo_table_builder/premo_table_builder.dart';
 import 'package:example/services/mock_data_service.dart';
+import 'app/tree_table_builder/tree_table_builder.dart';
 
 void main() {
   runApp(MyApp());
@@ -38,14 +38,15 @@ class _HomePageState extends State<HomePage> {
   /// generate data service that provide stream of mocked server data
   MockDataService mockDataService = MockDataService();
 
-  /// BloC for sample tables to be generated
+  /// BloCs for sample tables to be generated
   TableBloc<SampleDataModel>? _tableBloc;
+  TableBloc<SampleDataModel>? _treeTableBloc;
 
   @override
   void initState() {
     super.initState();
 
-    /// create BLoC
+    /// create BLoCs
     _tableBloc = TableBloc(
       inputStream: mockDataService.stream,
       columnNames: ['Id', 'Name', 'Age', 'Enabled', 'DOB', 'City', 'Salary'],
@@ -71,8 +72,11 @@ class _HomePageState extends State<HomePage> {
 
       /// sort to applied to all input data before it is released on the table
       /// bloc stream
-      defaultSortCompare: (a, b) {
-        return double.parse(a.id).compareTo(double.parse(b.id));
+      defaultSort: (data) {
+        data.sort((a, b) {
+          return double.parse(a.model.id).compareTo(double.parse(b.model.id));
+        });
+        return data;
       },
 
       /// sort function to run on each column
@@ -134,7 +138,7 @@ class _HomePageState extends State<HomePage> {
           item.salary = num.tryParse(value);
         }
         return mockDataService.update(
-          _tableBloc!.tableState!.dataCache,
+          _tableBloc!.tableState!.eventCache,
         );
       },
       onAdd: () {
@@ -143,7 +147,117 @@ class _HomePageState extends State<HomePage> {
       onDelete: (deletes) {
         return mockDataService.delete(
           deletes,
-          _tableBloc!.tableState!.dataCache,
+          _tableBloc!.tableState!.eventCache,
+        );
+      },
+    );
+
+    _treeTableBloc = TableBloc(
+      inputStream: mockDataService.stream,
+      columnNames: [
+        'Id',
+        'Parent Id',
+        'Name',
+        'Age',
+        'Enabled',
+        'DOB',
+        'City',
+        'Salary'
+      ],
+      cellValueBuilder: (rowModel, columnIndex) {
+        /// rowModels can be null if the location being generated in the user
+        /// interface is a deleted row.
+        if (columnIndex == 0) {
+          return rowModel?.id;
+        } else if (columnIndex == 1) {
+          return rowModel?.parentId;
+        } else if (columnIndex == 2) {
+          return rowModel?.name;
+        } else if (columnIndex == 3) {
+          return rowModel?.age?.toString();
+        } else if (columnIndex == 4) {
+          return rowModel?.enabled.toString();
+        } else if (columnIndex == 5) {
+          return rowModel?.dateOfBirth.toString();
+        } else if (columnIndex == 6) {
+          return rowModel?.city;
+        } else if (columnIndex == 7) {
+          return rowModel?.salary.toString();
+        }
+      },
+
+      /// sort to applied to all input data before it is released on the table
+      /// bloc stream
+      defaultSort: (data) {
+        data.sort((a, b) {
+          return double.parse(a.model.id).compareTo(double.parse(b.model.id));
+        });
+        return data;
+      },
+
+      /// sort function to run on each column
+      sortCompare: (col, asc, a, b) {
+        /// invert objects for asc and desc as applicable
+        if (asc != true) {
+          final SampleDataModel c = a;
+          a = b;
+          b = c;
+        }
+
+        /// convert objects to Maps. Enabling referencing of map positions.
+        List aList = a.toMap().values.toList();
+        List bList = b.toMap().values.toList();
+
+        if (col == 4) {
+          int valA = aList[col] == true ? 1 : 0;
+          int valB = bList[col] == true ? 1 : 0;
+          return valA.compareTo(valB);
+        } else {
+          /// comparator functon returns -1 = less, 0 = equal, 1 = greater than
+          return aList[col].compareTo(bList[col]);
+        }
+      },
+
+      /// filter function to run on each column
+      onFilter: (rowModel, col, value) {
+        if (value != '') {
+          /// convert objects to Maps. Enabling referencing of map positions.
+          List itemList = rowModel.toMap().values.toList();
+          return itemList[col]!.toString().contains(value);
+        }
+
+        return true;
+      },
+      onUpdate: (item, col, value) async {
+        /// store item details in model instance
+        if (col == 0) {
+          /// N/A - non editable column
+        } else if (col == 1) {
+          /// N/A - non editable column
+        } else if (col == 2) {
+          item.name = value;
+        } else if (col == 3) {
+          item.age = num.tryParse(value);
+        } else if (col == 4) {
+          item.enabled = (value.toLowerCase() == 'true');
+        } else if (col == 5) {
+          item.dateOfBirth = DateTime.tryParse(value);
+        } else if (col == 6) {
+          item.city = value;
+        } else if (col == 7) {
+          item.salary = num.tryParse(value);
+        }
+        return mockDataService.update(
+          _tableBloc!.tableState!.dataCache.map((e) => e.model).toList(),
+        );
+      },
+      onAdd: () {
+        return mockDataService.add();
+      },
+      onDelete: (deletes) {
+        return mockDataService.delete(
+          deletes,
+          _treeTableBloc!.tableState!.eventCache,
         );
       },
     );
@@ -190,7 +304,7 @@ class _HomePageState extends State<HomePage> {
                   return _tableBloc!.add();
                 },
                 onDelete: () {
-                  List<RowState<SampleDataModel>> checkedRows =
+                  List<PremoTableRow<SampleDataModel>> checkedRows =
                       _tableBloc!.getChecked();
                   return _tableBloc!.delete(checkedRows);
                 },
@@ -202,6 +316,12 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: PremoTableBuilder<SampleDataModel>(
                   tableBloc: _tableBloc!,
+                ),
+              ),
+              SizedBox(height: 16.0),
+              Expanded(
+                child: TreeTableBuilder<SampleDataModel>(
+                  tableBloc: _treeTableBloc!,
                 ),
               ),
             ],

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:example/models/sample_data_model.dart';
-import 'package:premo_table/premo_table.dart';
 import 'dart:math';
 
 const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
@@ -18,22 +17,22 @@ String getRandomString(int length) {
 }
 
 class MockDataService {
-  StreamController<List<RowState<SampleDataModel>>> _controller =
-      StreamController();
+  StreamController<List<SampleDataModel>> _controller =
+      StreamController.broadcast();
 
-  Stream<List<RowState<SampleDataModel>>> get stream {
+  Stream<List<SampleDataModel>> get stream {
     return _controller.stream;
   }
 
   MockDataService() {
     /// add data to stream so listeners update
-    List<RowState<SampleDataModel>> rowStates = _getData();
+    List<SampleDataModel> rowStates = _getData();
     _controller.sink.add(rowStates);
   }
 
   List<SampleDataModel> dataTemplate = [
     SampleDataModel(
-      id: '1',
+      id: '1.0',
       parentId: null,
       name: 'Josh',
       age: 33,
@@ -43,8 +42,8 @@ class MockDataService {
       salary: 100,
     ),
     SampleDataModel(
-      id: '2',
-      parentId: '1',
+      id: '2.0',
+      parentId: '1.0',
       name: 'Rachel',
       age: 28,
       enabled: false,
@@ -53,8 +52,8 @@ class MockDataService {
       salary: 200,
     ),
     SampleDataModel(
-      id: '3',
-      parentId: '2',
+      id: '3.0',
+      parentId: '2.0',
       name: 'Shannon',
       age: 36,
       enabled: false,
@@ -63,7 +62,7 @@ class MockDataService {
       salary: 300,
     ),
     SampleDataModel(
-      id: '4',
+      id: '4.0',
       parentId: null,
       name: 'Robin',
       age: 62,
@@ -73,8 +72,8 @@ class MockDataService {
       salary: 400,
     ),
     SampleDataModel(
-      id: '5',
-      parentId: '4',
+      id: '5.0',
+      parentId: '4.0',
       name: 'Bill',
       age: 65,
       enabled: true,
@@ -83,8 +82,8 @@ class MockDataService {
       salary: 500,
     ),
     SampleDataModel(
-      id: '6',
-      parentId: '5',
+      id: '6.0',
+      parentId: '5.0',
       name: 'Jessie',
       age: 90,
       enabled: true,
@@ -93,7 +92,7 @@ class MockDataService {
       salary: 600,
     ),
     SampleDataModel(
-      id: '7',
+      id: '7.0',
       parentId: null,
       name: 'Peter',
       age: 33,
@@ -103,8 +102,8 @@ class MockDataService {
       salary: 700,
     ),
     SampleDataModel(
-      id: '8',
-      parentId: '7',
+      id: '8.0',
+      parentId: '7.0',
       name: 'Jas',
       age: 33,
       enabled: false,
@@ -113,8 +112,8 @@ class MockDataService {
       salary: 800,
     ),
     SampleDataModel(
-      id: '9',
-      parentId: '8',
+      id: '9.0',
+      parentId: '8.0',
       name: 'Craig',
       age: 33,
       enabled: false,
@@ -123,7 +122,7 @@ class MockDataService {
       salary: 900,
     ),
     SampleDataModel(
-      id: '10',
+      id: '10.0',
       parentId: null,
       name: 'George',
       age: 33,
@@ -134,7 +133,7 @@ class MockDataService {
     ),
   ];
 
-  RowState<SampleDataModel> _getRow({
+  SampleDataModel _getRow({
     required int templateIndex,
     required double newId,
   }) {
@@ -142,17 +141,17 @@ class MockDataService {
     SampleDataModel record = SampleDataModel.clone(dataTemplate[templateIndex]);
 
     /// update id
-    record.id = newId.toString();
+    /// To string as fixed used to enforce ids with one decimal place. As
+    /// toString has difference behaviour on the web and mobile platforms. On
+    /// web trailing 0s are stripped.
+    record.id = newId.toStringAsFixed(1);
 
     /// create row to load into table
-    return RowState<SampleDataModel>(
-      rowModel: record,
-      cellStates: Map<int, CellState>(),
-    );
+    return record;
   }
 
-  List<RowState<SampleDataModel>> _getData({int rowCount = 10}) {
-    List<RowState<SampleDataModel>> data = [];
+  List<SampleDataModel> _getData({int rowCount = 10}) {
+    List<SampleDataModel> data = [];
     for (var i = 0; i < rowCount; i++) {
       int pos = i % 10;
       data.add(
@@ -162,10 +161,9 @@ class MockDataService {
     return data;
   }
 
-  void _releaseTestCase(
-      Function(List<RowState<SampleDataModel>> data) changes) {
+  void _releaseTestCase(Function(List<SampleDataModel> data) changes) {
     /// create a new dataset
-    List<RowState<SampleDataModel>> data = _getData();
+    List<SampleDataModel> data = _getData();
 
     /// perform specific changes
     changes(data);
@@ -208,34 +206,34 @@ class MockDataService {
 
   void updateFirst() {
     _releaseTestCase((data) {
-      data[0].rowModel!.name = getRandomString(5);
+      data[0].name = getRandomString(5);
     });
   }
 
   void updateMiddle() {
     _releaseTestCase((data) {
-      data[3].rowModel!.name = getRandomString(5);
+      data[3].name = getRandomString(5);
     });
   }
 
   void updateLast() {
     _releaseTestCase((data) {
-      data[data.length - 1].rowModel!.name = getRandomString(5);
+      data[data.length - 1].name = getRandomString(5);
     });
   }
 
   void multiUpdate() {
     _releaseTestCase((data) {
-      data[0].rowModel!.name = getRandomString(5);
-      data[3].rowModel!.name = getRandomString(5);
-      data[data.length - 1].rowModel!.name = getRandomString(5);
+      data[0].name = getRandomString(5);
+      data[3].name = getRandomString(5);
+      data[data.length - 1].name = getRandomString(5);
     });
   }
 
   void randomUpdate() {
     _releaseTestCase((data) {
       int randomPosition = _rnd.nextInt(data.length - 1);
-      data[randomPosition].rowModel!.name = getRandomString(5);
+      data[randomPosition].name = getRandomString(5);
     });
   }
 
@@ -311,9 +309,9 @@ class MockDataService {
       data.add(_getRow(templateIndex: 0, newId: data.length + 1));
 
       /// update extents
-      data[0].rowModel!.name = getRandomString(5);
-      data[3].rowModel!.name = getRandomString(5);
-      data[data.length - 1].rowModel!.name = getRandomString(5);
+      data[0].name = getRandomString(5);
+      data[3].name = getRandomString(5);
+      data[data.length - 1].name = getRandomString(5);
 
       /// remove a row
       data.removeAt(3);
@@ -321,15 +319,12 @@ class MockDataService {
   }
 
   Future<void> releaseClone({
-    required List<RowState<SampleDataModel>> data,
-    Function(List<RowState<SampleDataModel>> clone)? changes,
+    required List<SampleDataModel> data,
+    Function(List<SampleDataModel> clone)? changes,
   }) {
     /// clone the data array
-    List<RowState<SampleDataModel>> clone = data.map((e) {
-      return RowState<SampleDataModel>(
-        rowModel: SampleDataModel.clone(e.rowModel!),
-        cellStates: Map<int, CellState>(),
-      );
+    List<SampleDataModel> clone = data.map((e) {
+      return SampleDataModel.clone(e);
     }).toList();
 
     /// execute changes on the cloned array
@@ -342,7 +337,7 @@ class MockDataService {
     });
   }
 
-  Future<void> update(List<RowState<SampleDataModel>> data) {
+  Future<void> update(List<SampleDataModel> data) {
     return releaseClone(data: data).then((_) {
       /// resolve update future 500ms after cloned stream event
       return Future.delayed(Duration(milliseconds: 500), () {});
@@ -360,14 +355,14 @@ class MockDataService {
 
   Future<void> delete(
     List<SampleDataModel> deletes,
-    List<RowState<SampleDataModel>> data,
+    List<SampleDataModel> data,
   ) {
     return releaseClone(
       data: data,
       changes: (clone) {
         for (var i = 0; i < clone.length; i++) {
           for (var d = 0; d < deletes.length; d++) {
-            if (clone[i].rowModel!.id == deletes[d].id) {
+            if (clone[i].id == deletes[d].id) {
               clone.remove(clone[i]);
             }
           }

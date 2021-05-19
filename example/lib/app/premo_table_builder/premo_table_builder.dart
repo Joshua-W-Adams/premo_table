@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:premo_table/premo_table.dart';
+import 'package:treebuilder/treebuilder.dart';
 
-class PremoTableBuilder<T extends IUniqueIdentifier> extends StatelessWidget {
+class PremoTableBuilder<T extends IUniqueParentChildRow>
+    extends StatelessWidget {
   final TableBloc<T> tableBloc;
 
   PremoTableBuilder({

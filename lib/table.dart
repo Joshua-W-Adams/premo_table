@@ -4,7 +4,7 @@ part of premo_table;
 enum CellTypes { text, number, currency, date, dropdown, cellswitch, custom }
 
 /// Generates a Google Sheets / Excel like table interface
-class PremoTable<T extends IUniqueRow> extends StatelessWidget {
+class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
   /// Business logic and state
   final TableBloc<T> tableBloc;
 

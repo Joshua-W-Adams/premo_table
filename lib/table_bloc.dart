@@ -1,6 +1,6 @@
 part of premo_table;
 
-class TableBloc<T extends IUniqueRow> {
+class TableBloc<T extends IUniqueParentChildRow> {
   /// stream of data model to be displayed in the table
   final Stream<List<T>> inputStream;
 
@@ -190,10 +190,11 @@ class TableBloc<T extends IUniqueRow> {
     defaultSort?.call(tableData);
 
     // List.from used so sorts applied do not effect the original dataCache
-    List<PremoTableRow<T>> sortedDataCache = List.from(event);
+    List<PremoTableRow<T>> sortedDataCache = List.from(tableData);
 
     /// create the intial table state
     tableState = TableState<T>(
+      eventCache: event,
       dataCache: tableData,
       sortedDataCache: sortedDataCache,
       uiDataCache: sortedDataCache,
