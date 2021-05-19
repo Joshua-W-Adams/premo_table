@@ -4,7 +4,7 @@ part of premo_table;
 enum CellTypes { text, number, currency, date, dropdown, cellswitch, custom }
 
 /// Generates a Google Sheets / Excel like table interface
-class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
+class PremoTable<T extends IUniqueRow> extends StatelessWidget {
   /// Business logic and state
   final TableBloc<T> tableBloc;
 
@@ -165,7 +165,7 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
 
         /// Get current state released by stream
         TableState<T> tableState = snapshot.data!;
-        int? rowCount = tableState.uiRows.length;
+        int? rowCount = tableState.uiDataCache.length;
 
         /// Build table
         return MouseRegion(
@@ -258,7 +258,8 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
             /// *********** ROW HEADERS ***********
             rowHeadersBuilder: (uiRowIndex) {
               return CellStreamBuilder(
-                cellBloc: tableBloc.tableState!.uiRows[uiRowIndex].rowHeader,
+                cellBloc:
+                    tableBloc.tableState!.uiDataCache[uiRowIndex].rowHeaderCell,
                 builder: (cellBlocState) {
                   return RowHeaderCell(
                     height: effectiveDataRowHeight,
@@ -296,18 +297,13 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
             /// *********** CONTENT ***********
             contentCellBuilder: (uiColumnIndex, uiRowIndex) {
               bool readOnly = columnReadOnlyBuilder(uiColumnIndex);
-
+              PremoTableRow<T> premoTableRow =
+                  tableBloc.tableState!.uiDataCache[uiRowIndex];
               return CellStreamBuilder(
-                cellBloc: tableBloc
-                    .tableState!.uiRows[uiRowIndex].cellBlocs[uiColumnIndex],
+                cellBloc: premoTableRow.cells[uiColumnIndex],
                 builder: (cellBlocState) {
                   /// get data model associated to current cell
-                  T? rowModel;
-                  if (uiRowIndex < tableState.uiRows.length) {
-                    /// only get a rowModel if the current ui row being built has data
-                    /// attached to it. i.e. it has not been flagged for deletion
-                    rowModel = tableState.uiRows[uiRowIndex].rowState.rowModel;
-                  }
+                  T rowModel = tableState.uiDataCache[uiRowIndex].model;
                   return ContentCell(
                     height: effectiveDataRowHeight,
                     width: columnWidthBuilder(uiColumnIndex),
@@ -354,19 +350,15 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                       /// content the onChanged function is mapped to the
                       /// onFocusLost function. This is only fired when the user
                       /// clicks out of the cell or submits the value
-                      UiRow<T> uiRow = tableState.uiRows[uiRowIndex];
-
                       /// note: server side modifications never cause cells to
                       /// loose focus so checking the change state is not
                       /// required.
-                      if (uiRow.rowState.rowModel != null) {
-                        tableBloc.update(
-                          uiRow,
-                          uiColumnIndex,
-                          newValue,
-                          cellBlocState.value,
-                        );
-                      }
+                      tableBloc.update(
+                        premoTableRow,
+                        uiColumnIndex,
+                        newValue,
+                        cellBlocState.value,
+                      );
                     },
                     cellType: columnTypeBuilder(uiColumnIndex),
                     value: cellBlocState.value,

@@ -1,14 +1,58 @@
 part of premo_table;
 
 class TableBloc<T extends IUniqueRow> {
-  /// Each row provided to the table in the input stream is expected to be
-  /// wrapped in a [RowState] class which allows the state of the user
-  /// interaction to be persisted no matter where the row is displayed in the ui
-  final Stream<List<RowState<T>>> inputStream;
+  /// stream of data model to be displayed in the table
+  final Stream<List<T>> inputStream;
 
   /// column ui elements (column headers and column cells) will be generated for
   /// each column name provided
   final List<String> columnNames;
+  // updateing to JSON data would have additional benefits that the map names can
+  // be passed and therefore underlying data can be accessed in the BLOC and also
+  // in areas such as filters and sorts so specific if functions dont have to be
+  // assigned for each uiColumnIndex.
+  //   //       columns: [
+  //   //   {
+  //   //     data: 'id',
+  //   //     type: 'numeric',
+
+  //   //   },
+  //   //   {
+  //   //     data: 'flag',
+  //   // 		renderer: flagRenderer
+  //   //   },
+  //   //   {
+  //   //     data: 'currencyCode',
+  //   //     type: 'text'
+  //   //   },
+  //   //   {
+  //   //     data: 'currency',
+  //   //     type: 'text'
+  //   //   },
+  //   //   {
+  //   //     data: 'level',
+  //   //     type: 'numeric',
+  //   //     numericFormat: {
+  //   //       pattern: '0.0000'
+  //   //     }
+  //   //   },
+  //   //   {
+  //   //     data: 'units',
+  //   //     type: 'text'
+  //   //   },
+  //   //   {
+  //   //     data: 'asOf',
+  //   //     type: 'date',
+  //   //     dateFormat: 'MM/DD/YYYY'
+  //   //   },
+  //   //   {
+  //   //     data: 'onedChng',
+  //   //     type: 'numeric',
+  //   //     numericFormat: {
+  //   //       pattern: '0.00%'
+  //   //     }
+  //   //   }
+  //   // ],
 
   /// value to display in each cell of the user interface. col is the index of
   /// current column in the [columnNames] array
@@ -21,7 +65,8 @@ class TableBloc<T extends IUniqueRow> {
   /// Enforces all external data events to be in the correct order. Can be left
   /// null if the assumption that all event data will be provided in the same
   /// order is always true.
-  final List<RowState<T>> Function(List<RowState<T>> data)? defaultSort;
+  final List<PremoTableRow<T>> Function(List<PremoTableRow<T>> data)?
+      defaultSort;
 
   /// sort [compare] function to run when the public api [sort] is called
   final int Function(int columnIndex, bool ascending, T a, T b)? sortCompare;
@@ -119,48 +164,15 @@ class TableBloc<T extends IUniqueRow> {
   /// **************************** Private functions ***************************
   ///
 
-  int _getRowsToRender(int dataLength) {
-    if (rowsToRender != null && dataLength > rowsToRender!) {
-      return rowsToRender!;
-    }
-    return dataLength;
-  }
-
-  void _initBloc(List<RowState<T>> event) {
-    /// pre sort event data
-    defaultSort?.call(event);
-
+  void _initBloc(List<T> event) {
     /// ui layer properties
     CellBloc uiLegendCell = CellBloc(initialValue: '');
     // initalise ui legend with false row checked state, legend cell is tristate
     // and null initialisation would imply partial checked status
     uiLegendCell.state.rowChecked = false;
     List<CellBloc> uiColumnHeaders = [];
-    List<UiRow<T>> uiRows = [];
     List<ColumnState> uiColumnStates = [];
-    int renderLimit = _getRowsToRender(event.length);
-
-    /// loop through all [event] data and generate user interface layer
-    for (var row = 0; row < renderLimit; row++) {
-      RowState<T> rowState = event[row];
-      T? rowModel = rowState.rowModel;
-
-      /// create UI elements
-      UiRow<T> uiRow = UiRow(
-        rowState: rowState,
-        rowHeader: CellBloc(initialValue: ''),
-        cellBlocs: [],
-      );
-
-      for (var col = 0; col < columnNames.length; col++) {
-        /// Create bloc for cell
-        CellBloc cell = CellBloc(initialValue: cellValueBuilder(rowModel, col));
-        uiRow.cellBlocs.add(cell);
-      }
-
-      /// store created elements
-      uiRows.add(uiRow);
-    }
+    List<PremoTableRow<T>> tableData = _getPremoTableRows(event);
 
     /// create columnHeaders - needs to be separate from row generation for case
     /// that an empty array of row data is provided
@@ -174,50 +186,64 @@ class TableBloc<T extends IUniqueRow> {
       uiColumnStates.add(columnState);
     }
 
+    /// pre sort event data
+    defaultSort?.call(tableData);
+
     // List.from used so sorts applied do not effect the original dataCache
-    List<RowState<T>> sortedDataCache = List.from(event);
+    List<PremoTableRow<T>> sortedDataCache = List.from(event);
 
     /// create the intial table state
     tableState = TableState<T>(
-      dataCache: event,
+      dataCache: tableData,
       sortedDataCache: sortedDataCache,
       uiDataCache: sortedDataCache,
       uiLegendCell: uiLegendCell,
       uiColumnStates: uiColumnStates,
       uiColumnHeaders: uiColumnHeaders,
-      uiRows: uiRows,
     );
 
     /// release state on stream
     _controller.sink.add(tableState!);
   }
 
-  UiRow<T> _createUiRow(RowState<T> rowState) {
-    /// generate the row
-    UiRow<T> uiRow = UiRow(
-      rowState: rowState,
-      rowHeader: CellBloc(initialValue: ''),
-      cellBlocs: [],
-    );
+  List<PremoTableRow<T>> _getPremoTableRows(List<T> event) {
+    List<PremoTableRow<T>> tableData = [];
 
-    /// get the row model from the state if it exists
-    T? rowModel = rowState.rowModel;
+    /// loop through all [event] data and generate [PremoTableRow]s
+    for (var row = 0; row < event.length; row++) {
+      T rowModel = event[row];
+
+      PremoTableRow<T> ptRow = _createUiRow(rowModel);
+
+      /// store created elements
+      tableData.add(ptRow);
+    }
+    return tableData;
+  }
+
+  PremoTableRow<T> _createUiRow(T rowModel) {
+    /// generate the row
+    PremoTableRow<T> ptRow = PremoTableRow(
+      model: rowModel,
+      rowHeaderCell: CellBloc(initialValue: ''),
+      cells: [],
+    );
 
     /// generate row cells
     for (var col = 0; col < columnNames.length; col++) {
       CellBloc cell = CellBloc(initialValue: cellValueBuilder(rowModel, col));
-      uiRow.cellBlocs.add(cell);
+      ptRow.cells.add(cell);
     }
 
-    return uiRow;
+    return ptRow;
   }
 
   void _informCellSelectionState(int? sRow, int? sCol, bool selected) {
     if (sRow != null && sCol != null) {
       TableState<T> state = tableState!;
-      UiRow<T> uiRow = state.uiRows[sRow];
-      CellBloc rowHeader = uiRow.rowHeader;
-      CellBloc cell = uiRow.cellBlocs[sCol];
+      PremoTableRow<T> ptRow = state.uiDataCache[sRow];
+      CellBloc rowHeader = ptRow.rowHeaderCell;
+      CellBloc cell = ptRow.cells[sCol];
       CellBloc columnHeader = state.uiColumnHeaders[sCol];
 
       /// release selection events to ui elements
@@ -239,7 +265,7 @@ class TableBloc<T extends IUniqueRow> {
     } else if (sRow != null) {
       // get cell blocs for row
       TableState<T> state = tableState!;
-      List<CellBloc> sRowCellBlocs = state.uiRows[sRow].cellBlocs;
+      List<CellBloc> sRowCellBlocs = state.uiDataCache[sRow].cells;
 
       // loop through all cell blocs
       for (var col = 0; col < sRowCellBlocs.length; col++) {
@@ -256,11 +282,11 @@ class TableBloc<T extends IUniqueRow> {
       return;
     } else if (sCol != null) {
       /// get all row blocs
-      List<UiRow<T>> uiRows = tableState!.uiRows;
+      List<PremoTableRow<T>> ptRows = tableState!.uiDataCache;
 
       /// loop through all rows
-      for (var row = 0; row < uiRows.length; row++) {
-        CellBloc cellBloc = uiRows[row].cellBlocs[sCol];
+      for (var row = 0; row < ptRows.length; row++) {
+        CellBloc cellBloc = ptRows[row].cells[sCol];
 
         /// change row selection state
         cellBloc.setColSelected(selected);
@@ -271,9 +297,9 @@ class TableBloc<T extends IUniqueRow> {
   void _informCellHoverState(int? hRow, int? hCol, bool hovered) {
     if (hRow != null && hCol != null) {
       TableState<T> state = tableState!;
-      UiRow<T> uiRow = state.uiRows[hRow];
-      CellBloc rowHeader = uiRow.rowHeader;
-      CellBloc cell = uiRow.cellBlocs[hCol];
+      PremoTableRow<T> ptRow = state.uiDataCache[hRow];
+      CellBloc rowHeader = ptRow.rowHeaderCell;
+      CellBloc cell = ptRow.cells[hCol];
       CellBloc columnHeader = state.uiColumnHeaders[hCol];
 
       if (enableCellHoverEvents) {
@@ -297,7 +323,7 @@ class TableBloc<T extends IUniqueRow> {
 
     if (hRow != null) {
       /// get cell blocs for row
-      List<CellBloc> hRowCellBlocs = tableState!.uiRows[hRow].cellBlocs;
+      List<CellBloc> hRowCellBlocs = tableState!.uiDataCache[hRow].cells;
 
       /// loop through all cell blocs
       for (var col = 0; col < hRowCellBlocs.length; col++) {
@@ -316,11 +342,11 @@ class TableBloc<T extends IUniqueRow> {
 
     if (hCol != null) {
       /// get all row blocs
-      List<UiRow<T>> uiRows = tableState!.uiRows;
+      List<PremoTableRow<T>> uiRows = tableState!.uiDataCache;
 
       /// loop through all rows
       for (var row = 0; row < uiRows.length; row++) {
-        CellBloc cellBloc = uiRows[row].cellBlocs[hCol];
+        CellBloc cellBloc = uiRows[row].cells[hCol];
 
         /// change row selection state
         cellBloc.setColHovered(selected);
@@ -337,19 +363,19 @@ class TableBloc<T extends IUniqueRow> {
     legendCell.setRowChecked(newChecked);
   }
 
-  void _informCheckedStatus(UiRow<T> uiRow, bool checked) {
+  void _informCheckedStatus(PremoTableRow<T> ptRow, bool checked) {
     if (enableRowCheckedEvents) {
       _informLegendCheckedStatus();
 
       /// update cell row checked status
-      List<CellBloc> cells = uiRow.cellBlocs;
+      List<CellBloc> cells = ptRow.cells;
       for (var col = 0; col < cells.length; col++) {
         CellBloc cell = cells[col];
         cell.setRowChecked(checked);
       }
 
       /// update row header
-      uiRow.rowHeader.setRowChecked(checked);
+      ptRow.rowHeaderCell.setRowChecked(checked);
     }
   }
 
@@ -357,20 +383,20 @@ class TableBloc<T extends IUniqueRow> {
   /// true = ascending sort
   /// false = descending sort
   /// null = data left in original order
-  List<RowState<T>> _sort(List<RowState<T>> data) {
+  List<PremoTableRow<T>> _sort(List<PremoTableRow<T>> data) {
     int? sortColumnIndex = tableState!.sortColumnIndex;
     bool? isAscending = tableState!.isAscending;
 
     if (sortColumnIndex != null && isAscending != null && sortCompare != null) {
       /// case 1 - sort
       // create new list to prevent loosing the sort order of the original data
-      List<RowState<T>> sortData = List.from(data);
+      List<PremoTableRow<T>> sortData = List.from(data);
       sortData.sort((a, b) {
         return sortCompare!(
           sortColumnIndex,
           isAscending,
-          a.rowModel!,
-          b.rowModel!,
+          a.model,
+          b.model,
         );
       });
       return sortData;
@@ -380,10 +406,10 @@ class TableBloc<T extends IUniqueRow> {
     return data;
   }
 
-  List<RowState<T>> _filter(List<RowState<T>> data) {
+  List<PremoTableRow<T>> _filter(List<PremoTableRow<T>> data) {
     if (onFilter != null) {
       /// case 1 - filter function provided
-      List<RowState<T>> newData = data;
+      List<PremoTableRow<T>> newData = data;
 
       /// loop through all filters
       for (var col = 0; col < columnNames.length; col++) {
@@ -393,8 +419,8 @@ class TableBloc<T extends IUniqueRow> {
         String? filterValue = columnState.filterValue;
 
         if (filterValue != null) {
-          newData = newData.where((rowState) {
-            return onFilter!(rowState.rowModel!, col, filterValue.toString());
+          newData = newData.where((ptRow) {
+            return onFilter!(ptRow.model, col, filterValue.toString());
           }).toList();
         }
       }
@@ -406,29 +432,21 @@ class TableBloc<T extends IUniqueRow> {
     return data;
   }
 
-  void _renderNewView(List<RowState<T>> data) {
+  void _renderNewView(List<PremoTableRow<T>> data) {
     TableState<T> state = tableState!;
-    List<UiRow<T>> uiRows = state.uiRows;
+    List<PremoTableRow<T>> ptRows = state.uiDataCache;
 
     /// loop through available render area
-    for (var i = 0; i < uiRows.length; i++) {
-      UiRow<T> uiRow = uiRows[i];
-
-      bool renderDataForRow = (i < data.length);
-      RowState<T>? rowToRender;
-
-      if (renderDataForRow) {
-        /// case 1 - data exists for render location
-        rowToRender = data[i];
-      }
+    for (var i = 0; i < ptRows.length; i++) {
+      PremoTableRow<T> ptRow = ptRows[i];
 
       /// clear animation states on sort / filter
-      rowToRender?.cellStates.forEach((key, value) {
-        value.requestSucceeded = null;
+      ptRow.cells.forEach((cell) {
+        cell.state.requestSucceeded = null;
       });
 
       /// render new data in cells
-      _renderRow(rowToRender, null, uiRow, null, false);
+      _renderRow(ptRow, null, ptRow, null, false);
     }
   }
 
@@ -438,7 +456,7 @@ class TableBloc<T extends IUniqueRow> {
 
     /// apply filters to data, returns a new list if filters are applied and
     /// a list reference if no filters are applied.
-    List<RowState<T>> dataToView = _filter(tableState!.sortedDataCache);
+    List<PremoTableRow<T>> dataToView = _filter(tableState!.sortedDataCache);
 
     /// store data model in ui
     tableState!.uiDataCache = dataToView;
@@ -447,17 +465,17 @@ class TableBloc<T extends IUniqueRow> {
     _renderNewView(dataToView);
   }
 
-  bool _rowExistsInArray(T? row, List<RowState<T>> array) {
+  bool _rowExistsInArray(T? row, List<PremoTableRow<T>> array) {
     if (row == null) {
       return false;
     }
     return array.any((element) {
-      return element.rowModel?.getId() == row.getId();
+      return element.model.getId() == row.getId();
     });
   }
 
   CellBlocState _getCellBlocState(
-    RowState<T> rowState,
+    PremoTableRow<T> ptRow,
     int columnIndex,
     ChangeTypes? changeType,
   ) {
@@ -465,19 +483,18 @@ class TableBloc<T extends IUniqueRow> {
     bool columnHovered = columnIndex == tableState!.uiHoveredColumn;
     bool columnSorted = tableState!.sortColumnIndex == columnIndex;
     bool cellSelected =
-        enableCellSelectionEvents && rowState.selected && columnSelected;
-    bool rowSelected = enableRowSelectionEvents && rowState.selected;
+        enableCellSelectionEvents && ptRow.selected && columnSelected;
+    bool rowSelected = enableRowSelectionEvents && ptRow.selected;
     bool cellColumnSelected = enableColumnSelectionEvents && columnSelected;
-    bool cellHovered =
-        enableCellHoverEvents && rowState.hovered && columnHovered;
-    bool rowHovered = enableRowHoverEvents && rowState.hovered;
+    bool cellHovered = enableCellHoverEvents && ptRow.hovered && columnHovered;
+    bool rowHovered = enableRowHoverEvents && ptRow.hovered;
     bool cellColumnHovered = enableColumnHoverEvents && columnHovered;
-    bool cellRowChecked = enableRowCheckedEvents && rowState.checked;
+    bool cellRowChecked = enableRowCheckedEvents && ptRow.checked;
 
-    CellState? cellState = rowState.cellStates[columnIndex];
+    CellBlocState cellState = ptRow.cells[columnIndex].state;
     return CellBlocState(
-      value: cellValueBuilder(rowState.rowModel, columnIndex),
-      visible: rowState.visible,
+      value: cellValueBuilder(ptRow.model, columnIndex),
+      visible: ptRow.visible,
       selected: cellSelected,
       rowSelected: rowSelected,
       colSelected: cellColumnSelected,
@@ -486,23 +503,23 @@ class TableBloc<T extends IUniqueRow> {
       colHovered: cellColumnHovered,
       rowChecked: cellRowChecked,
       columnSorted: columnSorted,
-      requestInProgress: cellState?.requestPending ?? false,
-      requestSucceeded: cellState?.requestSucceeded,
+      requestInProgress: cellState.requestInProgress,
+      requestSucceeded: cellState.requestSucceeded,
       changeType: changeType,
     );
   }
 
   CellBlocState _getRowHeaderCellBlocState(
-    RowState<T> rowState,
+    PremoTableRow<T> ptRow,
     ChangeTypes? changeType,
   ) {
-    bool rowSelected = enableRowHeaderSelectionEvents && rowState.selected;
-    bool rowHovered = enableRowHeaderHoverEvents && rowState.hovered;
-    bool rowChecked = enableRowCheckedEvents && rowState.checked;
+    bool rowSelected = enableRowHeaderSelectionEvents && ptRow.selected;
+    bool rowHovered = enableRowHeaderHoverEvents && ptRow.hovered;
+    bool rowChecked = enableRowCheckedEvents && ptRow.checked;
 
     return CellBlocState(
       value: '',
-      visible: rowState.visible,
+      visible: ptRow.visible,
       rowSelected: rowSelected,
       rowHovered: rowHovered,
       rowChecked: rowChecked,
@@ -518,8 +535,8 @@ class TableBloc<T extends IUniqueRow> {
   }
 
   void _renderRowHeader(
-    RowState<T>? rowToRender,
-    UiRow<T> uiRow,
+    PremoTableRow<T>? rowToRender,
+    PremoTableRow<T> uiRow,
     ChangeTypes? rowChangeType,
   ) {
     /// determine new rowHeader state
@@ -537,18 +554,18 @@ class TableBloc<T extends IUniqueRow> {
     }
 
     /// render new rowheader state
-    _renderCell(uiRow.rowHeader, uiRowHeaderState);
+    _renderCell(uiRow.rowHeaderCell, uiRowHeaderState);
   }
 
   void _renderRow(
-    RowState<T>? newRenderRow,
-    RowState<T>? oldRenderRow,
-    UiRow<T> uiRow,
+    PremoTableRow<T>? newRenderRow,
+    PremoTableRow<T>? oldRenderRow,
+    PremoTableRow<T> uiRow,
     ChangeTypes? rowChangeType,
     bool informCellUpdates,
   ) {
     /// update cell renders
-    List<CellBloc> uiCells = uiRow.cellBlocs;
+    List<CellBloc> uiCells = uiRow.cells;
     for (var col = 0; col < uiCells.length; col++) {
       CellBloc uiCell = uiCells[col];
       CellBlocState uiCellState;
@@ -568,7 +585,7 @@ class TableBloc<T extends IUniqueRow> {
       if (informCellUpdates && newRenderRow != null && oldRenderRow != null) {
         /// release updates on state
         dynamic newValue = uiCellState.value;
-        dynamic oldValue = cellValueBuilder(oldRenderRow.rowModel, col);
+        dynamic oldValue = cellValueBuilder(oldRenderRow.model, col);
         if (!(newValue == oldValue)) {
           uiCellState.changeType = ChangeTypes.update;
         }
@@ -581,40 +598,47 @@ class TableBloc<T extends IUniqueRow> {
     /// render new row header states
     _renderRowHeader(newRenderRow, uiRow, rowChangeType);
 
-    /// update state attached to render
-    if (newRenderRow != null) {
-      uiRow.rowState = newRenderRow;
-    } else {
-      uiRow.rowState = RowState(
-        rowModel: null,
-        cellStates: Map<int, CellState>(),
-      );
-    }
+    /// TODO - Is this required now?
+    // /// update state attached to render
+    // if (newRenderRow != null) {
+    //   uiRow.checked = newRenderRow.checked;
+    //   uiRow.hovered  = newRenderRow.hovered;
+    //   uiRow.cells = newRenderRow.cells;
+    //   uiRow.rowHeaderCell = newRenderRow.rowHeaderCell;
+    //   uiRow.selected  = newRenderRow.selected;
+    //   uiRow.visible  = newRenderRow.visible;
+    // } else {
+    //   uiRow.rowState = RowState(
+    //     rowModel: null,
+    //     cellStates: Map<int, CellState>(),
+    //   );
+    // }
   }
 
   void _renderRowChanges(
-      List<UiRow<T>> uiRows,
-      int uiPos,
-      RowState<T>? newRowToRender,
-      RowState<T>? oldRowRendered,
-      ChangeTypes? rowChangeType) {
-    UiRow<T> uiRow;
+    List<PremoTableRow<T>> ptRows,
+    int uiPos,
+    PremoTableRow<T>? newRowToRender,
+    PremoTableRow<T>? oldRowRendered,
+    ChangeTypes? rowChangeType,
+  ) {
+    PremoTableRow<T> ptRow;
 
     /// get row to render
-    uiRow = uiRows[uiPos];
+    ptRow = ptRows[uiPos];
 
     if (rowChangeType == ChangeTypes.update) {
       /// case 1 - update to render
-      _renderRow(newRowToRender, oldRowRendered, uiRow, null, true);
+      _renderRow(newRowToRender, oldRowRendered, ptRow, null, true);
     } else if (rowChangeType == ChangeTypes.duplicate) {
       /// case 2 - duplicate to render
-      _renderRow(newRowToRender, null, uiRow, rowChangeType, false);
+      _renderRow(newRowToRender, null, ptRow, rowChangeType, false);
     } else if (rowChangeType == ChangeTypes.add) {
       /// case 3 - add to render
-      _renderRow(newRowToRender, null, uiRow, rowChangeType, false);
+      _renderRow(newRowToRender, null, ptRow, rowChangeType, false);
     } else if (rowChangeType == ChangeTypes.delete) {
       /// case 4 - delete to render
-      _renderRow(null, null, uiRow, rowChangeType, false);
+      _renderRow(null, null, ptRow, rowChangeType, false);
     }
   }
 
@@ -632,11 +656,11 @@ class TableBloc<T extends IUniqueRow> {
     /// get old selection details
     int? oldRow = state.uiSelectedRow;
     int? oldColumn = state.uiSelectedColumn;
-    RowState<T>? oldRowState = state.selectedRowState;
+    PremoTableRow<T>? oldRowReference = state.selectedRowReference;
 
     /// get new selection details
-    RowState<T>? newRowState =
-        newRow != null ? state.uiRows[newRow].rowState : null;
+    PremoTableRow<T>? newRowReference =
+        newRow != null ? state.uiDataCache[newRow] : null;
 
     if (newRow != oldRow) {
       /// case 1 - row changed
@@ -657,13 +681,13 @@ class TableBloc<T extends IUniqueRow> {
     }
 
     /// update selection status tracking
-    oldRowState?.selected = false;
-    newRowState?.selected = true;
+    oldRowReference?.selected = false;
+    newRowReference?.selected = true;
 
     /// update new state
     state.uiSelectedRow = newRow;
     state.uiSelectedColumn = newColumn;
-    state.selectedRowState = newRowState;
+    state.selectedRowReference = newRowReference;
   }
 
   /// [deselect] clears the currently selected cell.
@@ -684,14 +708,15 @@ class TableBloc<T extends IUniqueRow> {
     /// get old details
     int? oldRow = state.uiHoveredRow;
     int? oldColumn = state.uiHoveredColumn;
-    RowState<T>? oldRowState = state.hoveredRowState;
+    PremoTableRow<T>? oldRowReference = state.hoveredRowReference;
 
     /// get new details
-    RowState<T>? newRowState =
-        newRow != null ? state.uiRows[newRow].rowState : null;
+    PremoTableRow<T>? newRowReference =
+        newRow != null ? state.uiDataCache[newRow] : null;
 
     if (newRow != oldRow) {
       /// case 1 - row changed
+      /// HOLD - row and cell hover state changes firing cell hover state?
       _informRowHoverState(oldRow, false);
       _informRowHoverState(newRow, true);
     }
@@ -709,13 +734,13 @@ class TableBloc<T extends IUniqueRow> {
     }
 
     /// update hovered status tracking
-    oldRowState?.hovered = false;
-    newRowState?.hovered = true;
+    oldRowReference?.hovered = false;
+    newRowReference?.hovered = true;
 
     /// update new state
     state.uiHoveredRow = newRow;
     state.uiHoveredColumn = newColumn;
-    state.hoveredRowState = newRowState;
+    state.hoveredRowReference = newRowReference;
   }
 
   void dehover() {
@@ -734,34 +759,31 @@ class TableBloc<T extends IUniqueRow> {
   void check(int row, bool newChecked) {
     /// get element in ui
     TableState<T> state = tableState!;
-    UiRow<T> uiRow = state.uiRows[row];
-    RowState<T> rowState = uiRow.rowState;
-    bool oldChecked = rowState.checked;
-    if (oldChecked != newChecked && rowState.rowModel != null) {
-      bool oldChecked = rowState.checked;
-
+    PremoTableRow<T> ptRow = state.uiDataCache[row];
+    bool oldChecked = ptRow.checked;
+    if (oldChecked != newChecked) {
       _updateCheckCount(oldChecked, newChecked);
 
       /// update state
-      rowState.checked = newChecked;
+      ptRow.checked = newChecked;
 
       /// update ui elements
-      _informCheckedStatus(uiRow, newChecked);
+      _informCheckedStatus(ptRow, newChecked);
     }
   }
 
   void checkAll(bool newChecked) {
     /// update user interface elements
-    List<UiRow<T>> uiRows = tableState!.uiRows;
+    List<PremoTableRow<T>> uiRows = tableState!.uiDataCache;
     for (var r = 0; r < uiRows.length; r++) {
       check(r, newChecked);
     }
 
     /// ensure state updated correctly for case when there is a render limit
     /// applied
-    List<RowState<T>> rows = tableState!.dataCache;
+    List<PremoTableRow<T>> rows = tableState!.dataCache;
     for (var r = 0; r < rows.length; r++) {
-      RowState<T> row = rows[r];
+      PremoTableRow<T> row = rows[r];
       _updateCheckCount(row.checked, newChecked);
       row.checked = newChecked;
     }
@@ -770,7 +792,7 @@ class TableBloc<T extends IUniqueRow> {
     _informLegendCheckedStatus();
   }
 
-  List<RowState<T>> getChecked() {
+  List<PremoTableRow<T>> getChecked() {
     return tableState!.dataCache.where((e) {
       return e.checked == true;
     }).toList();
@@ -844,44 +866,78 @@ class TableBloc<T extends IUniqueRow> {
     _setViewableData();
   }
 
-  UiRow<T>? _findUIRow(RowState<T> rowState) {
-    for (var i = 0; i < tableState!.uiRows.length; i++) {
-      if (tableState!.uiRows[i].rowState.rowModel?.getId() ==
-          rowState.rowModel?.getId()) {
-        return tableState!.uiRows[i];
-      }
-    }
-  }
+  /// TODO - Are these required?
+  // PremoTableRow<T>? _findUIRow(PremoTableRow<T> ptRow) {
+  //   for (var i = 0; i < tableState!.uiDataCache.length; i++) {
+  //     if (tableState!.uiDataCache[i].model.getId() == ptRow.model.getId()) {
+  //       return tableState!.uiDataCache[i];
+  //     }
+  //   }
+  // }
 
-  CellBloc? _findUICell(RowState<T> rowState, int uiColumnIndex) {
-    UiRow<T>? uiRow = _findUIRow(rowState);
-    return uiRow?.cellBlocs[uiColumnIndex];
-  }
+  // CellBloc? _findUICell(PremoTableRow<T> ptRow, int uiColumnIndex) {
+  //   PremoTableRow<T>? uiRow = _findUIRow(ptRow);
+  //   return uiRow?.cells[uiColumnIndex];
+  // }
+
+  // /// assumptions
+  // /// - inputs lists are sorted in the same order
+  // /// - no duplicates in either list
+  // List<int> setDifference(List<int> listA, List<int> listB) {
+  //   int a = 0, b = 0;
+  //   List<int> intersection = [];
+  //   List<int> setDifferenceAB = [];
+  //   List<int> setDifferenceBA = [];
+
+  //   while (a < listA.length || b < listB.length) {
+  //     if (listA[a] == listB[b]) {
+  //       /// case 1 - value in both lists
+  //       a++;
+  //       b++;
+  //       intersection.add(listA[a]);
+  //     } else if (listA[a] < listB[b]) {
+  //       /// case 2 - Set difference A|B - in A and not in B
+  //       a++;
+  //       // b = b;
+  //       setDifferenceAB.add(listA[a]);
+  //     } else if (listA[a] > listB[b]) {
+  //       /// case 3 - Set difference B|A - in B and not in A
+  //       // a = a;
+  //       b++;
+  //       setDifferenceBA.add(listB[b]);
+  //     }
+  //   }
+
+  //   print('intersection: ${intersection.toString()}');
+  //   print('A|B: ${setDifferenceAB.toString()}');
+  //   print('B|A: ${setDifferenceBA.toString()}');
+
+  //   return intersection;
+  // }
+
+  /// TODO - Requires thorough test
   /// aligns the newly recieved [eventData] with the current user interface
   ///
   /// outputs events for updated, added, delete data and persists any user state
-  void refresh(List<RowState<T>> newData) {
+  void refresh(List<T> newEventData) {
+    /// TODO - look at refactor of how premoTable Rows are generated?
+    List<PremoTableRow<T>> newData = _getPremoTableRows(newEventData);
+
     /// ensure new and old data sets are in the same order
     defaultSort?.call(newData);
 
     /// copy of newData required so existing ui sorts can be applied without
     /// effecting the original sort order
     /// sync ui data arrangement with newData (apply filters and sort)
-    List<RowState<T>> newDataSorted = _sort(newData);
+    List<PremoTableRow<T>> newDataSorted = _sort(newData);
     // filter will return a new list if a filter is applied and a list reference
     // if no filter is applied
-    List<RowState<T>> newUiData = _filter(newDataSorted);
+    List<PremoTableRow<T>> newUiData = _filter(newDataSorted);
 
     /// data references used in comparison
     // List<RowState<T>> oldData = tableState!.dataCache;
-    List<RowState<T>> oldDataSorted = tableState!.sortedDataCache;
-    List<RowState<T>> oldUiData = tableState!.uiDataCache;
-
-    /// user interface to update comparison results to
-    List<UiRow<T>> uiRows = tableState!.uiRows;
-
-    /// limit on how many rows to render in the ui
-    int uiRenderLimit = _getRowsToRender(newDataSorted.length);
+    List<PremoTableRow<T>> oldDataSorted = tableState!.sortedDataCache;
+    List<PremoTableRow<T>> oldUiData = tableState!.uiDataCache;
 
     /// compare statistics
     // rows added in newData
@@ -891,8 +947,7 @@ class TableBloc<T extends IUniqueRow> {
     // duplicate rows in newData
     int duplicates = 0;
 
-    /// required for detecting when new or deleted rows should be rendered
-    int rowsAvailableForRender = uiRows.length;
+    /// required for detecting when the legend should be rendered
     int oldCheckedRowCount = tableState!.checkedRowCount;
 
     /// *********************** commence data comparison ***********************
@@ -927,40 +982,39 @@ class TableBloc<T extends IUniqueRow> {
       uiPos = newUiPos + uiDeleted;
 
       /// get rows to compare
-      RowState<T>? newDataRow =
+      PremoTableRow<T>? newDataRow =
           newDataPos < newDataSorted.length ? newDataSorted[newDataPos] : null;
-      RowState<T>? oldDataRow =
+      PremoTableRow<T>? oldDataRow =
           oldDataPos < oldDataSorted.length ? oldDataSorted[oldDataPos] : null;
 
       /// Rows for duplicate checks
-      RowState<T>? previousNewDataRow =
+      PremoTableRow<T>? previousNewDataRow =
           newDataPos != 0 && newDataPos - 1 < newDataSorted.length
               ? newDataSorted[newDataPos - 1]
               : null;
 
       /// get rows to be rendered
-      RowState<T>? newUiRow =
+      PremoTableRow<T>? newUiRow =
           newUiPos < newUiData.length ? newUiData[newUiPos] : null;
-      RowState<T>? oldUiRow =
+      PremoTableRow<T>? oldUiRow =
           oldUiPos < oldUiData.length ? oldUiData[oldUiPos] : null;
 
       /// compare rows and determine change case
       ChangeTypes? changeType;
       if (newDataRow != null &&
-          newDataRow.rowModel!.getId() == oldDataRow?.rowModel!.getId()) {
+          newDataRow.model.getId() == oldDataRow?.model.getId()) {
         /// case 1 - UPDATE
         changeType = ChangeTypes.update;
       } else if (newDataRow != null &&
-          (newDataRow.rowModel!.getId() ==
-              previousNewDataRow?.rowModel!.getId())) {
+          (newDataRow.model.getId() == previousNewDataRow?.model.getId())) {
         /// case 2 - DUPLICATE
         changeType = ChangeTypes.duplicate;
       } else if (newDataRow != null &&
-          !_rowExistsInArray(newDataRow.rowModel, oldDataSorted)) {
+          !_rowExistsInArray(newDataRow.model, oldDataSorted)) {
         /// case 2 - ADD
         changeType = ChangeTypes.add;
       } else if (oldDataRow != null &&
-          !_rowExistsInArray(oldDataRow.rowModel, newDataSorted)) {
+          !_rowExistsInArray(oldDataRow.model, newDataSorted)) {
         /// case 3 - DELETE
         changeType = ChangeTypes.delete;
       }
@@ -978,18 +1032,18 @@ class TableBloc<T extends IUniqueRow> {
           newDataRow.hovered = oldDataRow.hovered;
           newDataRow.selected = oldDataRow.selected;
           newDataRow.visible = oldDataRow.visible;
-          newDataRow.cellStates = oldDataRow.cellStates;
+          newDataRow.cells = oldDataRow.cells;
 
           if (newDataRow.selected == true) {
             /// update selected row references
             tableState!.uiSelectedRow = uiPos;
-            tableState!.selectedRowState = newDataRow;
+            tableState!.selectedRowReference = newDataRow;
           }
 
           if (newDataRow.hovered == true) {
             /// update hovered row references
             tableState!.uiHoveredRow = uiPos;
-            tableState!.hoveredRowState = newDataRow;
+            tableState!.hoveredRowReference = newDataRow;
           }
         }
       }
@@ -998,17 +1052,19 @@ class TableBloc<T extends IUniqueRow> {
       // old or new data must exist for it to be possible to render a row
 
       /// ensure new render rows are made available for dataset
-      if (newDataPos + deleted >= uiRows.length) {
-        /// case 1 - no row available
-        RowState<T> rowState = RowState(
-          rowModel: null,
-          cellStates: Map<int, CellState>(),
-        );
-        UiRow<T> uiRow = _createUiRow(rowState);
-        uiRows.add(uiRow);
-      }
+      // TODO - Is this required? Same issue with creating new PremoTableRows
+      // on refresh events
+      // if (newDataPos + deleted >= uiRows.length) {
+      //   /// case 1 - no row available
+      //   RowState<T> rowState = RowState(
+      //     rowModel: null,
+      //     cellStates: Map<int, CellState>(),
+      //   );
+      //   UiRow<T> uiRow = _createUiRow(rowState);
+      //   uiRows.add(uiRow);
+      // }
 
-      /// case 2 - row available... do nothing
+      // /// case 2 - row available... do nothing
 
       // current old data row was rendered in the ui
       if (oldDataRow != null &&
@@ -1023,7 +1079,8 @@ class TableBloc<T extends IUniqueRow> {
       if (changeType == ChangeTypes.delete) {
         if (oldDataRow == oldUiRow) {
           /// case 1 - rendering a deleted row
-          _renderRowChanges(uiRows, uiPos, newDataRow, oldDataRow, changeType);
+          _renderRowChanges(
+              newUiData, uiPos, newDataRow, oldDataRow, changeType);
 
           /// track that a deleted row has been rendered
           uiDeleted++;
@@ -1031,9 +1088,8 @@ class TableBloc<T extends IUniqueRow> {
       } else if (newDataRow != null && newDataRow == newUiRow) {
         /// case 3 - rendering a added or updated row
         /// data within render criteria
-        if (newUiPos < uiRenderLimit) {
-          _renderRowChanges(uiRows, uiPos, newDataRow, oldDataRow, changeType);
-        }
+
+        _renderRowChanges(newUiData, uiPos, newDataRow, oldDataRow, changeType);
 
         /// update new ui position
         newUiPos++;
@@ -1071,8 +1127,8 @@ class TableBloc<T extends IUniqueRow> {
     /// render remaining rows not included in above render e.g. filtered out data
     /// ensures for case where data has been deleted and rendered. Then refreshed
     /// that the old row positions including the delete count are cleaned up.
-    for (var i = newUiPos + uiDeleted; i < uiRows.length; i++) {
-      _renderRow(null, null, uiRows[i], null, false);
+    for (var i = newUiPos + uiDeleted; i < newUiData.length; i++) {
+      _renderRow(null, null, newUiData[i], null, false);
     }
 
     /// update viewed data cache
@@ -1081,17 +1137,17 @@ class TableBloc<T extends IUniqueRow> {
     tableState!.uiDataCache = newUiData;
 
     /// add or remove rows from the render
-    int rowsRequiredForRender = uiRenderLimit + deleted;
-    int rowChange = (rowsRequiredForRender - rowsAvailableForRender);
+    int rowsRequiredForRender = newUiData.length + deleted;
+    int rowChange = (rowsRequiredForRender - oldUiData.length);
 
     if (rowChange > 0) {
       /// case 1 - rows added to render
       _controller.sink.add(tableState!);
     } else if (rowChange < 0) {
       /// case 2 - rows removed from render
-      List<UiRow<T>> removedUIRows = [];
+      List<PremoTableRow<T>> removedUIRows = [];
       for (var i = 0; i < rowChange.abs(); i++) {
-        removedUIRows.add(uiRows.removeLast());
+        removedUIRows.add(newUiData.removeLast());
       }
 
       /// Testing confims that releasing the entire table state does not cause
@@ -1118,33 +1174,26 @@ class TableBloc<T extends IUniqueRow> {
 
   /// Performs update to a row as requested by a user
   void update(
-    UiRow<T> uiRow,
+    PremoTableRow<T> ptRow,
     int columnIndex,
     String newValue,
     String oldValue,
   ) {
-    RowState<T> rowState = uiRow.rowState;
-    CellState cellState;
-    if (rowState.cellStates[columnIndex] == null) {
-      // create cell state if doesnt exist
-      cellState = CellState();
-      rowState.cellStates[columnIndex] = cellState;
-    } else {
-      cellState = rowState.cellStates[columnIndex]!;
-    }
-    T rowModel = rowState.rowModel!;
+    CellBloc cellBloc = ptRow.cells[columnIndex];
+    CellBlocState cellBlocState = cellBloc.state;
+    T rowModel = ptRow.model;
 
     /// check if there are any pending changes. Prevents the user issuing more
     /// async requests while one is in progress
-    bool requestPending = cellState.requestPending;
+    bool requestInProgress = cellBlocState.requestInProgress;
     bool hasValueChanged = newValue != oldValue;
 
-    if (requestPending != true && hasValueChanged == true) {
+    if (requestInProgress != true && hasValueChanged == true) {
       /// case 1 - value changed and no pending updates
-      CellBloc cellBloc = uiRow.cellBlocs[columnIndex];
+
       // update state
-      cellState.requestPending = true;
-      cellBloc.state.value = newValue;
+      cellBlocState.requestInProgress = true;
+      cellBlocState.value = newValue;
       // release state to listeners
       cellBloc.setRequestInProgress(true);
 
@@ -1152,28 +1201,22 @@ class TableBloc<T extends IUniqueRow> {
       onUpdate?.call(rowModel, columnIndex, newValue).then((_) {
         /// case 1 - async request performed successfully
         /// update state
-        cellState.requestPending = false;
-        cellState.requestSucceeded = true;
-
-        /// find current location of cell
-        CellBloc? newUiCell = _findUICell(rowState, columnIndex);
+        cellBlocState.requestInProgress = false;
+        cellBlocState.requestSucceeded = true;
 
         /// if onUpdate is returned after a new stream (refresh) event then the
         /// cell component will be rebuilt to suit
-        newUiCell?.setRequestDetails(false, true);
+        cellBloc.setRequestDetails(false, true);
 
         /// release details on stream
         /// N/A - updated cell recieved in new table data stream event
       }).catchError((e) {
         /// case 1 - error in async request
         /// update state
-        cellState.requestPending = false;
-        cellState.requestSucceeded = false;
+        cellBlocState.requestInProgress = false;
+        cellBlocState.requestSucceeded = false;
 
-        /// find current location of cell
-        CellBloc? newUiCell = _findUICell(rowState, columnIndex);
-
-        newUiCell?.setRequestDetails(false, false);
+        cellBloc.setRequestDetails(false, false);
 
         /// inform user of failed update
         // print(e.toString());
@@ -1189,44 +1232,30 @@ class TableBloc<T extends IUniqueRow> {
     return onAdd?.call();
   }
 
-  Future<void>? delete(List<RowState<T>> rowStates) {
-    List<RowState<T>> deletesToProcess = [];
+  Future<void>? delete(List<PremoTableRow<T>> deletes) {
+    List<PremoTableRow<T>> deletesToProcess = [];
 
     /// loop through all deletes
-    for (var r = 0; r < rowStates.length; r++) {
-      RowState<T> rowState = rowStates[r];
+    for (var r = 0; r < deletes.length; r++) {
+      PremoTableRow<T> delete = deletes[r];
 
       /// determine request pending state
-      bool requestPending = true;
+      bool requestInProgress = true;
       for (var i = 0; i < columnNames.length; i++) {
-        if (rowState.cellStates[i] == null) {
-          // create cell state if doesnt exist
-          rowState.cellStates[i] = CellState();
-          requestPending = false;
-        } else {
-          if ([false, null].contains(rowState.cellStates[i]!.requestPending)) {
-            requestPending = false;
-          }
+        if ([false, null].contains(delete.cells[i].state.requestInProgress)) {
+          requestInProgress = false;
         }
       }
 
-      if (requestPending != true) {
+      if (requestInProgress != true) {
         /// case 1 - no pending updates
 
-        // update state
-        rowState.cellStates.forEach((key, value) {
-          value.requestPending = true;
-        });
-
-        // find ui element
-        UiRow<T>? uiRow = _findUIRow(rowState);
-
-        // release state to listeners
-        uiRow?.cellBlocs.forEach((element) {
-          element.setRequestInProgress(true);
+        // update state and release to listeners
+        delete.cells.forEach((cell) {
+          cell.setRequestInProgress(true);
         });
         // add as delete to process
-        deletesToProcess.add(rowState);
+        deletesToProcess.add(delete);
       }
 
       /// case 2 - pending updates against cell. Do nothing.
@@ -1234,24 +1263,17 @@ class TableBloc<T extends IUniqueRow> {
     if (deletesToProcess.length > 0) {
       /// perform request
       return onDelete
-          ?.call(deletesToProcess.map((e) => e.rowModel!).toList())
+          ?.call(deletesToProcess.map((e) => e.model).toList())
           .then((_) {
         /// case 1 - async request performed successfully
         /// release details on stream
         /// N/A - updated cell recieved in new table data stream event
       }).catchError((e) {
         /// case 1 - error in async request
-        deletesToProcess.forEach((rowState) {
-          /// update state
-          rowState.cellStates.forEach((key, value) {
-            value.requestPending = false;
-            value.requestSucceeded = false;
-          });
-
-          /// update ui components
-          UiRow<T>? newUiRow = _findUIRow(rowState);
-          newUiRow?.cellBlocs.forEach((element) {
-            element.setRequestDetails(false, false);
+        deletesToProcess.forEach((delete) {
+          /// update state and release to listeners
+          delete.cells.forEach((cell) {
+            cell.setRequestDetails(false, false);
           });
         });
 
