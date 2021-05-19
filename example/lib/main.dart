@@ -49,23 +49,34 @@ class _HomePageState extends State<HomePage> {
     /// create BLoCs
     _tableBloc = TableBloc(
       inputStream: mockDataService.stream,
-      columnNames: ['Id', 'Name', 'Age', 'Enabled', 'DOB', 'City', 'Salary'],
+      columnNames: [
+        'Id',
+        'Parent Id',
+        'Name',
+        'Age',
+        'Enabled',
+        'DOB',
+        'City',
+        'Salary'
+      ],
       cellValueBuilder: (rowModel, columnIndex) {
         /// rowModels can be null if the location being generated in the user
         /// interface is a deleted row.
         if (columnIndex == 0) {
           return rowModel?.id;
         } else if (columnIndex == 1) {
-          return rowModel?.name;
+          return rowModel?.parentId;
         } else if (columnIndex == 2) {
-          return rowModel?.age?.toString();
+          return rowModel?.name;
         } else if (columnIndex == 3) {
-          return rowModel?.enabled.toString();
+          return rowModel?.age?.toString();
         } else if (columnIndex == 4) {
-          return rowModel?.dateOfBirth.toString();
+          return rowModel?.enabled.toString();
         } else if (columnIndex == 5) {
-          return rowModel?.city;
+          return rowModel?.dateOfBirth.toString();
         } else if (columnIndex == 6) {
+          return rowModel?.city;
+        } else if (columnIndex == 7) {
           return rowModel?.salary.toString();
         }
       },
@@ -92,14 +103,22 @@ class _HomePageState extends State<HomePage> {
         List aList = a.toMap().values.toList();
         List bList = b.toMap().values.toList();
 
-        if (col == 3) {
-          int valA = aList[col] == true ? 1 : 0;
-          int valB = bList[col] == true ? 1 : 0;
-          return valA.compareTo(valB);
-        } else {
-          /// comparator functon returns -1 = less, 0 = equal, 1 = greater than
-          return aList[col].compareTo(bList[col]);
+        dynamic aValue;
+        dynamic bValue;
+
+        if ([0, 1, 2, 5, 6].contains(col)) {
+          aValue = aList[col] ?? '';
+          bValue = bList[col] ?? '';
+        } else if ([3, 7].contains(col)) {
+          aValue = aList[col] ?? 0;
+          bValue = bList[col] ?? 0;
+        } else if (col == 4) {
+          aValue = aList[col] == true ? 1 : 0;
+          bValue = bList[col] == true ? 1 : 0;
         }
+
+        /// comparator functon returns -1 = less, 0 = equal, 1 = greater than
+        return aValue.compareTo(bValue);
       },
 
       /// filter function to run on each column
@@ -125,16 +144,18 @@ class _HomePageState extends State<HomePage> {
         if (col == 0) {
           /// N/A - non editable column
         } else if (col == 1) {
-          item.name = value;
+          /// N/A - non editable column
         } else if (col == 2) {
-          item.age = num.tryParse(value);
+          item.name = value;
         } else if (col == 3) {
-          item.enabled = (value.toLowerCase() == 'true');
+          item.age = num.tryParse(value);
         } else if (col == 4) {
-          item.dateOfBirth = DateTime.tryParse(value);
+          item.enabled = (value.toLowerCase() == 'true');
         } else if (col == 5) {
-          item.city = value;
+          item.dateOfBirth = DateTime.tryParse(value);
         } else if (col == 6) {
+          item.city = value;
+        } else if (col == 7) {
           item.salary = num.tryParse(value);
         }
         return mockDataService.update(
@@ -514,30 +535,35 @@ class TestCases extends StatelessWidget {
       ),
     );
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Wrap(
-              alignment: WrapAlignment.start,
-              runSpacing: 8.0,
-              spacing: 16.0,
-              children: List.generate(testCases.length, (index) {
-                TextCase testCase = testCases[index];
+    return SizedBox(
+      height: 100,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Wrap(
+                  alignment: WrapAlignment.start,
+                  runSpacing: 8.0,
+                  spacing: 16.0,
+                  children: List.generate(testCases.length, (index) {
+                    TextCase testCase = testCases[index];
 
-                return ActionButton(
-                  text: testCase.name,
-                  icon: Icon(Icons.play_arrow),
-                  onPressed: () {
-                    testCase.test();
-                  },
-                  width: 150.0,
-                );
-              }),
-            ),
+                    return ActionButton(
+                      text: testCase.name,
+                      icon: Icon(Icons.play_arrow),
+                      onPressed: () {
+                        testCase.test();
+                      },
+                      width: 150.0,
+                    );
+                  }),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

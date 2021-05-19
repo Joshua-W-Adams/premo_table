@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:example/models/sample_data_model.dart';
 import 'dart:math';
+import 'package:rxdart/rxdart.dart';
 
 const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
 Random _rnd = Random();
@@ -17,8 +18,7 @@ String getRandomString(int length) {
 }
 
 class MockDataService {
-  StreamController<List<SampleDataModel>> _controller =
-      StreamController.broadcast();
+  StreamController<List<SampleDataModel>> _controller = BehaviorSubject();
 
   Stream<List<SampleDataModel>> get stream {
     return _controller.stream;

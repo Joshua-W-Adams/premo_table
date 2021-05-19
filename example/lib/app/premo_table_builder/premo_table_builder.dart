@@ -21,15 +21,25 @@ class PremoTableBuilder<T extends IUniqueParentChildRow>
       columnBackgroundColor: _theme.primaryColor,
       columnTextStyle: _theme.primaryTextTheme.bodyText1,
       columnWidthBuilder: (col) {
-        List<double> widths = [125, 200, 125, 125, 125, 125, 125];
+        List<double> widths = [125, 125, 200, 125, 125, 125, 125, 125];
         return widths[col];
       },
       columnReadOnlyBuilder: (col) {
-        List<bool> readOnly = [true, false, false, false, false, false, false];
+        List<bool> readOnly = [
+          true,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ];
         return readOnly[col];
       },
       columnHorizontalAlignmentBuilder: (_, __, col) {
         List<Alignment> alignments = [
+          Alignment.center,
           Alignment.center,
           Alignment.centerLeft,
           Alignment.center,
@@ -44,6 +54,7 @@ class PremoTableBuilder<T extends IUniqueParentChildRow>
         List<CellTypes> types = [
           CellTypes.text,
           CellTypes.text,
+          CellTypes.text,
           CellTypes.number,
           CellTypes.cellswitch,
           CellTypes.date,
@@ -54,6 +65,7 @@ class PremoTableBuilder<T extends IUniqueParentChildRow>
       },
       columnDropdownBuilder: (item, row, col) {
         List<List<String>?> dropdowns = [
+          null,
           null,
           null,
           null,
