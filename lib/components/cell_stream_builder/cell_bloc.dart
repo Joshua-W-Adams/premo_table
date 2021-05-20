@@ -91,17 +91,17 @@ class CellBlocState<T> {
 /// All business logic for a [Cell]
 class CellBloc<T> {
   /// initial value to be set in the [CellBlocState]
-  final T initialValue;
+  final CellBlocState<T> initialState;
 
   /// cache of cell state
   CellBlocState<T> state;
   StreamController<CellBlocState<T>> _controller = StreamController();
 
   CellBloc({
-    required this.initialValue,
+    required this.initialState,
 
     /// create initial state
-  }) : this.state = CellBlocState<T>(value: initialValue) {
+  }) : this.state = initialState {
     /// add state to stream
     _controller.sink.add(state);
   }

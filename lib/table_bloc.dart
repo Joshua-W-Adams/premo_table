@@ -166,7 +166,7 @@ class TableBloc<T extends IUniqueParentChildRow> {
 
   void _initBloc(List<T> event) {
     /// ui layer properties
-    CellBloc uiLegendCell = CellBloc(initialValue: '');
+    CellBloc uiLegendCell = CellBloc(initialState: CellBlocState(value: ''));
     // initalise ui legend with false row checked state, legend cell is tristate
     // and null initialisation would imply partial checked status
     uiLegendCell.state.rowChecked = false;
@@ -179,7 +179,8 @@ class TableBloc<T extends IUniqueParentChildRow> {
     for (var col = 0; col < columnNames.length; col++) {
       /// generate column states and column headers for the first row
       String columnName = columnNames[col];
-      CellBloc columnHeader = CellBloc(initialValue: columnName);
+      CellBloc columnHeader =
+          CellBloc(initialState: CellBlocState(value: columnName));
       ColumnState columnState = ColumnState();
 
       uiColumnHeaders.add(columnHeader);
@@ -222,17 +223,27 @@ class TableBloc<T extends IUniqueParentChildRow> {
     return tableData;
   }
 
-  PremoTableRow<T> _createUiRow(T rowModel) {
+  PremoTableRow<T> _createUiRow(T rowModel, [ChangeTypes? changeType]) {
     /// generate the row
     PremoTableRow<T> ptRow = PremoTableRow(
       model: rowModel,
-      rowHeaderCell: CellBloc(initialValue: ''),
+      rowHeaderCell: CellBloc(
+        initialState: CellBlocState(
+          value: '',
+          changeType: changeType,
+        ),
+      ),
       cells: [],
     );
 
     /// generate row cells
     for (var col = 0; col < columnNames.length; col++) {
-      CellBloc cell = CellBloc(initialValue: cellValueBuilder(rowModel, col));
+      CellBloc cell = CellBloc(
+        initialState: CellBlocState(
+          value: cellValueBuilder(rowModel, col),
+          changeType: changeType,
+        ),
+      );
       ptRow.cells.add(cell);
     }
 
