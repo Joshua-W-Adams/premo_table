@@ -69,12 +69,25 @@ class _CellAnimationsState extends State<CellAnimations>
     _animationController!.addListener(() {
       setState(() {});
     });
+
+    _runAnimation();
   }
 
   @override
   void didUpdateWidget(CellAnimations oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _runAnimation();
+  }
 
+  /// call dispose method to cleanup all cell state variables to eliminate any
+  /// memory leaks
+  @override
+  void dispose() {
+    _animationController!.dispose();
+    super.dispose();
+  }
+
+  void _runAnimation() {
     /// set tween to animate
     _colorTween = _getColorTween(widget.animation);
     _sizeTween = _getSizeTween(widget.animation);
@@ -85,14 +98,6 @@ class _CellAnimationsState extends State<CellAnimations>
     }
 
     /// case 2 - no animation to play
-  }
-
-  /// call dispose method to cleanup all cell state variables to eliminate any
-  /// memory leaks
-  @override
-  void dispose() {
-    _animationController!.dispose();
-    super.dispose();
   }
 
   Color? _getAnimationColor(String? animation) {
