@@ -68,6 +68,24 @@ class CellBlocState<T> {
         this.requestSucceeded == newState.requestSucceeded &&
         this.changeType == newState.changeType);
   }
+
+  CellBlocState.clone(CellBlocState a)
+      : this(
+          value: a.value,
+          visible: a.visible,
+          selected: a.selected,
+          rowSelected: a.rowSelected,
+          colSelected: a.colSelected,
+          hovered: a.hovered,
+          rowHovered: a.rowHovered,
+          colHovered: a.colHovered,
+          rowChecked: a.rowChecked,
+          columnSorted: a.columnSorted,
+          columnFiltered: a.columnFiltered,
+          requestInProgress: a.requestInProgress,
+          requestSucceeded: a.requestSucceeded,
+          changeType: a.changeType,
+        );
 }
 
 /// All business logic for a [Cell]

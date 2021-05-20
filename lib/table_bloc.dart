@@ -1201,18 +1201,15 @@ class TableBloc<T extends IUniqueParentChildRow> {
       /// case 1 - value changed and no pending updates
 
       // update state
-      cellBlocState.requestInProgress = true;
-      cellBlocState.value = newValue;
+      CellBlocState newState = CellBlocState.clone(cellBlocState);
+      newState.requestInProgress = true;
+      newState.value = newValue;
       // release state to listeners
-      cellBloc.setRequestInProgress(true);
+      cellBloc.setState(newState);
 
       /// perform onChange request
       onUpdate?.call(rowModel, columnIndex, newValue).then((_) {
         /// case 1 - async request performed successfully
-        /// update state
-        cellBlocState.requestInProgress = false;
-        cellBlocState.requestSucceeded = true;
-
         /// if onUpdate is returned after a new stream (refresh) event then the
         /// cell component will be rebuilt to suit
         cellBloc.setRequestDetails(false, true);
@@ -1222,9 +1219,6 @@ class TableBloc<T extends IUniqueParentChildRow> {
       }).catchError((e) {
         /// case 1 - error in async request
         /// update state
-        cellBlocState.requestInProgress = false;
-        cellBlocState.requestSucceeded = false;
-
         cellBloc.setRequestDetails(false, false);
 
         /// inform user of failed update
