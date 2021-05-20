@@ -433,25 +433,26 @@ class TableBloc<T extends IUniqueParentChildRow> {
     return data;
   }
 
-  void _renderNewView(List<PremoTableRow<T>> data) {
-    TableState<T> state = tableState!;
-    List<PremoTableRow<T>> ptRows = state.uiDataCache;
+  /// old [_renderSortAndFilter] function
+  // void _renderNewView(List<PremoTableRow<T>> data) {
+  //   TableState<T> state = tableState!;
+  //   List<PremoTableRow<T>> ptRows = state.uiDataCache;
 
-    /// loop through available render area
-    for (var i = 0; i < ptRows.length; i++) {
-      PremoTableRow<T> ptRow = ptRows[i];
+  //   /// loop through available render area
+  //   for (var i = 0; i < ptRows.length; i++) {
+  //     PremoTableRow<T> ptRow = ptRows[i];
 
-      /// clear animation states on sort / filter
-      ptRow.cells.forEach((cell) {
-        cell.state.requestSucceeded = null;
-      });
+  //     /// clear animation states on sort / filter
+  //     ptRow.cells.forEach((cell) {
+  //       cell.state.requestSucceeded = null;
+  //     });
 
-      /// render new data in cells
-      _renderRow(ptRow, null, ptRow, null, false);
-    }
-  }
+  //     /// render new data in cells
+  //     _renderRow(ptRow, null, ptRow, null, false);
+  //   }
+  // }
 
-  void _setViewableData() {
+  void _renderSortAndFilter() {
     /// update sort state if applicable
     tableState!.sortedDataCache = _sort(tableState!.dataCache);
 
@@ -462,8 +463,15 @@ class TableBloc<T extends IUniqueParentChildRow> {
     /// store data model in ui
     tableState!.uiDataCache = dataToView;
 
+    /// clear animation states on sort / filter
+    tableState!.uiDataCache.forEach((ptRow) {
+      ptRow.cells.forEach((cell) {
+        cell.state.requestSucceeded = null;
+      });
+    });
+
     /// render the new view
-    _renderNewView(dataToView);
+    _controller.sink.add(tableState!);
   }
 
   bool _rowExistsInArray(T? row, List<PremoTableRow<T>> array) {
@@ -832,7 +840,7 @@ class TableBloc<T extends IUniqueParentChildRow> {
       }
 
       /// update displayed data
-      _setViewableData();
+      _renderSortAndFilter();
     }
   }
 
@@ -864,7 +872,7 @@ class TableBloc<T extends IUniqueParentChildRow> {
     CellBloc newColumn = state.uiColumnHeaders[newColumnIndex];
     newColumn.setColumnSorted(state.isAscending);
 
-    _setViewableData();
+    _renderSortAndFilter();
   }
 
   /// TODO - Are these required?
