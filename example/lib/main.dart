@@ -134,7 +134,15 @@ class _HomePageState extends State<HomePage> {
           /// convert objects to Maps. Enabling referencing of map positions.
           List itemList = rowModel.toMap().values.toList();
 
-          return itemList[col]!.toString().contains(value);
+          dynamic cellValue;
+          if ([0, 1, 2, 5, 6].contains(col)) {
+            cellValue = itemList[col] ?? '';
+          } else if ([3, 7].contains(col)) {
+            cellValue = itemList[col] ?? 0;
+          } else if (col == 4) {
+            cellValue = itemList[col] == true ? 1 : 0;
+          }
+          return cellValue.toString().contains(value);
         }
 
         return true;
@@ -244,7 +252,16 @@ class _HomePageState extends State<HomePage> {
         if (value != '') {
           /// convert objects to Maps. Enabling referencing of map positions.
           List itemList = rowModel.toMap().values.toList();
-          return itemList[col]!.toString().contains(value);
+
+          dynamic cellValue;
+          if ([0, 1, 2, 5, 6].contains(col)) {
+            cellValue = itemList[col] ?? '';
+          } else if ([3, 7].contains(col)) {
+            cellValue = itemList[col] ?? 0;
+          } else if (col == 4) {
+            cellValue = itemList[col] == true ? 1 : 0;
+          }
+          return cellValue.toString().contains(value);
         }
 
         return true;
