@@ -875,54 +875,73 @@ class TableBloc<T extends IUniqueParentChildRow> {
     _renderSortAndFilter();
   }
 
-  /// TODO - Are these required?
-  // PremoTableRow<T>? _findUIRow(PremoTableRow<T> ptRow) {
-  //   for (var i = 0; i < tableState!.uiDataCache.length; i++) {
-  //     if (tableState!.uiDataCache[i].model.getId() == ptRow.model.getId()) {
-  //       return tableState!.uiDataCache[i];
-  //     }
-  //   }
-  // }
+  /// - inputs lists are sorted in the same order
+  /// - no duplicates in either list
+  void setDifference({
+    required List<PremoTableRow<T>> listA,
+    required List<PremoTableRow<T>> listB,
+    void Function(PremoTableRow<T> a, PremoTableRow<T> b)? onIntersection,
+    void Function(PremoTableRow<T> a)? onSetDifferenceAB,
+    void Function(PremoTableRow<T> b)? onSetDifferenceBA,
+  }) {
+    int a = 0, b = 0;
+    // List<PremoTableRow<T>> intersection = [];
+    // List<PremoTableRow<T>> setDifferenceAB = [];
+    // List<PremoTableRow<T>> setDifferenceBA = [];
+    // print('listA.length: ${listA.length}, listB.length: ${listB.length}');
+    while (a < listA.length && b < listB.length) {
+      PremoTableRow<T> aModel = listA[a];
+      PremoTableRow<T> bModel = listB[b];
+      String aId = aModel.getId();
+      String bId = bModel.getId();
+      // compare strings by their alphabetical order
+      int compare = aId.compareTo(bId);
+      // print('aId: $aId, bId: $bId, compare: $compare');
+      if (compare == 0) {
+        /// case 1 - value in both lists
+        // intersection.add(aModel);
+        onIntersection?.call(aModel, bModel);
+        a++;
+        b++;
+      } else if (compare < 0) {
+        /// case 2 - Set difference A|B - in A and not in B
+        // setDifferenceAB.add(aModel);
+        onSetDifferenceAB?.call(aModel);
+        a++;
+        // b = b;
 
-  // CellBloc? _findUICell(PremoTableRow<T> ptRow, int uiColumnIndex) {
-  //   PremoTableRow<T>? uiRow = _findUIRow(ptRow);
-  //   return uiRow?.cells[uiColumnIndex];
-  // }
+      } else if (compare > 0) {
+        /// case 3 - Set difference B|A - in B and not in A
+        // setDifferenceBA.add(bModel);
+        onSetDifferenceBA?.call(bModel);
+        // a = a;
+        b++;
+      }
+    }
 
-  // /// assumptions
-  // /// - inputs lists are sorted in the same order
-  // /// - no duplicates in either list
-  // List<int> setDifference(List<int> listA, List<int> listB) {
-  //   int a = 0, b = 0;
-  //   List<int> intersection = [];
-  //   List<int> setDifferenceAB = [];
-  //   List<int> setDifferenceBA = [];
+    if (a < listA.length) {
+      /// case 1 - remaining elements in list A
+      for (var i = a; i < listA.length; i++) {
+        PremoTableRow<T> aModel = listA[a];
+        // setDifferenceAB.add(aModel);
+        onSetDifferenceAB?.call(aModel);
+      }
+    } else if (b < listB.length) {
+      /// case 2 - remaining elements in list B
+      for (var i = b; i < listB.length; i++) {
+        PremoTableRow<T> bModel = listB[b];
+        // setDifferenceBA.add(bModel);
+        onSetDifferenceBA?.call(bModel);
+      }
+    }
 
-  //   while (a < listA.length || b < listB.length) {
-  //     if (listA[a] == listB[b]) {
-  //       /// case 1 - value in both lists
-  //       a++;
-  //       b++;
-  //       intersection.add(listA[a]);
-  //     } else if (listA[a] < listB[b]) {
-  //       /// case 2 - Set difference A|B - in A and not in B
-  //       a++;
-  //       // b = b;
-  //       setDifferenceAB.add(listA[a]);
-  //     } else if (listA[a] > listB[b]) {
-  //       /// case 3 - Set difference B|A - in B and not in A
-  //       // a = a;
-  //       b++;
-  //       setDifferenceBA.add(listB[b]);
-  //     }
-  //   }
+    // print(
+    //     'intersection: ${intersection.length}, setDifferenceAB: ${setDifferenceAB.length}, setDifferenceBA: ${setDifferenceBA.length},');
 
-  //   print('intersection: ${intersection.toString()}');
-  //   print('A|B: ${setDifferenceAB.toString()}');
-  //   print('B|A: ${setDifferenceBA.toString()}');
+    // return intersection;
+  }
 
-  //   return intersection;
-  // }
+
 
   /// TODO - Requires thorough test
   /// aligns the newly recieved [eventData] with the current user interface
@@ -1059,21 +1078,6 @@ class TableBloc<T extends IUniqueParentChildRow> {
 
       /// *********************** commence rendering data **********************
       // old or new data must exist for it to be possible to render a row
-
-      /// ensure new render rows are made available for dataset
-      // TODO - Is this required? Same issue with creating new PremoTableRows
-      // on refresh events
-      // if (newDataPos + deleted >= uiRows.length) {
-      //   /// case 1 - no row available
-      //   RowState<T> rowState = RowState(
-      //     rowModel: null,
-      //     cellStates: Map<int, CellState>(),
-      //   );
-      //   UiRow<T> uiRow = _createUiRow(rowState);
-      //   uiRows.add(uiRow);
-      // }
-
-      // /// case 2 - row available... do nothing
 
       // current old data row was rendered in the ui
       if (oldDataRow != null &&
