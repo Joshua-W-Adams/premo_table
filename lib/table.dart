@@ -140,31 +140,9 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
         kMinInteractiveDimension;
     final Color cellBottomBorderColor = theme.canvasColor;
     final TextStyle? defaultCellTextStyle = theme.textTheme.bodyText1;
-    return StreamBuilder<TableState<T>>(
-      /// Stream of entire table state
+    return TableStreamBuilder<T>(
       stream: tableBloc.stream,
-      builder: (_, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          /// case 1 - awaiting connection
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        } else if (snapshot.hasError) {
-          /// case 2 - error in snapshot
-          return ErrorMessage(
-            error: '${snapshot.error.toString()}',
-          );
-        } else if (!snapshot.hasData) {
-          /// case 3 - no data
-          return ErrorMessage(
-            error: 'No data recieved from server',
-          );
-        }
-
-        /// case 4 - all verification checks passed.
-
-        /// Get current state released by stream
-        TableState<T> tableState = snapshot.data!;
+      builder: (tableState) {
         int? rowCount = tableState.uiDataCache.length;
 
         /// Build table
