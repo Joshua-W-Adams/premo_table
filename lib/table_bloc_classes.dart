@@ -99,14 +99,12 @@ class TableState<T extends IUniqueParentChildRow> {
   List<CellBloc> uiColumnHeaders;
 
   /// location in the user interface layer of the selected row and column
-  int? uiSelectedRow;
   int? uiSelectedColumn;
 
   /// reference to the currently selected row so its state can be updated
   PremoTableRow<T>? selectedRowReference;
 
   /// location in the user interface layer of the highted row and column
-  int? uiHoveredRow;
   int? uiHoveredColumn;
 
   /// reference to the currently hovered row so its state can be updated
@@ -134,10 +132,8 @@ class TableState<T extends IUniqueParentChildRow> {
     required this.uiColumnStates,
     required this.uiLegendCell,
     required this.uiColumnHeaders,
-    this.uiSelectedRow,
     this.uiSelectedColumn,
     this.selectedRowReference,
-    this.uiHoveredRow,
     this.uiHoveredColumn,
     this.hoveredRowReference,
     this.checkedRowCount = 0,

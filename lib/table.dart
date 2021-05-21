@@ -212,9 +212,10 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
 
             /// *********** ROW HEADERS ***********
             rowHeadersBuilder: (uiRowIndex) {
+              PremoTableRow<T> uiRow =
+                  tableBloc.tableState!.uiDataCache[uiRowIndex];
               return CellStreamBuilder(
-                cellBloc:
-                    tableBloc.tableState!.uiDataCache[uiRowIndex].rowHeaderCell,
+                cellBloc: uiRow.rowHeaderCell,
                 builder: (cellBlocState) {
                   return RowHeaderCell(
                     height: effectiveDataRowHeight,
@@ -242,7 +243,7 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     cellBottomBorderColor: cellBottomBorderColor,
                     checked: cellBlocState.rowChecked ?? false,
                     onChanged: (newValue) {
-                      tableBloc.check(uiRowIndex, newValue ?? false);
+                      tableBloc.check(uiRow, newValue ?? false);
                     },
                   );
                 },
@@ -252,10 +253,10 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
             /// *********** CONTENT ***********
             contentCellBuilder: (uiColumnIndex, uiRowIndex) {
               bool readOnly = columnReadOnlyBuilder(uiColumnIndex);
-              PremoTableRow<T> premoTableRow =
+              PremoTableRow<T> uiRow =
                   tableBloc.tableState!.uiDataCache[uiRowIndex];
               return CellStreamBuilder(
-                cellBloc: premoTableRow.cells[uiColumnIndex],
+                cellBloc: uiRow.cells[uiColumnIndex],
                 builder: (cellBlocState) {
                   /// get data model associated to current cell
                   T rowModel = tableState.uiDataCache[uiRowIndex].model;
@@ -279,10 +280,10 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     rowChecked: cellBlocState.rowChecked ?? false,
                     animation: TableFunctions.getAnimation(cellBlocState),
                     onTap: () {
-                      tableBloc.select(uiRowIndex, uiColumnIndex);
+                      tableBloc.select(uiRow, uiColumnIndex);
                     },
                     onHover: (_) {
-                      tableBloc.hover(uiRowIndex, uiColumnIndex);
+                      tableBloc.hover(uiRow, uiColumnIndex);
                     },
                     backgroundColor:
                         readOnly == true ? disabledCellColor : null,
@@ -309,7 +310,7 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                       /// loose focus so checking the change state is not
                       /// required.
                       tableBloc.update(
-                        premoTableRow,
+                        uiRow,
                         uiColumnIndex,
                         newValue,
                         cellBlocState.value,

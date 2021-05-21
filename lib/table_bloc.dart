@@ -208,13 +208,12 @@ class TableBloc<T extends IUniqueParentChildRow> {
     return ptRow;
   }
 
-  void _informCellSelectionState(int? sRow, int? sCol, bool selected) {
+  void _informCellSelectionState(
+      PremoTableRow<T>? sRow, int? sCol, bool selected) {
     if (sRow != null && sCol != null) {
-      TableState<T> state = tableState!;
-      PremoTableRow<T> ptRow = state.uiDataCache[sRow];
-      CellBloc rowHeader = ptRow.rowHeaderCell;
-      CellBloc cell = ptRow.cells[sCol];
-      CellBloc columnHeader = state.uiColumnHeaders[sCol];
+      CellBloc rowHeader = sRow.rowHeaderCell;
+      CellBloc cell = sRow.cells[sCol];
+      CellBloc columnHeader = tableState!.uiColumnHeaders[sCol];
 
       /// release selection events to ui elements
       if (enableCellSelectionEvents) {
@@ -229,13 +228,12 @@ class TableBloc<T extends IUniqueParentChildRow> {
     }
   }
 
-  void _informRowSelectionState(int? sRow, bool selected) {
+  void _informRowSelectionState(PremoTableRow<T>? sRow, bool selected) {
     if (!enableRowSelectionEvents) {
       return;
     } else if (sRow != null) {
       // get cell blocs for row
-      TableState<T> state = tableState!;
-      List<CellBloc> sRowCellBlocs = state.uiDataCache[sRow].cells;
+      List<CellBloc> sRowCellBlocs = sRow.cells;
 
       // loop through all cell blocs
       for (var col = 0; col < sRowCellBlocs.length; col++) {
@@ -264,12 +262,11 @@ class TableBloc<T extends IUniqueParentChildRow> {
     }
   }
 
-  void _informCellHoverState(int? hRow, int? hCol, bool hovered) {
+  void _informCellHoverState(PremoTableRow<T>? hRow, int? hCol, bool hovered) {
     if (hRow != null && hCol != null) {
       TableState<T> state = tableState!;
-      PremoTableRow<T> ptRow = state.uiDataCache[hRow];
-      CellBloc rowHeader = ptRow.rowHeaderCell;
-      CellBloc cell = ptRow.cells[hCol];
+      CellBloc rowHeader = hRow.rowHeaderCell;
+      CellBloc cell = hRow.cells[hCol];
       CellBloc columnHeader = state.uiColumnHeaders[hCol];
 
       if (enableCellHoverEvents) {
@@ -286,14 +283,14 @@ class TableBloc<T extends IUniqueParentChildRow> {
     }
   }
 
-  void _informRowHoverState(int? hRow, bool selected) {
+  void _informRowHoverState(PremoTableRow<T>? hRow, bool selected) {
     if (!enableRowHoverEvents) {
       return;
     }
 
     if (hRow != null) {
       /// get cell blocs for row
-      List<CellBloc> hRowCellBlocs = tableState!.uiDataCache[hRow].cells;
+      List<CellBloc> hRowCellBlocs = hRow.cells;
 
       /// loop through all cell blocs
       for (var col = 0; col < hRowCellBlocs.length; col++) {
@@ -432,44 +429,38 @@ class TableBloc<T extends IUniqueParentChildRow> {
   ///
   /// Will store the selection details in local cache and also release events
   /// to the old and new selected cell ui elements.
-  void select(int? newRow, int? newColumn) {
+  void select(PremoTableRow<T>? newRow, int? newColumn) {
     TableState<T> state = tableState!;
 
     /// get old selection details
-    int? oldRow = state.uiSelectedRow;
     int? oldColumn = state.uiSelectedColumn;
-    PremoTableRow<T>? oldRowReference = state.selectedRowReference;
+    PremoTableRow<T>? oldRow = state.selectedRowReference;
 
-    /// get new selection details
-    PremoTableRow<T>? newRowReference =
-        newRow != null ? state.uiDataCache[newRow] : null;
+    if (newRow != oldRow || newColumn != oldColumn) {
+      /// case 1 - row and column changed
+      _informCellSelectionState(oldRow, oldColumn, false);
+      _informCellSelectionState(newRow, newColumn, true);
+    }
 
     if (newRow != oldRow) {
-      /// case 1 - row changed
+      /// case 2 - row changed
       _informRowSelectionState(oldRow, false);
       _informRowSelectionState(newRow, true);
     }
 
     if (newColumn != oldColumn) {
-      /// case 2 - column changed
+      /// case 3 - column changed
       _informColumnSelectionState(oldColumn, false);
       _informColumnSelectionState(newColumn, true);
     }
 
-    if (newRow != oldRow || newColumn != oldColumn) {
-      /// case 3 - row and column changed
-      _informCellSelectionState(oldRow, oldColumn, false);
-      _informCellSelectionState(newRow, newColumn, true);
-    }
-
     /// update selection status tracking
-    oldRowReference?.selected = false;
-    newRowReference?.selected = true;
+    oldRow?.selected = false;
+    newRow?.selected = true;
 
     /// update new state
-    state.uiSelectedRow = newRow;
     state.uiSelectedColumn = newColumn;
-    state.selectedRowReference = newRowReference;
+    state.selectedRowReference = newRow;
   }
 
   /// [deselect] clears the currently selected cell.
@@ -484,17 +475,12 @@ class TableBloc<T extends IUniqueParentChildRow> {
   ///
   /// Will store the hover details in local cache and also release events to the
   /// old and new hovered cell ui elements.
-  void hover(int? newRow, int? newColumn) {
+  void hover(PremoTableRow<T>? newRow, int? newColumn) {
     TableState<T> state = tableState!;
 
     /// get old details
-    int? oldRow = state.uiHoveredRow;
     int? oldColumn = state.uiHoveredColumn;
-    PremoTableRow<T>? oldRowReference = state.hoveredRowReference;
-
-    /// get new details
-    PremoTableRow<T>? newRowReference =
-        newRow != null ? state.uiDataCache[newRow] : null;
+    PremoTableRow<T>? oldRow = state.hoveredRowReference;
 
     if (newRow != oldRow || newColumn != oldColumn) {
       /// case 1 - row or column changed
@@ -518,13 +504,12 @@ class TableBloc<T extends IUniqueParentChildRow> {
     }
 
     /// update hovered status tracking
-    oldRowReference?.hovered = false;
-    newRowReference?.hovered = true;
+    oldRow?.hovered = false;
+    newRow?.hovered = true;
 
     /// update new state
-    state.uiHoveredRow = newRow;
     state.uiHoveredColumn = newColumn;
-    state.hoveredRowReference = newRowReference;
+    state.hoveredRowReference = newRow;
   }
 
   void dehover() {
@@ -540,19 +525,17 @@ class TableBloc<T extends IUniqueParentChildRow> {
     }
   }
 
-  void check(int row, bool newChecked) {
+  void check(PremoTableRow<T> row, bool newChecked) {
     /// get element in ui
-    TableState<T> state = tableState!;
-    PremoTableRow<T> ptRow = state.uiDataCache[row];
-    bool oldChecked = ptRow.checked;
+    bool oldChecked = row.checked;
     if (oldChecked != newChecked) {
       _updateCheckCount(oldChecked, newChecked);
 
       /// update state
-      ptRow.checked = newChecked;
+      row.checked = newChecked;
 
       /// update ui elements
-      _informCheckedStatus(ptRow, newChecked);
+      _informCheckedStatus(row, newChecked);
     }
   }
 
@@ -560,7 +543,7 @@ class TableBloc<T extends IUniqueParentChildRow> {
     /// update user interface elements
     List<PremoTableRow<T>> uiRows = tableState!.uiDataCache;
     for (var r = 0; r < uiRows.length; r++) {
-      check(r, newChecked);
+      check(uiRows[r], newChecked);
     }
 
     /// ensure state updated correctly for case when there is a render limit

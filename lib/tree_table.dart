@@ -262,8 +262,7 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     cellBottomBorderColor: cellBottomBorderColor,
                     checked: cellBlocState.rowChecked ?? false,
                     onChanged: (newValue) {
-                      // TODO - check function api to be updated
-                      // tableBloc.check(uiRowIndex, newValue ?? false);
+                      tableBloc.check(uiRow, newValue ?? false);
                     },
                   );
                 },
@@ -298,12 +297,10 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     rowChecked: cellBlocState.rowChecked ?? false,
                     animation: TableFunctions.getAnimation(cellBlocState),
                     onTap: () {
-                      // TODO - refactor select
-                      // tableBloc.select(uiRowIndex, uiColumnIndex);
+                      tableBloc.select(uiRow, uiColumnIndex);
                     },
                     onHover: (_) {
-                      // TODO - refactor select
-                      // tableBloc.hover(uiRowIndex, uiColumnIndex);
+                      tableBloc.hover(uiRow, uiColumnIndex);
                     },
                     backgroundColor:
                         readOnly == true ? disabledCellColor : null,
