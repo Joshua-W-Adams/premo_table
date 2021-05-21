@@ -37,5 +37,7 @@ part 'components/table_actions/action_button/action_button.dart';
 part 'components/table_actions/table_actions.dart';
 part 'table_bloc_classes.dart';
 part 'table_bloc.dart';
+part 'table_functions.dart';
 part 'table_stream_builder.dart';
 part 'table.dart';
+part 'tree_table.dart';

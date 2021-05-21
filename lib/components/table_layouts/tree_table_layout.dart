@@ -26,8 +26,8 @@ class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
   final bool enableColHeaders;
   final Widget legendCell;
   final Widget Function(int columnIndex) columnHeadersBuilder;
-  final Widget Function(T? rowModel) rowHeadersBuilder;
-  final Widget Function(int columnIndex, T? rowModel) contentCellBuilder;
+  final Widget Function(T rowModel) rowHeadersBuilder;
+  final Widget Function(int columnIndex, T rowModel) contentCellBuilder;
   final List<T> data;
   final String? buildFromId;
   final Widget Function(
@@ -109,7 +109,7 @@ class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
     required this.onEndOfDepthS2,
   }) : super(key: key);
 
-  Map<int, List<Widget>> _getCells(T? rowModel) {
+  Map<int, List<Widget>> _getCells(T rowModel) {
     List<Widget> q3Cells = [];
     List<Widget> q4Cells = [];
     // case 1 - row and column headers enabled

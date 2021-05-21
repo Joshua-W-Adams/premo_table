@@ -2,6 +2,9 @@ part of premo_table;
 
 enum ChangeTypes { update, add, delete, duplicate }
 
+/// supported cell types
+enum CellTypes { text, number, currency, date, dropdown, cellswitch, custom }
+
 class ColumnState {
   /// filter applied to column, if any
   String? filterValue;

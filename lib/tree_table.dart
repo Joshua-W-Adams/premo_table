@@ -1,7 +1,7 @@
 part of premo_table;
 
 /// Generates a Google Sheets / Excel like table interface
-class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
+class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
   /// Business logic and state
   final TableBloc<T> tableBloc;
 
@@ -86,7 +86,7 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
     return null;
   }
 
-  PremoTable({
+  TreeTable({
     Key? key,
     required this.tableBloc,
     this.enableFilters = true,
@@ -109,6 +109,18 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
     this.cellWidgetBuilder,
   }) : super(key: key);
 
+  ParentBloc _getParentBLoc(
+    Map<PremoTableRow<T>, ParentBloc> blocMap,
+    PremoTableRow<T> parent,
+  ) {
+    ParentBloc? parentBloc = blocMap[parent];
+    if (parentBloc == null) {
+      parentBloc = ParentBloc(expanded: false);
+      blocMap[parent] = parentBloc;
+    }
+    return parentBloc;
+  }
+
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
@@ -117,22 +129,25 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
         kMinInteractiveDimension;
     final Color cellBottomBorderColor = theme.canvasColor;
     final TextStyle? defaultCellTextStyle = theme.textTheme.bodyText1;
+    final double iconWidth = 40.0;
+    List<Color> rowColors = [
+      Theme.of(context).accentColor.withOpacity(0.15),
+      Theme.of(context).accentColor.withOpacity(0.05),
+    ];
+    Map<PremoTableRow<T>, ParentBloc> syncedParentBlocs = Map();
     return TableStreamBuilder<T>(
       stream: tableBloc.stream,
       builder: (tableState) {
-        int? rowCount = tableState.uiDataCache.length;
-
         /// Build table
         return MouseRegion(
           onExit: (event) {
             tableBloc.dehover();
           },
-          child: TableLayout(
+          child: TreeTableLayout<PremoTableRow<T>>(
             // stickToColumn: 0,
             // enableColHeaders: true,
             // enableRowHeaders: true,
             columnCount: tableBloc.columnNames.length,
-            rowCount: rowCount,
 
             /// rowheaders and legend cell will not be generated if the checking
             /// is not enabled
@@ -142,19 +157,25 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
             legendCell: CellStreamBuilder(
               cellBloc: tableBloc.tableState!.uiLegendCell,
               builder: (cellState) {
-                return LegendCell(
-                  height: effectiveDataRowHeight,
-                  onTap: () {
-                    tableBloc.deselect();
-                  },
-                  onHover: (_) {
-                    tableBloc.dehover();
-                  },
-                  cellBorderColor: cellBorderColor,
-                  allRowsChecked: tableBloc.allRowsChecked(),
-                  onChanged: (newValue) {
-                    tableBloc.checkAll(newValue ?? false);
-                  },
+                return Row(
+                  children: [
+                    /// separator for [ParentWidget] icons
+                    Container(width: iconWidth),
+                    LegendCell(
+                      height: effectiveDataRowHeight,
+                      onTap: () {
+                        tableBloc.deselect();
+                      },
+                      onHover: (_) {
+                        tableBloc.dehover();
+                      },
+                      cellBorderColor: cellBorderColor,
+                      allRowsChecked: tableBloc.allRowsChecked(),
+                      onChanged: (newValue) {
+                        tableBloc.checkAll(newValue ?? false);
+                      },
+                    ),
+                  ],
                 );
               },
             ),
@@ -211,10 +232,9 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
             },
 
             /// *********** ROW HEADERS ***********
-            rowHeadersBuilder: (uiRowIndex) {
+            rowHeadersBuilder: (uiRow) {
               return CellStreamBuilder(
-                cellBloc:
-                    tableBloc.tableState!.uiDataCache[uiRowIndex].rowHeaderCell,
+                cellBloc: uiRow.rowHeaderCell,
                 builder: (cellBlocState) {
                   return RowHeaderCell(
                     height: effectiveDataRowHeight,
@@ -242,7 +262,8 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     cellBottomBorderColor: cellBottomBorderColor,
                     checked: cellBlocState.rowChecked ?? false,
                     onChanged: (newValue) {
-                      tableBloc.check(uiRowIndex, newValue ?? false);
+                      // TODO - check function api to be updated
+                      // tableBloc.check(uiRowIndex, newValue ?? false);
                     },
                   );
                 },
@@ -250,21 +271,19 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
             },
 
             /// *********** CONTENT ***********
-            contentCellBuilder: (uiColumnIndex, uiRowIndex) {
+            contentCellBuilder: (uiColumnIndex, uiRow) {
               bool readOnly = columnReadOnlyBuilder(uiColumnIndex);
-              PremoTableRow<T> premoTableRow =
-                  tableBloc.tableState!.uiDataCache[uiRowIndex];
               return CellStreamBuilder(
-                cellBloc: premoTableRow.cells[uiColumnIndex],
+                cellBloc: uiRow.cells[uiColumnIndex],
                 builder: (cellBlocState) {
                   /// get data model associated to current cell
-                  T rowModel = tableState.uiDataCache[uiRowIndex].model;
+                  T rowModel = uiRow.model;
                   return ContentCell(
                     height: effectiveDataRowHeight,
                     width: columnWidthBuilder(uiColumnIndex),
                     verticalAlignment: columnVerticalAlignmentBuilder(
                       rowModel,
-                      uiRowIndex,
+                      0, // TODO - refactor vertial alignment builder
                       uiColumnIndex,
                     ),
                     visible: cellBlocState.visible,
@@ -279,23 +298,25 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     rowChecked: cellBlocState.rowChecked ?? false,
                     animation: TableFunctions.getAnimation(cellBlocState),
                     onTap: () {
-                      tableBloc.select(uiRowIndex, uiColumnIndex);
+                      // TODO - refactor select
+                      // tableBloc.select(uiRowIndex, uiColumnIndex);
                     },
                     onHover: (_) {
-                      tableBloc.hover(uiRowIndex, uiColumnIndex);
+                      // TODO - refactor select
+                      // tableBloc.hover(uiRowIndex, uiColumnIndex);
                     },
                     backgroundColor:
                         readOnly == true ? disabledCellColor : null,
                     cellBorderColor: cellBorderColor,
                     horizontalAlignment: columnHorizontalAlignmentBuilder(
                       rowModel,
-                      uiRowIndex,
+                      0, // TODO - refactor horizontal alignment builder
                       uiColumnIndex,
                     ),
                     textStyle: cellTextStyleBuilder != null
                         ? cellTextStyleBuilder!(
                             rowModel,
-                            uiRowIndex,
+                            0, // TODO - refactor textstyle builder
                             uiColumnIndex,
                           )
                         : defaultCellTextStyle,
@@ -309,7 +330,7 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                       /// loose focus so checking the change state is not
                       /// required.
                       tableBloc.update(
-                        premoTableRow,
+                        uiRow,
                         uiColumnIndex,
                         newValue,
                         cellBlocState.value,
@@ -319,21 +340,79 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     value: cellBlocState.value,
                     validator: columnValidatorBuilder(
                       rowModel,
-                      uiRowIndex,
+                      0, // TODO - refactor column validator
                       uiColumnIndex,
                     ),
                     dropdownList: columnDropdownBuilder(
                       rowModel,
-                      uiRowIndex,
+                      0, // TODO - refactor column dropdown builder
                       uiColumnIndex,
                     ),
                     customCellContent: cellWidgetBuilder != null
                         ? cellWidgetBuilder!(
-                            rowModel, uiRowIndex, uiColumnIndex)
+                            rowModel,
+                            0, // TODO - refactor
+                            uiColumnIndex,
+                          )
                         : null,
                   );
                 },
               );
+            },
+            data: tableState.uiDataCache,
+            buildFromId: null,
+            onChildS1: (_, __, ___, cells) {
+              return Row(
+                children: [Container(width: iconWidth), ...cells],
+              );
+            },
+            onChildS2: (_, __, ___, cells) {
+              return Row(
+                children: cells,
+              );
+            },
+            onParentUpS1: (parent, _, __, depth, childrenWidgets, cells) {
+              // TODO - clean up parent blocs to avoid memory leaks.
+              ParentBloc parentBloc = _getParentBLoc(syncedParentBlocs, parent);
+              return ParentBuilder(
+                stream: parentBloc.stream,
+                builder: (expanded) {
+                  return ParentWidget(
+                    parent: Row(children: cells),
+                    parentRowColor: depth <= 1 ? rowColors[depth] : null,
+                    children: childrenWidgets,
+                    expanded: expanded,
+                    onPressed: () {
+                      parentBloc.setExpanded(!expanded);
+                    },
+                  );
+                },
+              );
+            },
+            onParentUpS2: (parent, parentParent, children, depth,
+                childrenWidgets, cells) {
+              ParentBloc parentBloc = _getParentBLoc(syncedParentBlocs, parent);
+              return ParentBuilder(
+                stream: parentBloc.syncStream,
+                builder: (expanded) {
+                  return ParentWidget(
+                    parent: Row(children: cells),
+                    parentRowColor: depth <= 1 ? rowColors[depth] : null,
+                    icon: null,
+                    children: childrenWidgets,
+                    expanded: expanded,
+                    onPressed: () {
+                      parentBloc.setExpanded(!expanded);
+                    },
+                  );
+                },
+              );
+            },
+            onEndOfDepthS1: (parent, depth) {
+              return Container();
+            },
+            onEndOfDepthS2: (parent, depth) {
+              return Container();
             },
           ),
         );
