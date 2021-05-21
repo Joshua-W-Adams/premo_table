@@ -1,9 +1,9 @@
+import 'package:example/app/tree_table_builder/tree_table_builder.dart';
 import 'package:example/models/sample_data_model.dart';
 import 'package:flutter/material.dart';
 import 'package:premo_table/premo_table.dart';
 import 'package:example/app/premo_table_builder/premo_table_builder.dart';
 import 'package:example/services/mock_data_service.dart';
-import 'app/tree_table_builder/tree_table_builder.dart';
 
 void main() {
   runApp(MyApp());
@@ -79,15 +79,6 @@ class _HomePageState extends State<HomePage> {
         } else if (columnIndex == 7) {
           return rowModel?.salary.toString();
         }
-      },
-
-      /// sort to applied to all input data before it is released on the table
-      /// bloc stream
-      defaultSort: (data) {
-        data.sort((a, b) {
-          return double.parse(a.model.id).compareTo(double.parse(b.model.id));
-        });
-        return data;
       },
 
       /// sort function to run on each column
@@ -213,15 +204,6 @@ class _HomePageState extends State<HomePage> {
         } else if (columnIndex == 7) {
           return rowModel?.salary.toString();
         }
-      },
-
-      /// sort to applied to all input data before it is released on the table
-      /// bloc stream
-      defaultSort: (data) {
-        data.sort((a, b) {
-          return double.parse(a.model.id).compareTo(double.parse(b.model.id));
-        });
-        return data;
       },
 
       /// sort function to run on each column

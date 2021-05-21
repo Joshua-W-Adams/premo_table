@@ -95,7 +95,7 @@ class CellBloc<T> {
 
   /// cache of cell state
   CellBlocState<T> state;
-  StreamController<CellBlocState<T>> _controller = StreamController();
+  StreamController<CellBlocState<T>> _controller = BehaviorSubject();
 
   CellBloc({
     required this.initialState,
