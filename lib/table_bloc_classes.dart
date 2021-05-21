@@ -86,6 +86,11 @@ class TableState<T extends IUniqueParentChildRow> {
   /// store of all user interaction state with columns
   List<ColumnState> uiColumnStates;
 
+  /// store of any [PremoTableRow]s that have been marked for disposal.
+  /// Specifically deleted items for rendered on initial deletion. Then on
+  /// subsequent refresh events, are disposed and removed from the UI.
+  List<PremoTableRow<T>> markedForDisposal;
+
   /// ************** presentation layer of underlying data model ***************
   CellBloc uiLegendCell;
   List<CellBloc> uiColumnHeaders;
@@ -122,6 +127,7 @@ class TableState<T extends IUniqueParentChildRow> {
     required this.dataCache,
     required this.sortedDataCache,
     required this.uiDataCache,
+    this.markedForDisposal = const [],
     required this.uiColumnStates,
     required this.uiLegendCell,
     required this.uiColumnHeaders,

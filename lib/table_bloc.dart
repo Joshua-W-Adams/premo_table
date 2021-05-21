@@ -7,52 +7,6 @@ class TableBloc<T extends IUniqueParentChildRow> {
   /// column ui elements (column headers and column cells) will be generated for
   /// each column name provided
   final List<String> columnNames;
-  // updateing to JSON data would have additional benefits that the map names can
-  // be passed and therefore underlying data can be accessed in the BLOC and also
-  // in areas such as filters and sorts so specific if functions dont have to be
-  // assigned for each uiColumnIndex.
-  //   //       columns: [
-  //   //   {
-  //   //     data: 'id',
-  //   //     type: 'numeric',
-
-  //   //   },
-  //   //   {
-  //   //     data: 'flag',
-  //   // 		renderer: flagRenderer
-  //   //   },
-  //   //   {
-  //   //     data: 'currencyCode',
-  //   //     type: 'text'
-  //   //   },
-  //   //   {
-  //   //     data: 'currency',
-  //   //     type: 'text'
-  //   //   },
-  //   //   {
-  //   //     data: 'level',
-  //   //     type: 'numeric',
-  //   //     numericFormat: {
-  //   //       pattern: '0.0000'
-  //   //     }
-  //   //   },
-  //   //   {
-  //   //     data: 'units',
-  //   //     type: 'text'
-  //   //   },
-  //   //   {
-  //   //     data: 'asOf',
-  //   //     type: 'date',
-  //   //     dateFormat: 'MM/DD/YYYY'
-  //   //   },
-  //   //   {
-  //   //     data: 'onedChng',
-  //   //     type: 'numeric',
-  //   //     numericFormat: {
-  //   //       pattern: '0.00%'
-  //   //     }
-  //   //   }
-  //   // ],
 
   /// value to display in each cell of the user interface. col is the index of
   /// current column in the [columnNames] array
@@ -61,12 +15,10 @@ class TableBloc<T extends IUniqueParentChildRow> {
   /// count of total rows to render in the user interface
   final int? rowsToRender;
 
-  /// sort function to run when no sorts are applied to the current table.
-  /// Enforces all external data events to be in the correct order. Can be left
-  /// null if the assumption that all event data will be provided in the same
-  /// order is always true.
-  final List<PremoTableRow<T>> Function(List<PremoTableRow<T>> data)?
-      defaultSort;
+  /// Whether the data coming in from the stream is already sorted by id in
+  /// alphanumeric order. Data must be sorted alphanumerically for the internal
+  /// set difference algorithms (that run on new stream events) to operate.
+  final bool streamAlphanumericSorted;
 
   /// sort [compare] function to run when the public api [sort] is called
   final int Function(int columnIndex, bool ascending, T a, T b)? sortCompare;
@@ -125,7 +77,7 @@ class TableBloc<T extends IUniqueParentChildRow> {
     required this.columnNames,
     required this.cellValueBuilder,
     this.rowsToRender,
-    this.defaultSort,
+    this.streamAlphanumericSorted = false,
     this.sortCompare,
     this.onFilter,
     this.onUpdate,
@@ -145,6 +97,9 @@ class TableBloc<T extends IUniqueParentChildRow> {
   }) {
     /// listen to input data stream
     _subscription = inputStream.listen((event) {
+      /// ensure all stream data is sorted in the correct order
+      _alphaNumericSort(event);
+
       if (tableState == null) {
         /// case 1 - initial event released
 
@@ -152,9 +107,7 @@ class TableBloc<T extends IUniqueParentChildRow> {
         _initBloc(event);
       } else {
         /// case 2 - otherwise - updated server data recieved
-
-        // update the existing view with all changes (UPDATES, ADDS, DELETES) in
-        // the new event data
+        // update view with all data changes (UPDATES, ADDS, DELETES)
         refresh(event);
       }
     });
@@ -163,6 +116,14 @@ class TableBloc<T extends IUniqueParentChildRow> {
   ///
   /// **************************** Private functions ***************************
   ///
+
+  void _alphaNumericSort(List<T> data) {
+    if (!streamAlphanumericSorted) {
+      data.sort((a, b) {
+        return a.getId().compareTo(b.getId());
+      });
+    }
+  }
 
   void _initBloc(List<T> event) {
     /// ui layer properties
@@ -186,9 +147,6 @@ class TableBloc<T extends IUniqueParentChildRow> {
       uiColumnHeaders.add(columnHeader);
       uiColumnStates.add(columnState);
     }
-
-    /// pre sort event data
-    defaultSort?.call(tableData);
 
     // List.from used so sorts applied do not effect the original dataCache
     List<PremoTableRow<T>> sortedDataCache = List.from(tableData);
@@ -444,25 +402,6 @@ class TableBloc<T extends IUniqueParentChildRow> {
     return data;
   }
 
-  /// old [_renderSortAndFilter] function
-  // void _renderNewView(List<PremoTableRow<T>> data) {
-  //   TableState<T> state = tableState!;
-  //   List<PremoTableRow<T>> ptRows = state.uiDataCache;
-
-  //   /// loop through available render area
-  //   for (var i = 0; i < ptRows.length; i++) {
-  //     PremoTableRow<T> ptRow = ptRows[i];
-
-  //     /// clear animation states on sort / filter
-  //     ptRow.cells.forEach((cell) {
-  //       cell.state.requestSucceeded = null;
-  //     });
-
-  //     /// render new data in cells
-  //     _renderRow(ptRow, null, ptRow, null, false);
-  //   }
-  // }
-
   void _renderSortAndFilter() {
     /// update sort state if applicable
     tableState!.sortedDataCache = _sort(tableState!.dataCache);
@@ -483,183 +422,6 @@ class TableBloc<T extends IUniqueParentChildRow> {
 
     /// render the new view
     _controller.sink.add(tableState!);
-  }
-
-  bool _rowExistsInArray(T? row, List<PremoTableRow<T>> array) {
-    if (row == null) {
-      return false;
-    }
-    return array.any((element) {
-      return element.model.getId() == row.getId();
-    });
-  }
-
-  CellBlocState _getCellBlocState(
-    PremoTableRow<T> ptRow,
-    int columnIndex,
-    ChangeTypes? changeType,
-  ) {
-    bool columnSelected = columnIndex == tableState!.uiSelectedColumn;
-    bool columnHovered = columnIndex == tableState!.uiHoveredColumn;
-    bool columnSorted = tableState!.sortColumnIndex == columnIndex;
-    bool cellSelected =
-        enableCellSelectionEvents && ptRow.selected && columnSelected;
-    bool rowSelected = enableRowSelectionEvents && ptRow.selected;
-    bool cellColumnSelected = enableColumnSelectionEvents && columnSelected;
-    bool cellHovered = enableCellHoverEvents && ptRow.hovered && columnHovered;
-    bool rowHovered = enableRowHoverEvents && ptRow.hovered;
-    bool cellColumnHovered = enableColumnHoverEvents && columnHovered;
-    bool cellRowChecked = enableRowCheckedEvents && ptRow.checked;
-
-    CellBlocState cellState = ptRow.cells[columnIndex].state;
-    return CellBlocState(
-      value: cellValueBuilder(ptRow.model, columnIndex),
-      visible: ptRow.visible,
-      selected: cellSelected,
-      rowSelected: rowSelected,
-      colSelected: cellColumnSelected,
-      hovered: cellHovered,
-      rowHovered: rowHovered,
-      colHovered: cellColumnHovered,
-      rowChecked: cellRowChecked,
-      columnSorted: columnSorted,
-      requestInProgress: cellState.requestInProgress,
-      requestSucceeded: cellState.requestSucceeded,
-      changeType: changeType,
-    );
-  }
-
-  CellBlocState _getRowHeaderCellBlocState(
-    PremoTableRow<T> ptRow,
-    ChangeTypes? changeType,
-  ) {
-    bool rowSelected = enableRowHeaderSelectionEvents && ptRow.selected;
-    bool rowHovered = enableRowHeaderHoverEvents && ptRow.hovered;
-    bool rowChecked = enableRowCheckedEvents && ptRow.checked;
-
-    return CellBlocState(
-      value: '',
-      visible: ptRow.visible,
-      rowSelected: rowSelected,
-      rowHovered: rowHovered,
-      rowChecked: rowChecked,
-      // TODO - management of request status state.
-      requestInProgress: false,
-      requestSucceeded: null,
-      changeType: changeType,
-    );
-  }
-
-  void _renderCell(CellBloc cell, CellBlocState newState) {
-    cell.setState(newState);
-  }
-
-  void _renderRowHeader(
-    PremoTableRow<T>? rowToRender,
-    PremoTableRow<T> uiRow,
-    ChangeTypes? rowChangeType,
-  ) {
-    /// determine new rowHeader state
-    CellBlocState uiRowHeaderState;
-    if (rowToRender != null) {
-      /// case 1 - data exists for render location
-      uiRowHeaderState = _getRowHeaderCellBlocState(rowToRender, rowChangeType);
-    } else {
-      /// case 2 - data does not exist for render location
-      uiRowHeaderState = CellBlocState(
-        value: null,
-        visible: false,
-        changeType: rowChangeType,
-      );
-    }
-
-    /// render new rowheader state
-    _renderCell(uiRow.rowHeaderCell, uiRowHeaderState);
-  }
-
-  void _renderRow(
-    PremoTableRow<T>? newRenderRow,
-    PremoTableRow<T>? oldRenderRow,
-    PremoTableRow<T> uiRow,
-    ChangeTypes? rowChangeType,
-    bool informCellUpdates,
-  ) {
-    /// update cell renders
-    List<CellBloc> uiCells = uiRow.cells;
-    for (var col = 0; col < uiCells.length; col++) {
-      CellBloc uiCell = uiCells[col];
-      CellBlocState uiCellState;
-
-      if (newRenderRow != null) {
-        /// case 1 - data exists for render location
-        uiCellState = _getCellBlocState(newRenderRow, col, rowChangeType);
-      } else {
-        /// case 2 - data does not exist for render location
-        uiCellState = CellBlocState(
-          value: null,
-          visible: false,
-          changeType: rowChangeType,
-        );
-      }
-
-      if (informCellUpdates && newRenderRow != null && oldRenderRow != null) {
-        /// release updates on state
-        dynamic newValue = uiCellState.value;
-        dynamic oldValue = cellValueBuilder(oldRenderRow.model, col);
-        if (!(newValue == oldValue)) {
-          uiCellState.changeType = ChangeTypes.update;
-        }
-      }
-
-      /// render new cell state
-      _renderCell(uiCell, uiCellState);
-    }
-
-    /// render new row header states
-    _renderRowHeader(newRenderRow, uiRow, rowChangeType);
-
-    /// TODO - Is this required now?
-    // /// update state attached to render
-    // if (newRenderRow != null) {
-    //   uiRow.checked = newRenderRow.checked;
-    //   uiRow.hovered  = newRenderRow.hovered;
-    //   uiRow.cells = newRenderRow.cells;
-    //   uiRow.rowHeaderCell = newRenderRow.rowHeaderCell;
-    //   uiRow.selected  = newRenderRow.selected;
-    //   uiRow.visible  = newRenderRow.visible;
-    // } else {
-    //   uiRow.rowState = RowState(
-    //     rowModel: null,
-    //     cellStates: Map<int, CellState>(),
-    //   );
-    // }
-  }
-
-  void _renderRowChanges(
-    List<PremoTableRow<T>> ptRows,
-    int uiPos,
-    PremoTableRow<T>? newRowToRender,
-    PremoTableRow<T>? oldRowRendered,
-    ChangeTypes? rowChangeType,
-  ) {
-    PremoTableRow<T> ptRow;
-
-    /// get row to render
-    ptRow = ptRows[uiPos];
-
-    if (rowChangeType == ChangeTypes.update) {
-      /// case 1 - update to render
-      _renderRow(newRowToRender, oldRowRendered, ptRow, null, true);
-    } else if (rowChangeType == ChangeTypes.duplicate) {
-      /// case 2 - duplicate to render
-      _renderRow(newRowToRender, null, ptRow, rowChangeType, false);
-    } else if (rowChangeType == ChangeTypes.add) {
-      /// case 3 - add to render
-      _renderRow(newRowToRender, null, ptRow, rowChangeType, false);
-    } else if (rowChangeType == ChangeTypes.delete) {
-      /// case 4 - delete to render
-      _renderRow(null, null, ptRow, rowChangeType, false);
-    }
   }
 
   ///
@@ -734,9 +496,17 @@ class TableBloc<T extends IUniqueParentChildRow> {
     PremoTableRow<T>? newRowReference =
         newRow != null ? state.uiDataCache[newRow] : null;
 
+    if (newRow != oldRow || newColumn != oldColumn) {
+      /// case 1 - row or column changed
+      /// must be first to prevent child cell stream firing twice. i.e. once on
+      /// row or column selection state change, then once on the cell selection
+      /// state change
+      _informCellHoverState(oldRow, oldColumn, false);
+      _informCellHoverState(newRow, newColumn, true);
+    }
+
     if (newRow != oldRow) {
       /// case 1 - row changed
-      /// HOLD - row and cell hover state changes firing cell hover state?
       _informRowHoverState(oldRow, false);
       _informRowHoverState(newRow, true);
     }
@@ -745,12 +515,6 @@ class TableBloc<T extends IUniqueParentChildRow> {
       /// case 2 - column changed
       _informColumnHoverState(oldColumn, false);
       _informColumnHoverState(newColumn, true);
-    }
-
-    if (newRow != oldRow || newColumn != oldColumn) {
-      /// case 3 - row and column changed
-      _informCellHoverState(oldRow, oldColumn, false);
-      _informCellHoverState(newRow, newColumn, true);
     }
 
     /// update hovered status tracking
@@ -886,13 +650,32 @@ class TableBloc<T extends IUniqueParentChildRow> {
     _renderSortAndFilter();
   }
 
-  /// - inputs lists are sorted in the same order
+  /// Set difference algorithm can be visualised at as a Venn Diagram.
+  ///
+  /// Assumptions are:
+  /// - inputs lists are sorted alphanumerically by get.Id()
   /// - no duplicates in either list
+  ///
+  /// Sorted Complexity is:
+  /// O(n log n) * 2 + 2 * O(n)
+  /// Unsorted complexity would be O(n^2)
+  ///
+  /// Logic is:
+  /// Sort list A and B in same order (alpha numeric)
+  /// Conduct comparison
+  /// case 1 - in both
+  /// increment a and b position
+  /// case 2 - in a and not b
+  /// increment a position
+  /// case 3 - in b and not in a
+  /// increment b position
+  /// case 4 - remaining items in a
+  /// case 5 - remaining items in b
   void setDifference({
-    required List<PremoTableRow<T>> listA,
+    required List<T> listA,
     required List<PremoTableRow<T>> listB,
-    void Function(PremoTableRow<T> a, PremoTableRow<T> b)? onIntersection,
-    void Function(PremoTableRow<T> a)? onSetDifferenceAB,
+    void Function(T a, PremoTableRow<T> b)? onIntersection,
+    void Function(T a)? onSetDifferenceAB,
     void Function(PremoTableRow<T> b)? onSetDifferenceBA,
   }) {
     int a = 0, b = 0;
@@ -901,48 +684,47 @@ class TableBloc<T extends IUniqueParentChildRow> {
     // List<PremoTableRow<T>> setDifferenceBA = [];
     // print('listA.length: ${listA.length}, listB.length: ${listB.length}');
     while (a < listA.length && b < listB.length) {
-      PremoTableRow<T> aModel = listA[a];
-      PremoTableRow<T> bModel = listB[b];
-      String aId = aModel.getId();
-      String bId = bModel.getId();
+      T aRow = listA[a];
+      PremoTableRow<T> bRow = listB[b];
+      String aId = aRow.getId();
+      String bId = bRow.model.getId();
       // compare strings by their alphabetical order
       int compare = aId.compareTo(bId);
       // print('aId: $aId, bId: $bId, compare: $compare');
       if (compare == 0) {
         /// case 1 - value in both lists
         // intersection.add(aModel);
-        onIntersection?.call(aModel, bModel);
+        onIntersection?.call(aRow, bRow);
         a++;
         b++;
       } else if (compare < 0) {
         /// case 2 - Set difference A|B - in A and not in B
         // setDifferenceAB.add(aModel);
-        onSetDifferenceAB?.call(aModel);
+        onSetDifferenceAB?.call(aRow);
         a++;
         // b = b;
-
       } else if (compare > 0) {
         /// case 3 - Set difference B|A - in B and not in A
         // setDifferenceBA.add(bModel);
-        onSetDifferenceBA?.call(bModel);
+        onSetDifferenceBA?.call(bRow);
         // a = a;
         b++;
       }
     }
 
     if (a < listA.length) {
-      /// case 1 - remaining elements in list A
+      /// case 4 - remaining elements in list A
       for (var i = a; i < listA.length; i++) {
-        PremoTableRow<T> aModel = listA[a];
+        T aRow = listA[a];
         // setDifferenceAB.add(aModel);
-        onSetDifferenceAB?.call(aModel);
+        onSetDifferenceAB?.call(aRow);
       }
     } else if (b < listB.length) {
-      /// case 2 - remaining elements in list B
+      /// case 5 - remaining elements in list B
       for (var i = b; i < listB.length; i++) {
-        PremoTableRow<T> bModel = listB[b];
+        PremoTableRow<T> bRow = listB[b];
         // setDifferenceBA.add(bModel);
-        onSetDifferenceBA?.call(bModel);
+        onSetDifferenceBA?.call(bRow);
       }
     }
 
@@ -952,241 +734,146 @@ class TableBloc<T extends IUniqueParentChildRow> {
     // return intersection;
   }
 
+  void _updateCellValues(T eventRow, PremoTableRow<T> oldRow) {
+    List<CellBloc> cells = oldRow.cells;
+    for (var col = 0; col < cells.length; col++) {
+      CellBloc cell = cells[col];
+      CellBlocState cellState = cell.state;
+      // compare values
+      dynamic newValue = cellValueBuilder(eventRow, col);
+      dynamic oldValue = cell.state.value;
+      if (newValue == oldValue) {
+        cell.setChangeType(null);
+      } else {
+        CellBlocState newState = CellBlocState.clone(cellState);
+        newState.value = newValue;
+        newState.changeType = ChangeTypes.update;
+        cell.setState(newState);
+      }
+    }
+  }
 
-
-  /// TODO - Requires thorough test
-  /// aligns the newly recieved [eventData] with the current user interface
-  ///
-  /// outputs events for updated, added, delete data and persists any user state
-  void refresh(List<T> newEventData) {
-    /// TODO - look at refactor of how premoTable Rows are generated?
-    List<PremoTableRow<T>> newData = _getPremoTableRows(newEventData);
-
-    /// ensure new and old data sets are in the same order
-    defaultSort?.call(newData);
-
-    /// copy of newData required so existing ui sorts can be applied without
-    /// effecting the original sort order
-    /// sync ui data arrangement with newData (apply filters and sort)
-    List<PremoTableRow<T>> newDataSorted = _sort(newData);
-    // filter will return a new list if a filter is applied and a list reference
-    // if no filter is applied
-    List<PremoTableRow<T>> newUiData = _filter(newDataSorted);
-
-    /// data references used in comparison
-    // List<RowState<T>> oldData = tableState!.dataCache;
-    List<PremoTableRow<T>> oldDataSorted = tableState!.sortedDataCache;
-    List<PremoTableRow<T>> oldUiData = tableState!.uiDataCache;
-
-    /// compare statistics
-    // rows added in newData
-    int added = 0;
-    // rows removed in newData
-    int deleted = 0;
-    // duplicate rows in newData
-    int duplicates = 0;
-
-    /// required for detecting when the legend should be rendered
+  /// compares the newly recieved stream [event] with the current data in the
+  /// table and renders any changes.
+  void refresh(List<T> event) {
+    List<PremoTableRow<T>> dataToRender = [];
+    List<PremoTableRow<T>> deletes = [];
     int oldCheckedRowCount = tableState!.checkedRowCount;
+    int added = 0;
 
-    /// *********************** commence data comparison ***********************
-    /// compare all underlying data so all state is rolled over and new
-    /// information is rendered in the view
-    /// Note*** This algorithm assumes that the newData, OldData and Ui data are
-    /// all in the same order to work correctly
+    tableState!.eventCache = event;
 
-    /// location of the newData in the filtered data array
-    int newUiPos = 0;
-    // location of the old data in the filtered data array.
-    int oldUiPos = 0;
-    // location in ui to be rendered
-    // if a row has been deleted. That row must remain in the ui.
-    // if a row has been added. That is accounted for in the newUiPos prop.
-    int uiPos = 0;
-    // count of rows deleted from the ui
-    int uiDeleted = 0;
-    // count of rows in old data that exceed the newData length
-    int excessOldData = 0;
-
-    for (var newDataPos = 0;
-        newDataPos < newDataSorted.length + excessOldData;
-        newDataPos++) {
-      // old data row to compare with newData row
-      // if a row has been deleted compare against the next item
-      // if a row has been added  then compare against the previous item
-      int oldDataPos = newDataPos + deleted - added - duplicates;
-
-      // update ui position
-      // duplicates and adds are rendered in the newUiPos parameter
-      uiPos = newUiPos + uiDeleted;
-
-      /// get rows to compare
-      PremoTableRow<T>? newDataRow =
-          newDataPos < newDataSorted.length ? newDataSorted[newDataPos] : null;
-      PremoTableRow<T>? oldDataRow =
-          oldDataPos < oldDataSorted.length ? oldDataSorted[oldDataPos] : null;
-
-      /// Rows for duplicate checks
-      PremoTableRow<T>? previousNewDataRow =
-          newDataPos != 0 && newDataPos - 1 < newDataSorted.length
-              ? newDataSorted[newDataPos - 1]
-              : null;
-
-      /// get rows to be rendered
-      PremoTableRow<T>? newUiRow =
-          newUiPos < newUiData.length ? newUiData[newUiPos] : null;
-      PremoTableRow<T>? oldUiRow =
-          oldUiPos < oldUiData.length ? oldUiData[oldUiPos] : null;
-
-      /// compare rows and determine change case
-      ChangeTypes? changeType;
-      if (newDataRow != null &&
-          newDataRow.model.getId() == oldDataRow?.model.getId()) {
+    setDifference(
+      listA: event,
+      listB: tableState!.dataCache,
+      onIntersection: (T eventRow, PremoTableRow<T> oldRow) {
         /// case 1 - UPDATE
-        changeType = ChangeTypes.update;
-      } else if (newDataRow != null &&
-          (newDataRow.model.getId() == previousNewDataRow?.model.getId())) {
-        /// case 2 - DUPLICATE
-        changeType = ChangeTypes.duplicate;
-      } else if (newDataRow != null &&
-          !_rowExistsInArray(newDataRow.model, oldDataSorted)) {
-        /// case 2 - ADD
-        changeType = ChangeTypes.add;
-      } else if (oldDataRow != null &&
-          !_rowExistsInArray(oldDataRow.model, newDataSorted)) {
-        /// case 3 - DELETE
-        changeType = ChangeTypes.delete;
-      }
+        /// update row model
+        oldRow.model = eventRow;
 
-      /// roll over rowState
-      /// only time there is existing state is if an old row exists
-      if (oldDataRow != null &&
-          changeType == ChangeTypes.delete &&
-          oldDataRow.checked == true) {
-        tableState!.checkedRowCount--;
-      }
-      if (oldDataRow != null && newDataRow != null) {
-        if (changeType == ChangeTypes.update) {
-          newDataRow.checked = oldDataRow.checked;
-          newDataRow.hovered = oldDataRow.hovered;
-          newDataRow.selected = oldDataRow.selected;
-          newDataRow.visible = oldDataRow.visible;
-          newDataRow.cells = oldDataRow.cells;
+        /// update state
+        /// N/A - persisted in existing [oldRow]
 
-          if (newDataRow.selected == true) {
-            /// update selected row references
-            tableState!.uiSelectedRow = uiPos;
-            tableState!.selectedRowReference = newDataRow;
-          }
+        /// update row cells
+        /// mark change type
+        _updateCellValues(eventRow, oldRow);
 
-          if (newDataRow.hovered == true) {
-            /// update hovered row references
-            tableState!.uiHoveredRow = uiPos;
-            tableState!.hoveredRowReference = newDataRow;
-          }
-        }
-      }
+        /// update row headers
+        /// clear old header cell change types (add or delete)
+        oldRow.rowHeaderCell.setChangeType(null);
 
-      /// *********************** commence rendering data **********************
-      // old or new data must exist for it to be possible to render a row
+        /// add array for rendering
+        dataToRender.add(oldRow);
+      },
+      onSetDifferenceAB: (T eventRow) {
+        /// case 2 - ADD (in a and not in b)
 
-      // current old data row was rendered in the ui
-      if (oldDataRow != null &&
-          oldDataRow == oldUiRow &&
-          changeType != ChangeTypes.duplicate &&
-          changeType != ChangeTypes.add) {
-        /// update old ui position to check in next loop
-        oldUiPos++;
-      }
+        /// create new row
+        /// update row model
+        /// update state
+        /// update row cells
+        /// mark change type
+        /// update row headers
+        PremoTableRow<T> newRow = _createUiRow(eventRow, ChangeTypes.add);
 
-      /// handle all render cases
-      if (changeType == ChangeTypes.delete) {
-        if (oldDataRow == oldUiRow) {
-          /// case 1 - rendering a deleted row
-          _renderRowChanges(
-              newUiData, uiPos, newDataRow, oldDataRow, changeType);
+        /// add row to array for rendering
+        dataToRender.add(newRow);
 
-          /// track that a deleted row has been rendered
-          uiDeleted++;
-        }
-      } else if (newDataRow != null && newDataRow == newUiRow) {
-        /// case 3 - rendering a added or updated row
-        /// data within render criteria
-
-        _renderRowChanges(newUiData, uiPos, newDataRow, oldDataRow, changeType);
-
-        /// update new ui position
-        newUiPos++;
-      }
-
-      /// *********************** end rendering data **********************
-
-      /// update position details
-      if (changeType == ChangeTypes.add) {
+        /// count rows added
         added++;
-      } else if (changeType == ChangeTypes.delete) {
-        deleted++;
-        // repeat comparison for current row
-        newDataPos--;
-      } else if (changeType == ChangeTypes.duplicate) {
-        duplicates++;
-      }
+      },
+      onSetDifferenceBA: (PremoTableRow<T> oldRow) {
+        /// case 3 - DELETE (in b and not in a)
 
-      /// Check for loop end conditions
-      /// must look at every row in the new and old data set to determine what
-      /// render case should be applied for each item.
-      /// note: >= used to prevent infinite loops when lists are of different
-      /// lengths
-      // case 1 - all newData has been assessed
-      bool allNewDataCompared = newDataPos >= newDataSorted.length - 1;
-      // case 2 - all oldData has been assessed
-      bool allOldDataCompared = oldDataPos >= oldDataSorted.length - 1;
+        /// get old row
 
-      if (allNewDataCompared && !allOldDataCompared) {
-        /// repeat until all old data has been assessed
-        excessOldData++;
-      }
+        /// update row model - N/A
+
+        /// update state
+        if (oldRow.checked == true) {
+          // increment checked status if deleted
+          tableState!.checkedRowCount--;
+        }
+
+        /// update row cells
+        /// mark change type
+        List<CellBloc> cells = oldRow.cells;
+        for (var col = 0; col < cells.length; col++) {
+          CellBloc cell = cells[col];
+          cell.setChangeType(ChangeTypes.delete);
+        }
+
+        /// update row headers
+        oldRow.rowHeaderCell.setChangeType(ChangeTypes.delete);
+
+        /// add row to array for rendering
+        dataToRender.add(oldRow);
+
+        /// store deletes
+        deletes.add(oldRow);
+      },
+    );
+
+    /// new list required so sorts can be applied without effecting the original
+    /// sort order
+    List<PremoTableRow<T>> clone = List.from(dataToRender);
+
+    /// apply filter and sort state from ui
+    List<PremoTableRow<T>> sortedData = _sort(clone);
+    List<PremoTableRow<T>> uiData = _filter(sortedData);
+
+    /// remove deleted rows so that they are not considered in any future
+    /// refresh events
+    for (var d = 0; d < deletes.length; d++) {
+      PremoTableRow<T> delete = deletes[d];
+      dataToRender.remove(delete);
+      sortedData.remove(delete);
     }
 
-    /// render remaining rows not included in above render e.g. filtered out data
-    /// ensures for case where data has been deleted and rendered. Then refreshed
-    /// that the old row positions including the delete count are cleaned up.
-    for (var i = newUiPos + uiDeleted; i < newUiData.length; i++) {
-      _renderRow(null, null, newUiData[i], null, false);
-    }
-
-    /// update viewed data cache
-    tableState!.dataCache = newData;
-    tableState!.sortedDataCache = newDataSorted;
-    tableState!.uiDataCache = newUiData;
-
-    /// add or remove rows from the render
-    int rowsRequiredForRender = newUiData.length + deleted;
-    int rowChange = (rowsRequiredForRender - oldUiData.length);
-
-    if (rowChange > 0) {
-      /// case 1 - rows added to render
-      _controller.sink.add(tableState!);
-    } else if (rowChange < 0) {
-      /// case 2 - rows removed from render
-      List<PremoTableRow<T>> removedUIRows = [];
-      for (var i = 0; i < rowChange.abs(); i++) {
-        removedUIRows.add(newUiData.removeLast());
-      }
-
-      /// Testing confims that releasing the entire table state does not cause
-      /// the streams of individual cells to fire again
-      _controller.sink.add(tableState!);
-
-      /// clean up any excess rows in the render to prevent memory leaks from
-      /// constant row deletion (deleted rows always add to the render)
-      tableState!.disposeRows(removedUIRows);
-    }
+    /// update state with new data caches
+    tableState!.dataCache = dataToRender;
+    tableState!.sortedDataCache = sortedData;
+    tableState!.uiDataCache = uiData;
 
     if (oldCheckedRowCount != tableState!.checkedRowCount) {
       // Re-render legend cell
       _informLegendCheckedStatus();
     }
+
+    if (added > 0 || tableState!.markedForDisposal.length > 0) {
+      /// Full table render required.
+      /// case 1 - new elements added. Therefore new cell streams.
+      /// case 2 - ui elements marked for removal (deleted).
+      /// Note: Testing confims that releasing the entire table state does not
+      /// cause the streams of individual cells to fire again
+      _controller.sink.add(tableState!);
+    }
+
+    /// clean up deleted blocs to prevent memory leaks
+    tableState!.disposeRows(tableState!.markedForDisposal);
+
+    /// store new deletes for clean up in future refreshes
+    tableState!.markedForDisposal = deletes;
   }
 
   /// clean up variables to prevent memory leaks
