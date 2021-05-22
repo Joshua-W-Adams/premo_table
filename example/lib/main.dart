@@ -49,117 +49,12 @@ class _HomePageState extends State<HomePage> {
     /// create BLoCs
     _tableBloc = TableBloc(
       inputStream: mockDataService.stream,
-      columnNames: [
-        'Id',
-        'Parent Id',
-        'Name',
-        'Age',
-        'Enabled',
-        'DOB',
-        'City',
-        'Salary'
-      ],
-      cellValueBuilder: (rowModel, columnIndex) {
-        /// rowModels can be null if the location being generated in the user
-        /// interface is a deleted row.
-        if (columnIndex == 0) {
-          return rowModel?.id;
-        } else if (columnIndex == 1) {
-          return rowModel?.parentId;
-        } else if (columnIndex == 2) {
-          return rowModel?.name;
-        } else if (columnIndex == 3) {
-          return rowModel?.age?.toString();
-        } else if (columnIndex == 4) {
-          return rowModel?.enabled.toString();
-        } else if (columnIndex == 5) {
-          return rowModel?.dateOfBirth.toString();
-        } else if (columnIndex == 6) {
-          return rowModel?.city;
-        } else if (columnIndex == 7) {
-          return rowModel?.salary.toString();
-        }
-      },
-
-      /// sort function to run on each column
-      sortCompare: (col, asc, a, b) {
-        /// invert objects for asc and desc as applicable
-        if (asc != true) {
-          final SampleDataModel c = a;
-          a = b;
-          b = c;
-        }
-
-        /// convert objects to Maps. Enabling referencing of map positions.
-        List aList = a.toMap().values.toList();
-        List bList = b.toMap().values.toList();
-
-        dynamic aValue;
-        dynamic bValue;
-
-        if ([0, 1, 2, 5, 6].contains(col)) {
-          aValue = aList[col] ?? '';
-          bValue = bList[col] ?? '';
-        } else if ([3, 7].contains(col)) {
-          aValue = aList[col] ?? 0;
-          bValue = bList[col] ?? 0;
-        } else if (col == 4) {
-          aValue = aList[col] == true ? 1 : 0;
-          bValue = bList[col] == true ? 1 : 0;
-        }
-
-        /// comparator functon returns -1 = less, 0 = equal, 1 = greater than
-        return aValue.compareTo(bValue);
-      },
-
-      /// filter function to run on each column
-      onFilter: (rowModel, col, value) {
-        if (value != '') {
-          /// test less than filter
-          // if (col == 0) {
-          //   int id = int.parse(rowModel.id);
-          //   int filterValue = int.parse(value);
-          //   return id < filterValue;
-          // }
-
-          /// convert objects to Maps. Enabling referencing of map positions.
-          List itemList = rowModel.toMap().values.toList();
-
-          dynamic cellValue;
-          if ([0, 1, 2, 5, 6].contains(col)) {
-            cellValue = itemList[col] ?? '';
-          } else if ([3, 7].contains(col)) {
-            cellValue = itemList[col] ?? 0;
-          } else if (col == 4) {
-            cellValue = itemList[col] == true ? 1 : 0;
-          }
-          return cellValue.toString().contains(value);
-        }
-
-        return true;
-      },
-      onUpdate: (item, col, value) async {
-        /// store item details in model instance
-        if (col == 0) {
-          /// N/A - non editable column
-        } else if (col == 1) {
-          /// N/A - non editable column
-        } else if (col == 2) {
-          item.name = value;
-        } else if (col == 3) {
-          item.age = num.tryParse(value);
-        } else if (col == 4) {
-          item.enabled = (value.toLowerCase() == 'true');
-        } else if (col == 5) {
-          item.dateOfBirth = DateTime.tryParse(value);
-        } else if (col == 6) {
-          item.city = value;
-        } else if (col == 7) {
-          item.salary = num.tryParse(value);
-        }
-        return mockDataService.update(
-          _tableBloc!.tableState!.eventCache,
-        );
+      columnNames: columnNames,
+      cellValueBuilder: cellValueBuilder,
+      sortCompare: sortCompare,
+      onFilter: onFilter,
+      onUpdate: (item, col, value) {
+        return onUpdate(item, col, value, _tableBloc!.tableState!.eventCache);
       },
       onAdd: () {
         return mockDataService.add();
@@ -174,102 +69,13 @@ class _HomePageState extends State<HomePage> {
 
     _treeTableBloc = TableBloc(
       inputStream: mockDataService.stream,
-      columnNames: [
-        'Id',
-        'Parent Id',
-        'Name',
-        'Age',
-        'Enabled',
-        'DOB',
-        'City',
-        'Salary'
-      ],
-      cellValueBuilder: (rowModel, columnIndex) {
-        /// rowModels can be null if the location being generated in the user
-        /// interface is a deleted row.
-        if (columnIndex == 0) {
-          return rowModel?.id;
-        } else if (columnIndex == 1) {
-          return rowModel?.parentId;
-        } else if (columnIndex == 2) {
-          return rowModel?.name;
-        } else if (columnIndex == 3) {
-          return rowModel?.age?.toString();
-        } else if (columnIndex == 4) {
-          return rowModel?.enabled.toString();
-        } else if (columnIndex == 5) {
-          return rowModel?.dateOfBirth.toString();
-        } else if (columnIndex == 6) {
-          return rowModel?.city;
-        } else if (columnIndex == 7) {
-          return rowModel?.salary.toString();
-        }
-      },
-
-      /// sort function to run on each column
-      sortCompare: (col, asc, a, b) {
-        /// invert objects for asc and desc as applicable
-        if (asc != true) {
-          final SampleDataModel c = a;
-          a = b;
-          b = c;
-        }
-
-        /// convert objects to Maps. Enabling referencing of map positions.
-        List aList = a.toMap().values.toList();
-        List bList = b.toMap().values.toList();
-
-        if (col == 4) {
-          int valA = aList[col] == true ? 1 : 0;
-          int valB = bList[col] == true ? 1 : 0;
-          return valA.compareTo(valB);
-        } else {
-          /// comparator functon returns -1 = less, 0 = equal, 1 = greater than
-          return aList[col].compareTo(bList[col]);
-        }
-      },
-
-      /// filter function to run on each column
-      onFilter: (rowModel, col, value) {
-        if (value != '') {
-          /// convert objects to Maps. Enabling referencing of map positions.
-          List itemList = rowModel.toMap().values.toList();
-
-          dynamic cellValue;
-          if ([0, 1, 2, 5, 6].contains(col)) {
-            cellValue = itemList[col] ?? '';
-          } else if ([3, 7].contains(col)) {
-            cellValue = itemList[col] ?? 0;
-          } else if (col == 4) {
-            cellValue = itemList[col] == true ? 1 : 0;
-          }
-          return cellValue.toString().contains(value);
-        }
-
-        return true;
-      },
-      onUpdate: (item, col, value) async {
-        /// store item details in model instance
-        if (col == 0) {
-          /// N/A - non editable column
-        } else if (col == 1) {
-          /// N/A - non editable column
-        } else if (col == 2) {
-          item.name = value;
-        } else if (col == 3) {
-          item.age = num.tryParse(value);
-        } else if (col == 4) {
-          item.enabled = (value.toLowerCase() == 'true');
-        } else if (col == 5) {
-          item.dateOfBirth = DateTime.tryParse(value);
-        } else if (col == 6) {
-          item.city = value;
-        } else if (col == 7) {
-          item.salary = num.tryParse(value);
-        }
-        return mockDataService.update(
-          _tableBloc!.tableState!.dataCache.map((e) => e.model).toList(),
-        );
+      columnNames: columnNames,
+      cellValueBuilder: cellValueBuilder,
+      sortCompare: sortCompare,
+      onFilter: onFilter,
+      onUpdate: (item, col, value) {
+        return onUpdate(
+            item, col, value, _treeTableBloc!.tableState!.eventCache);
       },
       onAdd: () {
         return mockDataService.add();
@@ -281,6 +87,117 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  List<String> columnNames = [
+    'Id',
+    'Parent Id',
+    'Name',
+    'Age',
+    'Enabled',
+    'DOB',
+    'City',
+    'Salary'
+  ];
+
+  Future<void> onUpdate(
+    SampleDataModel item,
+    int col,
+    String value,
+    List<SampleDataModel> data,
+  ) {
+    /// store item details in model instance
+    if (col == 0) {
+      /// N/A - non editable column
+    } else if (col == 1) {
+      /// N/A - non editable column
+    } else if (col == 2) {
+      item.name = value;
+    } else if (col == 3) {
+      item.age = num.tryParse(value);
+    } else if (col == 4) {
+      item.enabled = (value.toLowerCase() == 'true');
+    } else if (col == 5) {
+      item.dateOfBirth = DateTime.tryParse(value);
+    } else if (col == 6) {
+      item.city = value;
+    } else if (col == 7) {
+      item.salary = num.tryParse(value);
+    }
+    return mockDataService.update(data);
+  }
+
+  dynamic cellValueBuilder(SampleDataModel? rowModel, int columnIndex) {
+    /// rowModels can be null if the location being generated in the user
+    /// interface is a deleted row.
+    if (columnIndex == 0) {
+      return rowModel?.id;
+    } else if (columnIndex == 1) {
+      return rowModel?.parentId;
+    } else if (columnIndex == 2) {
+      return rowModel?.name;
+    } else if (columnIndex == 3) {
+      return rowModel?.age?.toString();
+    } else if (columnIndex == 4) {
+      return rowModel?.enabled.toString();
+    } else if (columnIndex == 5) {
+      return rowModel?.dateOfBirth.toString();
+    } else if (columnIndex == 6) {
+      return rowModel?.city;
+    } else if (columnIndex == 7) {
+      return rowModel?.salary.toString();
+    }
+  }
+
+  /// sort function to run on each column
+  int sortCompare(int col, bool asc, SampleDataModel a, SampleDataModel b) {
+    /// invert objects for asc and desc as applicable
+    if (asc != true) {
+      final SampleDataModel c = a;
+      a = b;
+      b = c;
+    }
+
+    /// convert objects to Maps. Enabling referencing of map positions.
+    List aList = a.toMap().values.toList();
+    List bList = b.toMap().values.toList();
+
+    dynamic aValue;
+    dynamic bValue;
+
+    if ([0, 1, 2, 5, 6].contains(col)) {
+      aValue = aList[col] ?? '';
+      bValue = bList[col] ?? '';
+    } else if ([3, 7].contains(col)) {
+      aValue = aList[col] ?? 0;
+      bValue = bList[col] ?? 0;
+    } else if (col == 4) {
+      aValue = aList[col] == true ? 1 : 0;
+      bValue = bList[col] == true ? 1 : 0;
+    }
+
+    /// comparator functon returns -1 = less, 0 = equal, 1 = greater than
+    return aValue.compareTo(bValue);
+  }
+
+  /// filter function to run on each column
+  bool onFilter(SampleDataModel rowModel, int col, String value) {
+    if (value != '') {
+      /// convert objects to Maps. Enabling referencing of map positions.
+      List itemList = rowModel.toMap().values.toList();
+
+      dynamic cellValue;
+      if ([0, 1, 2, 5, 6].contains(col)) {
+        cellValue = itemList[col] ?? '';
+      } else if ([3, 7].contains(col)) {
+        cellValue = itemList[col] ?? 0;
+      } else if (col == 4) {
+        cellValue = itemList[col] == true ? 1 : 0;
+      }
+      return cellValue.toString().contains(value);
+    }
+
+    return true;
   }
 
   @override
