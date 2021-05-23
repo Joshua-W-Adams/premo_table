@@ -7,7 +7,7 @@ packages:
       name: async
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.5.0"
+    version: "2.6.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -134,13 +134,13 @@ packages:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.19"
+    version: "0.3.0"
   treebuilder:
     dependency: "direct main"
     description:
       path: "packages/treebuilder"
       ref: HEAD
-      resolved-ref: "4641f5e815a5f1cadff6e69194a1a4a3fca07e96"
+      resolved-ref: "471b8a80a4c59963db4dc9ceab2b804cb8a0a0ed"
       url: "https://github.com/Joshua-W-Adams/public_flutter_packages.git"
     source: git
     version: "0.0.1"

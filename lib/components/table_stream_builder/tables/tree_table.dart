@@ -118,7 +118,7 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
     if (parentBloc != null) {
       parentBloc.dispose();
     }
-    parentBloc = ParentBloc(expanded: false);
+    parentBloc = ParentBloc(expanded: true);
     blocMap[parent] = parentBloc;
     return parentBloc;
   }
@@ -132,11 +132,11 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
     final Color cellBottomBorderColor = theme.canvasColor;
     final TextStyle? defaultCellTextStyle = theme.textTheme.bodyText1;
     final double iconWidth = 40.0;
-    List<Color> rowColors = [
-      Theme.of(context).accentColor.withOpacity(0.15),
-      Theme.of(context).accentColor.withOpacity(0.05),
-    ];
     Map<PremoTableRow<T>, ParentBloc> syncedParentBlocs = Map();
+    List<Icon?> icons = [
+      Icon(Icons.keyboard_arrow_down, size: 24),
+      Icon(Icons.keyboard_arrow_down, size: 16),
+    ];
     return TableStreamBuilder<T>(
       stream: tableBloc.stream,
       builder: (tableState) {
@@ -234,7 +234,7 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
             },
 
             /// *********** ROW HEADERS ***********
-            rowHeadersBuilder: (uiRow) {
+            rowHeadersBuilder: (uiRow, _) {
               return CellStreamBuilder(
                 cellBloc: uiRow.rowHeaderCell,
                 builder: (cellBlocState) {
@@ -272,7 +272,7 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
             },
 
             /// *********** CONTENT ***********
-            contentCellBuilder: (uiColumnIndex, uiRow) {
+            contentCellBuilder: (uiColumnIndex, uiRow, _) {
               bool readOnly = columnReadOnlyBuilder(uiColumnIndex);
               return CellStreamBuilder(
                 cellBloc: uiRow.cells[uiColumnIndex],
@@ -378,7 +378,8 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                 builder: (expanded) {
                   return ParentWidget(
                     parent: Row(children: cells),
-                    parentRowColor: depth <= 1 ? rowColors[depth] : null,
+                    // parentRowColor: depth <= 1 ? rowColors[depth] : null,
+                    icon: depth <= 1 ? icons[depth] : null,
                     children: childrenWidgets,
                     expanded: expanded,
                     onPressed: () {
@@ -397,7 +398,7 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                 builder: (expanded) {
                   return ParentWidget(
                     parent: Row(children: cells),
-                    parentRowColor: depth <= 1 ? rowColors[depth] : null,
+                    // parentRowColor: depth <= 1 ? rowColors[depth] : null,
                     icon: null,
                     children: childrenWidgets,
                     expanded: expanded,

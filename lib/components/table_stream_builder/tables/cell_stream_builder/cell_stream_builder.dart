@@ -22,7 +22,7 @@ class CellStreamBuilder extends StatelessWidget {
       builder: (_context, _snapshot) {
         if (_snapshot.connectionState == ConnectionState.waiting) {
           /// case 1 - awaiting connection
-          return Center(child: CircularProgressIndicator());
+          return Center(child: Container());
         } else if (_snapshot.hasError) {
           /// case 2 - error in snapshot
           return ErrorMessage(error: '${_snapshot.error.toString()}');

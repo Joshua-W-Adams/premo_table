@@ -26,8 +26,9 @@ class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
   final bool enableColHeaders;
   final Widget legendCell;
   final Widget Function(int columnIndex) columnHeadersBuilder;
-  final Widget Function(T rowModel) rowHeadersBuilder;
-  final Widget Function(int columnIndex, T rowModel) contentCellBuilder;
+  final Widget Function(T rowModel, int depth) rowHeadersBuilder;
+  final Widget Function(int columnIndex, T rowModel, int depth)
+      contentCellBuilder;
   final List<T> data;
   final String? buildFromId;
   final Widget Function(
@@ -109,7 +110,7 @@ class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
     required this.onEndOfDepthS2,
   }) : super(key: key);
 
-  Map<int, List<Widget>> _getCells(T rowModel) {
+  Map<int, List<Widget>> _getCells(T rowModel, int depth) {
     List<Widget> q3Cells = [];
     List<Widget> q4Cells = [];
     // case 1 - row and column headers enabled
@@ -124,14 +125,14 @@ class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
       // build BOTTOM HALF - table content
       // handle enabled row headers
       if (col == 0 && enableRowHeaders == true) {
-        q3Cells.add(rowHeadersBuilder(rowModel));
+        q3Cells.add(rowHeadersBuilder(rowModel, depth));
       }
       if (stickToColumn != null && col <= stickToColumn!) {
         // build q3 - sticky row headers
-        q3Cells.add(contentCellBuilder(col, rowModel));
+        q3Cells.add(contentCellBuilder(col, rowModel, depth));
       } else {
         // build q4 - scrollable cell content
-        q4Cells.add(contentCellBuilder(col, rowModel));
+        q4Cells.add(contentCellBuilder(col, rowModel, depth));
       }
     }
     return {
@@ -166,7 +167,7 @@ class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
       // depth = 0
       onChild: (T child, T? parent, int depth) {
         /// generate cell sections (rowheaders, frozen cells and cells) for row
-        Map<int, List<Widget>> cells = _getCells(child);
+        Map<int, List<Widget>> cells = _getCells(child, depth);
 
         /// generate row sections
         Widget cWidgetS1 = onChildS1(child, parent, depth, cells[1]!);
@@ -182,7 +183,7 @@ class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
       onParentDown: (_, __, ___, ____) {},
       onParentUp: (T parent, T? parentParent, List<T> children, int depth) {
         /// generate cell sections (rowheaders, frozen cells and cells) for row
-        Map<int, List<Widget>> cells = _getCells(parent);
+        Map<int, List<Widget>> cells = _getCells(parent, depth);
 
         /// get children
         List<Widget> cWidgetsS1 = treeS1[parent]!;
