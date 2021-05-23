@@ -971,6 +971,89 @@ class TableBloc<T extends IUniqueParentChildRow> {
     }
   }
 
+  /// TODO - Event Manager to be created to
   void undo() {}
   void redo() {}
 }
+
+// part 'table_bloc_event_manager.dart';
+
+// part of premo_table;
+
+// ///
+// /// ***************************** Server Events ********************************
+// ///
+
+// class ServerEvent<T extends IUniqueIdentifier> {
+//   final String type;
+//   final T row;
+
+//   ServerEvent({
+//     required this.type,
+//     required this.row,
+//   }) : assert(['add', 'delete', 'update'].contains(type),
+//             'change type must be add, delete or update');
+// }
+
+// /// represents a stream event fed to the premotable. Allows specification of
+// /// data event changes in the form of 'add', 'delete' and 'update'.
+// class PremoTableSnapshot<T extends IUniqueIdentifier> {
+//   final List<T> data;
+//   final List<ServerEvent<T>> changes;
+
+//   PremoTableSnapshot({
+//     required this.data,
+//     required this.changes,
+//   });
+// }
+
+// ///
+// /// ***************************** User Events ********************************
+// ///
+
+// // class ITableEvent<T extends IUniqueIdentifier> {}
+
+// class UpdateEvent<T extends IUniqueIdentifier> {
+//   final T row;
+//   final int colIndex;
+//   final dynamic oldValue;
+//   final dynamic newValue;
+//   bool requestInProgress;
+//   bool? requestSucceeded;
+
+//   UpdateEvent({
+//     required this.row,
+//     required this.colIndex,
+//     required this.oldValue,
+//     required this.newValue,
+//     required this.requestInProgress,
+//     required this.requestSucceeded,
+//   });
+// }
+
+// class EventManager<T extends IUniqueIdentifier> {
+//   /// local store of all events occuring on table
+//   List<UpdateEvent<T>> eventCache = [];
+
+//   EventManager();
+
+//   UpdateEvent<T>? getPendingUpdateEvent(T row, int colIndex) {
+//     for (var e = 0; e < eventCache.length; e++) {
+//       UpdateEvent<T> event = eventCache[e];
+
+//       if (event.colIndex == colIndex &&
+//           event.row.id == row.id &&
+//           event.requestInProgress == true) {
+//         /// case 1 - update found
+//         return event;
+//       }
+//     }
+
+//     /// case 2 - no updates
+//     return null;
+//   }
+
+//   void addUpdateEvent(UpdateEvent<T> update) {
+//     eventCache.add(update);
+//   }
+// }

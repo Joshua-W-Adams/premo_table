@@ -229,33 +229,55 @@ class _HomePageState extends State<HomePage> {
         Expanded(
           child: Column(
             children: [
-              /// Table header
-              TableActions(
-                onUndo: () {
-                  return Future.delayed(Duration(milliseconds: 2000));
-                },
-                onRedo: () {
-                  return Future.delayed(Duration(milliseconds: 2000));
-                },
-                onAdd: () {
-                  return _tableBloc!.add();
-                },
-                onDelete: () {
-                  List<PremoTableRow<SampleDataModel>> checkedRows =
-                      _tableBloc!.getChecked();
-                  return _tableBloc!.delete(checkedRows);
-                },
-                onDeselect: () {
-                  _tableBloc!.deselect();
-                },
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TableActions(
+                  onUndo: () {
+                    return Future.delayed(Duration(milliseconds: 2000));
+                  },
+                  onRedo: () {
+                    return Future.delayed(Duration(milliseconds: 2000));
+                  },
+                  onAdd: () {
+                    return _tableBloc!.add();
+                  },
+                  onDelete: () {
+                    List<PremoTableRow<SampleDataModel>> checkedRows =
+                        _tableBloc!.getChecked();
+                    return _tableBloc!.delete(checkedRows);
+                  },
+                  onDeselect: () {
+                    _tableBloc!.deselect();
+                  },
+                ),
               ),
-              SizedBox(height: 16.0),
               Expanded(
                 child: PremoTableBuilder<SampleDataModel>(
                   tableBloc: _tableBloc!,
                 ),
               ),
-              SizedBox(height: 16.0),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TableActions(
+                  onUndo: () {
+                    return Future.delayed(Duration(milliseconds: 2000));
+                  },
+                  onRedo: () {
+                    return Future.delayed(Duration(milliseconds: 2000));
+                  },
+                  onAdd: () {
+                    return _treeTableBloc!.add();
+                  },
+                  onDelete: () {
+                    List<PremoTableRow<SampleDataModel>> checkedRows =
+                        _treeTableBloc!.getChecked();
+                    return _treeTableBloc!.delete(checkedRows);
+                  },
+                  onDeselect: () {
+                    _treeTableBloc!.deselect();
+                  },
+                ),
+              ),
               Expanded(
                 child: TreeTableBuilder<SampleDataModel>(
                   tableBloc: _treeTableBloc!,

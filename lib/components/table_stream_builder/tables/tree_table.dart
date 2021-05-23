@@ -109,15 +109,17 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
     this.cellWidgetBuilder,
   }) : super(key: key);
 
+  /// TODO - Better management of Parent blocs creation and disposal required.
   ParentBloc _getParentBLoc(
     Map<PremoTableRow<T>, ParentBloc> blocMap,
     PremoTableRow<T> parent,
   ) {
     ParentBloc? parentBloc = blocMap[parent];
-    if (parentBloc == null) {
-      parentBloc = ParentBloc(expanded: false);
-      blocMap[parent] = parentBloc;
+    if (parentBloc != null) {
+      parentBloc.dispose();
     }
+    parentBloc = ParentBloc(expanded: false);
+    blocMap[parent] = parentBloc;
     return parentBloc;
   }
 
@@ -388,7 +390,8 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
             },
             onParentUpS2: (parent, parentParent, children, depth,
                 childrenWidgets, cells) {
-              ParentBloc parentBloc = _getParentBLoc(syncedParentBlocs, parent);
+              // ParentBloc parentBloc = _getParentBLoc(syncedParentBlocs, parent);
+              ParentBloc parentBloc = syncedParentBlocs[parent]!;
               return ParentBuilder(
                 stream: parentBloc.syncStream,
                 builder: (expanded) {
