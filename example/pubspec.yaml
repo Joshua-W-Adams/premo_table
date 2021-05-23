@@ -25,11 +25,6 @@ dependencies:
     sdk: flutter
   premo_table: 
     path: ../
-  treebuilder:
-    git:
-      url: https://github.com/Joshua-W-Adams/public_flutter_packages.git
-      path: packages/treebuilder
-  rxdart: ^0.27.0
 
 
 
