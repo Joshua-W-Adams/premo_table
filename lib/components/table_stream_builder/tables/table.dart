@@ -259,7 +259,7 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                 cellBloc: uiRow.cells[uiColumnIndex],
                 builder: (cellBlocState) {
                   /// get data model associated to current cell
-                  T rowModel = tableState.uiDataCache[uiRowIndex].model;
+                  T rowModel = uiRow.model;
                   return ContentCell(
                     height: effectiveDataRowHeight,
                     width: columnWidthBuilder(uiColumnIndex),
