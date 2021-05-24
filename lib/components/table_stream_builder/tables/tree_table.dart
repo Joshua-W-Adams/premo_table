@@ -1,7 +1,7 @@
 part of premo_table;
 
 /// Generates a Google Sheets / Excel like table interface
-class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
+class TreeTable<T extends IUniqueParentChildRow> extends StatefulWidget {
   /// Business logic and state
   final TableBloc<T> tableBloc;
 
@@ -109,7 +109,14 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
     this.cellWidgetBuilder,
   }) : super(key: key);
 
-  /// TODO - Better management of Parent blocs creation and disposal required.
+  @override
+  _TreeTableState<T> createState() => _TreeTableState<T>();
+}
+
+class _TreeTableState<T extends IUniqueParentChildRow>
+    extends State<TreeTable<T>> {
+  Map<PremoTableRow<T>, ParentBloc> syncedParentBlocs = Map();
+
   ParentBloc _getParentBLoc(
     Map<PremoTableRow<T>, ParentBloc> blocMap,
     PremoTableRow<T> parent,
@@ -124,40 +131,48 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
   }
 
   @override
+  void dispose() {
+    syncedParentBlocs.forEach((key, value) {
+      value.dispose();
+    });
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
-    final double effectiveDataRowHeight = rowHeight ??
+    final double effectiveDataRowHeight = widget.rowHeight ??
         theme.dataTableTheme.dataRowHeight ??
         kMinInteractiveDimension;
     final Color cellBottomBorderColor = theme.canvasColor;
     final TextStyle? defaultCellTextStyle = theme.textTheme.bodyText1;
     final double iconWidth = 40.0;
-    Map<PremoTableRow<T>, ParentBloc> syncedParentBlocs = Map();
+
     List<Icon?> icons = [
       Icon(Icons.keyboard_arrow_down, size: 24),
       Icon(Icons.keyboard_arrow_down, size: 16),
     ];
     return TableStreamBuilder<T>(
-      stream: tableBloc.stream,
+      stream: widget.tableBloc.stream,
       builder: (tableState) {
         /// Build table
         return MouseRegion(
           onExit: (event) {
-            tableBloc.dehover();
+            widget.tableBloc.dehover();
           },
           child: TreeTableLayout<PremoTableRow<T>>(
             // stickToColumn: 0,
             // enableColHeaders: true,
             // enableRowHeaders: true,
-            columnCount: tableBloc.columnNames.length,
+            columnCount: widget.tableBloc.columnNames.length,
 
             /// rowheaders and legend cell will not be generated if the checking
             /// is not enabled
-            enableRowHeaders: enableChecking,
+            enableRowHeaders: widget.enableChecking,
 
             /// *********** cell at position 0,0 ***********
             legendCell: CellStreamBuilder(
-              cellBloc: tableBloc.tableState!.uiLegendCell,
+              cellBloc: widget.tableBloc.tableState!.uiLegendCell,
               builder: (cellState) {
                 return Row(
                   children: [
@@ -166,15 +181,15 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     LegendCell(
                       height: effectiveDataRowHeight,
                       onTap: () {
-                        tableBloc.deselect();
+                        widget.tableBloc.deselect();
                       },
                       onHover: (_) {
-                        tableBloc.dehover();
+                        widget.tableBloc.dehover();
                       },
-                      cellBorderColor: cellBorderColor,
-                      allRowsChecked: tableBloc.allRowsChecked(),
+                      cellBorderColor: widget.cellBorderColor,
+                      allRowsChecked: widget.tableBloc.allRowsChecked(),
                       onChanged: (newValue) {
-                        tableBloc.checkAll(newValue ?? false);
+                        widget.tableBloc.checkAll(newValue ?? false);
                       },
                     ),
                   ],
@@ -185,11 +200,12 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
             /// *********** COLUMN HEADERS ***********
             columnHeadersBuilder: (uiColumnIndex) {
               return CellStreamBuilder(
-                cellBloc: tableBloc.tableState!.uiColumnHeaders[uiColumnIndex],
+                cellBloc:
+                    widget.tableBloc.tableState!.uiColumnHeaders[uiColumnIndex],
                 builder: (cellBlocState) {
                   return ColumnHeaderCell(
                     height: effectiveDataRowHeight,
-                    width: columnWidthBuilder(uiColumnIndex),
+                    width: widget.columnWidthBuilder(uiColumnIndex),
                     visible: cellBlocState.visible,
                     enabled: !cellBlocState.requestInProgress,
                     showLoadingIndicator: cellBlocState.requestInProgress,
@@ -202,31 +218,31 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     rowChecked: cellBlocState.rowChecked ?? false,
                     animation: TableFunctions.getAnimation(cellBlocState),
                     onTap: () {
-                      tableBloc.deselect();
-                      tableBloc.sort(uiColumnIndex);
+                      widget.tableBloc.deselect();
+                      widget.tableBloc.sort(uiColumnIndex);
                     },
                     onHover: (_) {
-                      tableBloc.dehover();
+                      widget.tableBloc.dehover();
                     },
-                    backgroundColor: columnBackgroundColor,
-                    cellBorderColor: cellBorderColor,
+                    backgroundColor: widget.columnBackgroundColor,
+                    cellBorderColor: widget.cellBorderColor,
                     value: cellBlocState.value,
-                    textStyle: columnTextStyle,
+                    textStyle: widget.columnTextStyle,
                     sorted: tableState.sortColumnIndex == uiColumnIndex &&
                         tableState.isAscending != null,
                     ascending: tableState.isAscending ?? false,
-                    onSort: enableSorting == true
+                    onSort: widget.enableSorting == true
                         ? () {
-                            tableBloc.deselect();
-                            tableBloc.sort(uiColumnIndex);
+                            widget.tableBloc.deselect();
+                            widget.tableBloc.sort(uiColumnIndex);
                           }
                         : null,
                     onFilter: (value) {
-                      tableBloc.filter(
-                          uiColumnIndex, value == '' ? null : value);
+                      widget.tableBloc
+                          .filter(uiColumnIndex, value == '' ? null : value);
                     },
                     onFilterButtonTap: () {
-                      tableBloc.deselect();
+                      widget.tableBloc.deselect();
                     },
                   );
                 },
@@ -252,19 +268,19 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     rowChecked: cellBlocState.rowChecked ?? false,
                     animation: TableFunctions.getAnimation(cellBlocState),
                     onTap: () {
-                      tableBloc.deselect();
+                      widget.tableBloc.deselect();
                     },
                     onHover: (_) {
-                      tableBloc.dehover();
+                      widget.tableBloc.dehover();
                     },
-                    cellRightBorderColor: cellBorderColor,
+                    cellRightBorderColor: widget.cellBorderColor,
 
                     /// bottom cell border color required to ensure row header
                     /// and row cell highlighting lines up correctly.
                     cellBottomBorderColor: cellBottomBorderColor,
                     checked: cellBlocState.rowChecked ?? false,
                     onChanged: (newValue) {
-                      tableBloc.check(uiRow, newValue ?? false);
+                      widget.tableBloc.check(uiRow, newValue ?? false);
                     },
                   );
                 },
@@ -273,7 +289,7 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
 
             /// *********** CONTENT ***********
             contentCellBuilder: (uiColumnIndex, uiRow, _) {
-              bool readOnly = columnReadOnlyBuilder(uiColumnIndex);
+              bool readOnly = widget.columnReadOnlyBuilder(uiColumnIndex);
               return CellStreamBuilder(
                 cellBloc: uiRow.cells[uiColumnIndex],
                 builder: (cellBlocState) {
@@ -281,8 +297,8 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                   T rowModel = uiRow.model;
                   return ContentCell(
                     height: effectiveDataRowHeight,
-                    width: columnWidthBuilder(uiColumnIndex),
-                    verticalAlignment: columnVerticalAlignmentBuilder(
+                    width: widget.columnWidthBuilder(uiColumnIndex),
+                    verticalAlignment: widget.columnVerticalAlignmentBuilder(
                       rowModel,
                       0, // TODO - refactor vertial alignment builder
                       uiColumnIndex,
@@ -299,21 +315,22 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                     rowChecked: cellBlocState.rowChecked ?? false,
                     animation: TableFunctions.getAnimation(cellBlocState),
                     onTap: () {
-                      tableBloc.select(uiRow, uiColumnIndex);
+                      widget.tableBloc.select(uiRow, uiColumnIndex);
                     },
                     onHover: (_) {
-                      tableBloc.hover(uiRow, uiColumnIndex);
+                      widget.tableBloc.hover(uiRow, uiColumnIndex);
                     },
                     backgroundColor:
-                        readOnly == true ? disabledCellColor : null,
-                    cellBorderColor: cellBorderColor,
-                    horizontalAlignment: columnHorizontalAlignmentBuilder(
+                        readOnly == true ? widget.disabledCellColor : null,
+                    cellBorderColor: widget.cellBorderColor,
+                    horizontalAlignment:
+                        widget.columnHorizontalAlignmentBuilder(
                       rowModel,
                       0, // TODO - refactor horizontal alignment builder
                       uiColumnIndex,
                     ),
-                    textStyle: cellTextStyleBuilder != null
-                        ? cellTextStyleBuilder!(
+                    textStyle: widget.cellTextStyleBuilder != null
+                        ? widget.cellTextStyleBuilder!(
                             rowModel,
                             0, // TODO - refactor textstyle builder
                             uiColumnIndex,
@@ -328,27 +345,27 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                       /// note: server side modifications never cause cells to
                       /// loose focus so checking the change state is not
                       /// required.
-                      tableBloc.update(
+                      widget.tableBloc.update(
                         uiRow,
                         uiColumnIndex,
                         newValue,
                         cellBlocState.value,
                       );
                     },
-                    cellType: columnTypeBuilder(uiColumnIndex),
+                    cellType: widget.columnTypeBuilder(uiColumnIndex),
                     value: cellBlocState.value,
-                    validator: columnValidatorBuilder(
+                    validator: widget.columnValidatorBuilder(
                       rowModel,
                       0, // TODO - refactor column validator
                       uiColumnIndex,
                     ),
-                    dropdownList: columnDropdownBuilder(
+                    dropdownList: widget.columnDropdownBuilder(
                       rowModel,
                       0, // TODO - refactor column dropdown builder
                       uiColumnIndex,
                     ),
-                    customCellContent: cellWidgetBuilder != null
-                        ? cellWidgetBuilder!(
+                    customCellContent: widget.cellWidgetBuilder != null
+                        ? widget.cellWidgetBuilder!(
                             rowModel,
                             0, // TODO - refactor
                             uiColumnIndex,
