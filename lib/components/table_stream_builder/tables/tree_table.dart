@@ -39,6 +39,8 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatefulWidget {
   final TextStyle? Function(T? item, int uiColumnIndex)? cellTextStyleBuilder;
   final Widget Function(T? item, int uiColumnIndex)? cellWidgetBuilder;
 
+  final String? buildFromId;
+
   /// default callback functions for configuring table properties
   static double defaultColumnWidthBuilder(int uiColumnIndex) {
     return 125.0;
@@ -101,6 +103,7 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatefulWidget {
     this.columnValidatorBuilder = defaultColumnValidatorBuilder,
     this.cellTextStyleBuilder,
     this.cellWidgetBuilder,
+    this.buildFromId,
   }) : super(key: key);
 
   @override
@@ -364,7 +367,7 @@ class _TreeTableState<T extends IUniqueParentChildRow>
               );
             },
             data: tableState.uiDataCache,
-            buildFromId: null,
+            buildFromId: widget.buildFromId,
             onChildS1: (_, __, ___, cells) {
               return Row(
                 children: [Container(width: iconWidth), ...cells],
