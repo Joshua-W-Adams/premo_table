@@ -25,21 +25,19 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatefulWidget {
   /// Column based configuration options
   final double Function(int uiColumnIndex) columnWidthBuilder;
   final bool Function(int uiColumnIndex) columnReadOnlyBuilder;
-  final Alignment Function(T? item, int uiRowIndex, int uiColumnIndex)
+  final Alignment Function(T? item, int uiColumnIndex)
       columnHorizontalAlignmentBuilder;
-  final Alignment Function(T? item, int uiRowIndex, int uiColumnIndex)
+  final Alignment Function(T? item, int uiColumnIndex)
       columnVerticalAlignmentBuilder;
   final CellTypes Function(int uiColumnIndex) columnTypeBuilder;
-  final List<String>? Function(T? item, int uiRowIndex, int uiColumnIndex)
+  final List<String>? Function(T? item, int uiColumnIndex)
       columnDropdownBuilder;
-  final String? Function(String?)? Function(
-      T? item, int uiRowIndex, int uiColumnIndex) columnValidatorBuilder;
+  final String? Function(String?)? Function(T? item, int uiColumnIndex)
+      columnValidatorBuilder;
 
   /// Cell based configuration options
-  final TextStyle? Function(T? item, int uiRowIndex, int uiColumnIndex)?
-      cellTextStyleBuilder;
-  final Widget Function(T? item, int uiRowIndex, int uiColumnIndex)?
-      cellWidgetBuilder;
+  final TextStyle? Function(T? item, int uiColumnIndex)? cellTextStyleBuilder;
+  final Widget Function(T? item, int uiColumnIndex)? cellWidgetBuilder;
 
   /// default callback functions for configuring table properties
   static double defaultColumnWidthBuilder(int uiColumnIndex) {
@@ -52,7 +50,6 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatefulWidget {
 
   static Alignment defaultColumnHorizontalAlignmentBuilder(
     dynamic item,
-    int uiRowIndex,
     int uiColumnIndex,
   ) {
     return Alignment.center;
@@ -60,7 +57,6 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatefulWidget {
 
   static Alignment defaultColumnVerticalAlignmentBuilder(
     dynamic item,
-    int uiRowIndex,
     int uiColumnIndex,
   ) {
     return Alignment.center;
@@ -72,7 +68,6 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatefulWidget {
 
   static List<String>? defaultColumnDropdownBuilder(
     dynamic item,
-    int uiRowIndex,
     int uiColumnIndex,
   ) {
     return null;
@@ -80,7 +75,6 @@ class TreeTable<T extends IUniqueParentChildRow> extends StatefulWidget {
 
   static String? Function(String?)? defaultColumnValidatorBuilder(
     dynamic item,
-    int uiRowIndex,
     int uiColumnIndex,
   ) {
     return null;
@@ -300,7 +294,6 @@ class _TreeTableState<T extends IUniqueParentChildRow>
                     width: widget.columnWidthBuilder(uiColumnIndex),
                     verticalAlignment: widget.columnVerticalAlignmentBuilder(
                       rowModel,
-                      0, // TODO - refactor vertial alignment builder
                       uiColumnIndex,
                     ),
                     visible: cellBlocState.visible,
@@ -326,13 +319,11 @@ class _TreeTableState<T extends IUniqueParentChildRow>
                     horizontalAlignment:
                         widget.columnHorizontalAlignmentBuilder(
                       rowModel,
-                      0, // TODO - refactor horizontal alignment builder
                       uiColumnIndex,
                     ),
                     textStyle: widget.cellTextStyleBuilder != null
                         ? widget.cellTextStyleBuilder!(
                             rowModel,
-                            0, // TODO - refactor textstyle builder
                             uiColumnIndex,
                           )
                         : defaultCellTextStyle,
@@ -356,18 +347,15 @@ class _TreeTableState<T extends IUniqueParentChildRow>
                     value: cellBlocState.value,
                     validator: widget.columnValidatorBuilder(
                       rowModel,
-                      0, // TODO - refactor column validator
                       uiColumnIndex,
                     ),
                     dropdownList: widget.columnDropdownBuilder(
                       rowModel,
-                      0, // TODO - refactor column dropdown builder
                       uiColumnIndex,
                     ),
                     customCellContent: widget.cellWidgetBuilder != null
                         ? widget.cellWidgetBuilder!(
                             rowModel,
-                            0, // TODO - refactor
                             uiColumnIndex,
                           )
                         : null,
@@ -388,7 +376,6 @@ class _TreeTableState<T extends IUniqueParentChildRow>
               );
             },
             onParentUpS1: (parent, _, __, depth, childrenWidgets, cells) {
-              // TODO - clean up parent blocs to avoid memory leaks.
               ParentBloc parentBloc = _getParentBLoc(syncedParentBlocs, parent);
               return ParentBuilder(
                 stream: parentBloc.stream,

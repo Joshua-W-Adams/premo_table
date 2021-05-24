@@ -37,7 +37,7 @@ class TreeTableBuilder<T extends IUniqueParentChildRow>
         ];
         return readOnly[col];
       },
-      columnHorizontalAlignmentBuilder: (_, __, col) {
+      columnHorizontalAlignmentBuilder: (_, col) {
         List<Alignment> alignments = [
           Alignment.center,
           Alignment.center,
@@ -63,7 +63,7 @@ class TreeTableBuilder<T extends IUniqueParentChildRow>
         ];
         return types[col];
       },
-      columnDropdownBuilder: (item, row, col) {
+      columnDropdownBuilder: (item, col) {
         List<List<String>?> dropdowns = [
           null,
           null,
