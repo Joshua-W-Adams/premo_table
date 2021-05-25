@@ -140,7 +140,7 @@ packages:
     description:
       path: "packages/treebuilder"
       ref: HEAD
-      resolved-ref: "471b8a80a4c59963db4dc9ceab2b804cb8a0a0ed"
+      resolved-ref: "4525fcc89d6a5299b1ce759c88cb96dc3eb64c22"
       url: "https://github.com/Joshua-W-Adams/public_flutter_packages.git"
     source: git
     version: "0.0.1"

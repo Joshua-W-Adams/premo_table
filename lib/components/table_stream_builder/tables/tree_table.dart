@@ -401,7 +401,7 @@ class _TreeTableState<T extends IUniqueParentChildRow>
               // ParentBloc parentBloc = _getParentBLoc(syncedParentBlocs, parent);
               ParentBloc parentBloc = syncedParentBlocs[parent]!;
               return ParentBuilder(
-                stream: parentBloc.syncStream,
+                stream: parentBloc.stream,
                 builder: (expanded) {
                   return ParentWidget(
                     parent: Row(children: cells),
