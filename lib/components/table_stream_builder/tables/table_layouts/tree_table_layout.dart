@@ -165,7 +165,7 @@ class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
       depthData: roots,
       data: data,
       // depth = 0
-      onChild: (T child, T? parent, int depth) {
+      onChild: (T child, T? parent, T? _, int depth) {
         /// generate cell sections (rowheaders, frozen cells and cells) for row
         Map<int, List<Widget>> cells = _getCells(child, depth);
 
@@ -179,9 +179,8 @@ class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
         treeS2[parent] =
             TreeBuilderModel.addToArray<T>(treeS2, cWidgetS2, parent);
       },
-      // unused - pass function to prevent missing callback errors
-      onParentDown: (_, __, ___, ____) {},
-      onParentUp: (T parent, T? parentParent, List<T> children, int depth) {
+      onParentUp:
+          (T parent, T? parentParent, T? _, List<T> children, int depth) {
         /// generate cell sections (rowheaders, frozen cells and cells) for row
         Map<int, List<Widget>> cells = _getCells(parent, depth);
 
@@ -201,7 +200,7 @@ class TreeTableLayout<T extends IUniqueParentChildRow> extends StatelessWidget {
         treeS2[parentParent] =
             TreeBuilderModel.addToArray<T>(treeS2, pWidgetS2, parentParent);
       },
-      onEndOfDepth: (T? parent, int depth) {
+      onEndOfDepth: (T? parent, T? _, int depth) {
         /// generate widget
         Widget endWidgetS1 = onEndOfDepthS1(parent, depth);
 
