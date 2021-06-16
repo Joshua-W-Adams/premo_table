@@ -67,7 +67,9 @@ class _CellAnimationsState extends State<CellAnimations>
 
     /// rebuild widget every time the animation fires
     _animationController!.addListener(() {
-      setState(() {});
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
+        setState(() {});
+      });
     });
 
     _runAnimation();
