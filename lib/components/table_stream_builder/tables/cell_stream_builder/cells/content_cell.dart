@@ -40,6 +40,7 @@ class ContentCell extends StatelessWidget {
   final TextStyle? textStyle;
   final bool readOnly;
   final void Function(String)? onChanged;
+  final void Function(String)? onFocusLost;
   final CellTypes cellType;
   final Color? cursorColor;
 
@@ -97,6 +98,7 @@ class ContentCell extends StatelessWidget {
     this.textStyle,
     this.readOnly = false,
     this.onChanged,
+    this.onFocusLost,
     required this.cellType,
     this.cursorColor,
     this.value,
@@ -204,7 +206,8 @@ class ContentCell extends StatelessWidget {
         maxLines: maxLines,
         cursorColor: cursorColor,
         onTap: onTap,
-        onFocusLost: onChanged,
+        onChanged: onChanged,
+        onFocusLost: onFocusLost,
       );
     } else if (cellType == CellTypes.dropdown) {
       return DropdownCellContent(
@@ -219,7 +222,10 @@ class ContentCell extends StatelessWidget {
         icon: icon,
         dropdownItemTextStyle: dropdownItemTextStyle,
         onTap: onTap,
-        onChanged: onChanged,
+        onChanged: (newValue) {
+          onChanged?.call(newValue);
+          onFocusLost?.call(newValue);
+        },
       );
     } else if (cellType == CellTypes.cellswitch) {
       return SwitchCellContent(
@@ -230,6 +236,7 @@ class ContentCell extends StatelessWidget {
         onChanged: (newValue) {
           onTap?.call();
           onChanged?.call(newValue);
+          onFocusLost?.call(newValue);
         },
       );
     } else if (cellType == CellTypes.date) {
@@ -242,7 +249,10 @@ class ContentCell extends StatelessWidget {
         inputParser: DataFormatter.toDate,
         cursorColor: cursorColor,
         onTap: onTap,
-        onChanged: onChanged,
+        onChanged: (newValue) {
+          onChanged?.call(newValue);
+          onFocusLost?.call(newValue);
+        },
       );
     } else if (cellType == CellTypes.custom) {
       return customCellContent!;

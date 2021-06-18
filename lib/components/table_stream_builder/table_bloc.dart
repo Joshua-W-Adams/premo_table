@@ -971,7 +971,6 @@ class TableBloc<T extends IUniqueParentChildRow> {
     }
   }
 
-  /// TODO - Event Manager to be created to
   void undo() {}
   void redo() {}
 }

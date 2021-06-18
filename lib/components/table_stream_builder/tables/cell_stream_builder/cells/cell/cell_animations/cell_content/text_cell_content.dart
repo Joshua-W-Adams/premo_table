@@ -174,8 +174,8 @@ class _TextCellContentState extends State<TextCellContent> {
       /// cell functions
       onTap: widget.onTap,
       onChanged: (val) {
-        if (_key.currentState?.validate() == true && widget.onChanged != null) {
-          widget.onChanged!(_removeValueFormat(val));
+        if (_key.currentState?.validate() == true) {
+          widget.onChanged?.call(_removeValueFormat(val));
         }
       },
 

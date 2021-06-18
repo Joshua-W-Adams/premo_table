@@ -301,7 +301,7 @@ class PremoTable<T extends IUniqueParentChildRow> extends StatelessWidget {
                           )
                         : defaultCellTextStyle,
                     readOnly: readOnly,
-                    onChanged: (newValue) {
+                    onFocusLost: (newValue) {
                       /// Note for Content Cells with text, currency or number
                       /// content the onChanged function is mapped to the
                       /// onFocusLost function. This is only fired when the user
