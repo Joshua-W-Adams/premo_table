@@ -92,6 +92,8 @@ class _TextCellContentState extends State<TextCellContent> {
 
     /// store value to enablechange detection
     _oldValue = _setValueFormat(widget.value);
+    _textController.text = _oldValue!;
+
     _focusNode.addListener(() {
       /// Allow detection of on focus lost events
       if (!_focusNode.hasFocus &&
@@ -121,6 +123,15 @@ class _TextCellContentState extends State<TextCellContent> {
   void didUpdateWidget(TextCellContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     _oldValue = _setValueFormat(widget.value);
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      /// update controller value and selection position on cell state update
+      _textController.value = TextEditingValue(
+        text: _oldValue!,
+        selection: TextSelection.collapsed(
+          offset: _oldValue!.length,
+        ),
+      );
+    });
     if (_focusNode.hasFocus && widget.selected == false) {
       FocusScope.of(context).unfocus();
     }
@@ -142,14 +153,6 @@ class _TextCellContentState extends State<TextCellContent> {
 
   @override
   Widget build(BuildContext context) {
-    /// update controller value and selection position on cell state update
-    _textController.value = TextEditingValue(
-      text: _oldValue!,
-      selection: TextSelection.collapsed(
-        offset: _oldValue!.length,
-      ),
-    );
-
     return TextFormField(
       /// internal functionality
       key: _key,
