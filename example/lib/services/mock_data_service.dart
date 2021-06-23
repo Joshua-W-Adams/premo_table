@@ -18,7 +18,7 @@ String getRandomString(int length) {
 }
 
 class MockDataService {
-  StreamController<List<SampleDataModel>> _controller = BehaviorSubject();
+  BehaviorSubject<List<SampleDataModel>> _controller = BehaviorSubject();
 
   Stream<List<SampleDataModel>> get stream {
     return _controller.stream;
