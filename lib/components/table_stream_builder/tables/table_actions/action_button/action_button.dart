@@ -33,13 +33,15 @@ class _ActionButtonState extends State<ActionButton> {
         _requestProcessing = true;
       });
       future.then((_) {
-        setState(() {
-          _requestProcessing = false;
-        });
+        _requestProcessing = false;
+        if (mounted) {
+          setState(() {});
+        }
       }).onError((_, __) {
-        setState(() {
-          _requestProcessing = false;
-        });
+        _requestProcessing = false;
+        if (mounted) {
+          setState(() {});
+        }
       });
     }
   }

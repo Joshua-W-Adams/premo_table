@@ -231,24 +231,8 @@ class _HomePageState extends State<HomePage> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: TableActions(
-                  onUndo: () {
-                    return Future.delayed(Duration(milliseconds: 2000));
-                  },
-                  onRedo: () {
-                    return Future.delayed(Duration(milliseconds: 2000));
-                  },
-                  onAdd: () {
-                    return _tableBloc!.add();
-                  },
-                  onDelete: () {
-                    List<PremoTableRow<SampleDataModel>> checkedRows =
-                        _tableBloc!.getChecked();
-                    return _tableBloc!.delete(checkedRows);
-                  },
-                  onDeselect: () {
-                    _tableBloc!.deselect();
-                  },
+                child: TableToolbar(
+                  tableBloc: _tableBloc!,
                 ),
               ),
               Expanded(
@@ -258,24 +242,8 @@ class _HomePageState extends State<HomePage> {
               ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: TableActions(
-                  onUndo: () {
-                    return Future.delayed(Duration(milliseconds: 2000));
-                  },
-                  onRedo: () {
-                    return Future.delayed(Duration(milliseconds: 2000));
-                  },
-                  onAdd: () {
-                    return _treeTableBloc!.add();
-                  },
-                  onDelete: () {
-                    List<PremoTableRow<SampleDataModel>> checkedRows =
-                        _treeTableBloc!.getChecked();
-                    return _treeTableBloc!.delete(checkedRows);
-                  },
-                  onDeselect: () {
-                    _treeTableBloc!.deselect();
-                  },
+                child: TableToolbar(
+                  tableBloc: _treeTableBloc!,
                 ),
               ),
               Expanded(
@@ -503,6 +471,68 @@ class TestCases extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class TableToolbar extends StatelessWidget {
+  final TableBloc<SampleDataModel> tableBloc;
+
+  const TableToolbar({
+    Key? key,
+    required this.tableBloc,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<int?>(
+      stream: tableBloc.checkedStream,
+      builder: (_, checkedSnapshot) {
+        return StreamBuilder<PremoTableRow<SampleDataModel>?>(
+          stream: tableBloc.selectedStream,
+          builder: (_, selectedSnapshot) {
+            if ([
+              selectedSnapshot.connectionState,
+              checkedSnapshot.connectionState
+            ].contains(ConnectionState.waiting)) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if ([selectedSnapshot.hasError, checkedSnapshot.hasError]
+                .contains(true)) {
+              return Text('${selectedSnapshot.error}');
+            }
+
+            /// get snapshot details
+            int? checkedCount = checkedSnapshot.data;
+            PremoTableRow<SampleDataModel>? selectedRow = selectedSnapshot.data;
+
+            /// buidl toolbar buttons
+            return TableActions(
+              onUndo: () {
+                return Future.delayed(Duration(milliseconds: 2000));
+              },
+              onRedo: () {
+                return Future.delayed(Duration(milliseconds: 2000));
+              },
+              onAdd: () {
+                return tableBloc.add();
+              },
+              onDelete: (checkedCount ?? 0) > 0
+                  ? () {
+                      List<PremoTableRow<SampleDataModel>> checkedRows =
+                          tableBloc.getChecked();
+                      return tableBloc.delete(checkedRows);
+                    }
+                  : null,
+              onDeselect: selectedRow != null
+                  ? () {
+                      tableBloc.deselect();
+                    }
+                  : null,
+            );
+          },
+        );
+      },
     );
   }
 }
