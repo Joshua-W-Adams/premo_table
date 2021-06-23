@@ -20,7 +20,7 @@ class ColumnState {
 class PremoTableRow<T extends IUniqueParentChildRow>
     extends IUniqueParentChildRow {
   T model;
-  bool selected;
+  int? uiSelectedColumn;
   bool checked;
   bool hovered;
   bool visible;
@@ -31,8 +31,8 @@ class PremoTableRow<T extends IUniqueParentChildRow>
     /// data model attached to row
     required this.model,
 
-    /// user selected
-    this.selected = false,
+    /// user selected cell column. Null if row not selected.
+    this.uiSelectedColumn,
 
     /// user marked as checked
     this.checked = false,
@@ -98,9 +98,6 @@ class TableState<T extends IUniqueParentChildRow> {
   CellBloc uiLegendCell;
   List<CellBloc> uiColumnHeaders;
 
-  /// location in the user interface layer of the selected row and column
-  int? uiSelectedColumn;
-
   /// reference to the currently selected row so its state can be updated
   PremoTableRow<T>? selectedRowReference;
 
@@ -132,7 +129,6 @@ class TableState<T extends IUniqueParentChildRow> {
     required this.uiColumnStates,
     required this.uiLegendCell,
     required this.uiColumnHeaders,
-    this.uiSelectedColumn,
     this.selectedRowReference,
     this.uiHoveredColumn,
     this.hoveredRowReference,

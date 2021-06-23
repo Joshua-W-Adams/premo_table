@@ -66,10 +66,20 @@ class TableBloc<T extends IUniqueParentChildRow> {
 
   /// initialise state stream controller
   StreamController<TableState<T>> _controller = StreamController();
+  BehaviorSubject<PremoTableRow<T>?> _selectedController = BehaviorSubject();
+  BehaviorSubject<int?> _checkedController = BehaviorSubject();
 
   /// expose stream for listening as getter function
   Stream<TableState<T>> get stream {
     return _controller.stream;
+  }
+
+  Stream<PremoTableRow<T>?> get selectedStream {
+    return _selectedController.stream;
+  }
+
+  Stream<int?> get checkedStream {
+    return _checkedController.stream;
   }
 
   TableBloc({
@@ -162,8 +172,10 @@ class TableBloc<T extends IUniqueParentChildRow> {
       uiColumnHeaders: uiColumnHeaders,
     );
 
-    /// release state on stream
+    /// release initial states to streams
     _controller.sink.add(tableState!);
+    _selectedController.sink.add(null);
+    _checkedController.sink.add(null);
   }
 
   List<PremoTableRow<T>> _getPremoTableRows(List<T> event) {
@@ -433,13 +445,21 @@ class TableBloc<T extends IUniqueParentChildRow> {
     TableState<T> state = tableState!;
 
     /// get old selection details
-    int? oldColumn = state.uiSelectedColumn;
     PremoTableRow<T>? oldRow = state.selectedRowReference;
+    int? oldColumn = oldRow?.uiSelectedColumn;
+
+    /// update selection status tracking
+    oldRow?.uiSelectedColumn = null;
+    newRow?.uiSelectedColumn = newColumn;
+    state.selectedRowReference = newRow;
 
     if (newRow != oldRow || newColumn != oldColumn) {
       /// case 1 - row and column changed
       _informCellSelectionState(oldRow, oldColumn, false);
       _informCellSelectionState(newRow, newColumn, true);
+
+      /// inform external listeners of selection state change
+      _selectedController.sink.add(newRow);
     }
 
     if (newRow != oldRow) {
@@ -453,14 +473,6 @@ class TableBloc<T extends IUniqueParentChildRow> {
       _informColumnSelectionState(oldColumn, false);
       _informColumnSelectionState(newColumn, true);
     }
-
-    /// update selection status tracking
-    oldRow?.selected = false;
-    newRow?.selected = true;
-
-    /// update new state
-    state.uiSelectedColumn = newColumn;
-    state.selectedRowReference = newRow;
   }
 
   /// [deselect] clears the currently selected cell.
@@ -525,7 +537,7 @@ class TableBloc<T extends IUniqueParentChildRow> {
     }
   }
 
-  void check(PremoTableRow<T> row, bool newChecked) {
+  void _check(PremoTableRow<T> row, bool newChecked) {
     /// get element in ui
     bool oldChecked = row.checked;
     if (oldChecked != newChecked) {
@@ -539,11 +551,18 @@ class TableBloc<T extends IUniqueParentChildRow> {
     }
   }
 
+  void check(PremoTableRow<T> row, bool newChecked) {
+    _check(row, newChecked);
+
+    /// inform listeners to checked state
+    _checkedController.sink.add(tableState!.checkedRowCount);
+  }
+
   void checkAll(bool newChecked) {
     /// update user interface elements
     List<PremoTableRow<T>> uiRows = tableState!.uiDataCache;
     for (var r = 0; r < uiRows.length; r++) {
-      check(uiRows[r], newChecked);
+      _check(uiRows[r], newChecked);
     }
 
     /// ensure state updated correctly for case when there is a render limit
@@ -557,6 +576,9 @@ class TableBloc<T extends IUniqueParentChildRow> {
 
     /// update legend cell to suit
     _informLegendCheckedStatus();
+
+    /// inform listeners to checked state
+    _checkedController.sink.add(tableState!.checkedRowCount);
   }
 
   List<PremoTableRow<T>> getChecked() {
@@ -793,9 +815,15 @@ class TableBloc<T extends IUniqueParentChildRow> {
         /// update row model - N/A
 
         /// update state
-        if (oldRow.checked == true) {
+        if (oldRow.checked) {
           // increment checked status if deleted
           tableState!.checkedRowCount--;
+        }
+
+        if (oldRow.uiSelectedColumn != null) {
+          // selected row being deleted
+          tableState!.selectedRowReference = null;
+          _selectedController.sink.add(null);
         }
 
         /// update row cells
@@ -841,6 +869,8 @@ class TableBloc<T extends IUniqueParentChildRow> {
     if (oldCheckedRowCount != tableState!.checkedRowCount) {
       // Re-render legend cell
       _informLegendCheckedStatus();
+      // update checked stream
+      _checkedController.sink.add(tableState!.checkedRowCount);
     }
 
     if (added > 0 || tableState!.markedForDisposal.length > 0) {
@@ -863,6 +893,8 @@ class TableBloc<T extends IUniqueParentChildRow> {
   void dispose() {
     _subscription?.cancel();
     _controller.close();
+    _selectedController.close();
+    _checkedController.close();
     tableState!.dispose();
   }
 
