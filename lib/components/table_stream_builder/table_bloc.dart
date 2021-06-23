@@ -65,7 +65,7 @@ class TableBloc<T extends IUniqueParentChildRow> {
   StreamSubscription? _subscription;
 
   /// initialise state stream controller
-  StreamController<TableState<T>> _controller = StreamController();
+  BehaviorSubject<TableState<T>> _controller = BehaviorSubject();
   BehaviorSubject<PremoTableRow<T>?> _selectedController = BehaviorSubject();
   BehaviorSubject<int?> _checkedController = BehaviorSubject();
 
