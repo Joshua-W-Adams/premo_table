@@ -99,19 +99,19 @@ class Cell extends StatelessWidget {
     ThemeData theme = Theme.of(context);
     if (selected == true) {
       /// case 1 - cell is selected
-      color = selectedColor ?? theme.accentColor.withOpacity(0.5);
+      color = selectedColor ?? theme.primaryColor.withOpacity(0.6);
     } else if (hovered == true) {
       /// case 2 - cell is hovered
-      color = hoveredColor ?? Colors.grey[300];
+      color = hoveredColor ?? theme.primaryColor.withOpacity(0.45);
     } else if (rowSelected || columnSelected) {
       /// case 3 - cells row or column selected
-      color = rowColumnSelectedColor ?? theme.accentColor.withOpacity(0.25);
+      color = rowColumnSelectedColor ?? theme.primaryColor.withOpacity(0.3);
     } else if (rowHovered || columnHovered) {
       /// case 4 - cell row or column hovered
-      color = rowColumnHoveredColor ?? Colors.grey[200]!;
+      color = rowColumnHoveredColor ?? theme.primaryColor.withOpacity(0.3);
     } else if (rowChecked == true) {
       /// case 5 - cell row checked by user
-      color = rowCheckedColor ?? theme.accentColor.withOpacity(0.10);
+      color = rowCheckedColor ?? theme.primaryColor.withOpacity(0.10);
     }
     return color;
   }
