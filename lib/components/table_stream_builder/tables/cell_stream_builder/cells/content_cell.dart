@@ -1,6 +1,12 @@
 part of premo_table;
 
 class ContentCell extends StatelessWidget {
+  /// widget to load in front of the passed child
+  final Widget? leading;
+
+  /// widget to load in behind the passed child
+  final Widget? trailing;
+
   /// sizing
   final double? height;
   final double? width;
@@ -65,6 +71,8 @@ class ContentCell extends StatelessWidget {
 
   ContentCell({
     /// Base [Cell] API
+    this.leading,
+    this.trailing,
     this.height = 50,
     this.width = 70,
     this.padding = const EdgeInsets.only(
@@ -131,6 +139,8 @@ class ContentCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Cell(
+      leading: leading,
+      trailing: trailing,
       height: height,
       width: width,
       padding: padding,

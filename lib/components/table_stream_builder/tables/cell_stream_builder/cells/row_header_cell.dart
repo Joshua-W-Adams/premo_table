@@ -1,6 +1,12 @@
 part of premo_table;
 
 class RowHeaderCell extends StatelessWidget {
+  /// widget to load in front of the passed child
+  final Widget? leading;
+
+  /// widget to load in behind the passed child
+  final Widget? trailing;
+
   /// sizing
   final double? height;
   final double? width;
@@ -45,6 +51,8 @@ class RowHeaderCell extends StatelessWidget {
 
   RowHeaderCell({
     /// Base [Cell] API
+    this.leading,
+    this.trailing,
     this.height = 50,
     this.width = 50,
     this.padding = const EdgeInsets.only(
@@ -82,6 +90,8 @@ class RowHeaderCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Cell(
+      leading: leading,
+      trailing: trailing,
       height: height,
       width: width,
       padding: padding,

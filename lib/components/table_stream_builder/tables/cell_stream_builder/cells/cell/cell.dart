@@ -12,6 +12,12 @@ class Cell extends StatelessWidget {
   /// content to load within the cell
   final Widget child;
 
+  /// widget to load in front of the passed child
+  final Widget? leading;
+
+  /// widget to load in behind the passed child
+  final Widget? trailing;
+
   /// sizing
   final double? height;
   final double? width;
@@ -47,6 +53,8 @@ class Cell extends StatelessWidget {
   Cell({
     Key? key,
     required this.child,
+    this.leading,
+    this.trailing,
     this.height = 50,
     this.width = 70,
     this.padding = const EdgeInsets.only(
@@ -144,14 +152,14 @@ class Cell extends StatelessWidget {
                           ),
                     child: Align(
                       alignment: verticalAlignment,
-                      child: showLoadingIndicator == true
-                          ? Row(
-                              children: [
-                                Expanded(child: child),
-                                CellLoadingIndicator(),
-                              ],
-                            )
-                          : child,
+                      child: Row(
+                        children: [
+                          if (leading != null) ...[leading!],
+                          Expanded(child: child),
+                          if (showLoadingIndicator) ...[CellLoadingIndicator()],
+                          if (trailing != null) ...[trailing!],
+                        ],
+                      ),
                     ),
                   ),
                 ),
