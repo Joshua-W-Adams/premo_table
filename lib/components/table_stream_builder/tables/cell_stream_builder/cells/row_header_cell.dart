@@ -30,6 +30,13 @@ class RowHeaderCell extends StatelessWidget {
   final bool columnHovered;
   final bool rowChecked;
 
+  /// cell effect color configuration
+  final Color? selectedColor;
+  final Color? hoveredColor;
+  final Color? rowColumnSelectedColor;
+  final Color? rowColumnHoveredColor;
+  final Color? rowCheckedColor;
+
   /// animations to run on cell build
   final String? animation;
 
@@ -80,6 +87,11 @@ class RowHeaderCell extends StatelessWidget {
     this.rowHovered = false,
     this.columnHovered = false,
     this.rowChecked = false,
+    this.selectedColor,
+    this.hoveredColor,
+    this.rowColumnSelectedColor,
+    this.rowColumnHoveredColor,
+    this.rowCheckedColor,
     this.animation,
     this.onTap,
     this.onHover,
@@ -138,6 +150,11 @@ class RowHeaderCell extends StatelessWidget {
       rowHovered: rowHovered,
       columnHovered: columnHovered,
       rowChecked: rowChecked,
+      selectedColor: selectedColor,
+      hoveredColor: hoveredColor,
+      rowColumnSelectedColor: rowColumnSelectedColor,
+      rowColumnHoveredColor: rowColumnHoveredColor,
+      rowCheckedColor: rowCheckedColor,
       animation: animation,
       onTap: onTap,
       onHover: onHover,

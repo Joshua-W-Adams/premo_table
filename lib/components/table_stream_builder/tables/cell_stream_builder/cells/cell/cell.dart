@@ -41,6 +41,13 @@ class Cell extends StatelessWidget {
   final bool columnHovered;
   final bool rowChecked;
 
+  /// cell effect color configuration
+  final Color? selectedColor;
+  final Color? hoveredColor;
+  final Color? rowColumnSelectedColor;
+  final Color? rowColumnHoveredColor;
+  final Color? rowCheckedColor;
+
   /// animations to run on cell build
   final String? animation;
 
@@ -75,6 +82,11 @@ class Cell extends StatelessWidget {
     this.rowHovered = false,
     this.columnHovered = false,
     this.rowChecked = false,
+    this.selectedColor,
+    this.hoveredColor,
+    this.rowColumnSelectedColor,
+    this.rowColumnHoveredColor,
+    this.rowCheckedColor,
     this.animation,
     this.onTap,
     this.onHover,
@@ -87,19 +99,19 @@ class Cell extends StatelessWidget {
     ThemeData theme = Theme.of(context);
     if (selected == true) {
       /// case 1 - cell is selected
-      color = theme.accentColor.withOpacity(0.5);
+      color = selectedColor ?? theme.accentColor.withOpacity(0.5);
     } else if (hovered == true) {
       /// case 2 - cell is hovered
-      color = Colors.grey[300];
+      color = hoveredColor ?? Colors.grey[300];
     } else if (rowSelected || columnSelected) {
       /// case 3 - cells row or column selected
-      color = theme.accentColor.withOpacity(0.25);
+      color = rowColumnSelectedColor ?? theme.accentColor.withOpacity(0.25);
     } else if (rowHovered || columnHovered) {
       /// case 4 - cell row or column hovered
-      color = Colors.grey[200]!;
+      color = rowColumnHoveredColor ?? Colors.grey[200]!;
     } else if (rowChecked == true) {
       /// case 5 - cell row checked by user
-      color = theme.accentColor.withOpacity(0.10);
+      color = rowCheckedColor ?? theme.accentColor.withOpacity(0.10);
     }
     return color;
   }
