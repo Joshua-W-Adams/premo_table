@@ -49,6 +49,13 @@ class RowHeaderCell extends StatelessWidget {
 
   final void Function(bool?)? onChanged;
 
+  /// checkbox style configuration
+  final Color? checkboxActiveColor;
+  final Color? checkboxCheckColor;
+  final Color? checkboxFocusColor;
+  final Color? checkboxHoverColor;
+  final Color? checkboxBorderColor;
+
   RowHeaderCell({
     /// Base [Cell] API
     this.leading,
@@ -85,10 +92,23 @@ class RowHeaderCell extends StatelessWidget {
     this.cellBottomBorderColor = const Color(4278190080),
     this.checked = false,
     this.onChanged,
+    this.checkboxActiveColor,
+    this.checkboxCheckColor,
+    this.checkboxFocusColor,
+    this.checkboxHoverColor,
+    this.checkboxBorderColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    Checkbox _checkbox = Checkbox(
+      value: checked,
+      onChanged: onChanged,
+      activeColor: checkboxActiveColor,
+      checkColor: checkboxCheckColor,
+      focusColor: checkboxFocusColor,
+      hoverColor: checkboxHoverColor,
+    );
     return Cell(
       leading: leading,
       trailing: trailing,
@@ -123,10 +143,12 @@ class RowHeaderCell extends StatelessWidget {
       onHover: onHover,
       onMouseEnter: onMouseEnter,
       onMouseExit: onMouseExit,
-      child: Checkbox(
-        value: checked,
-        onChanged: onChanged,
-      ),
+      child: checkboxBorderColor != null
+          ? Theme(
+              data: ThemeData(unselectedWidgetColor: checkboxBorderColor),
+              child: _checkbox,
+            )
+          : _checkbox,
     );
   }
 }

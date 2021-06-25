@@ -48,6 +48,13 @@ class LegendCell extends StatelessWidget {
 
   final void Function(bool?)? onChanged;
 
+  /// checkbox style configuration
+  final Color? checkboxActiveColor;
+  final Color? checkboxCheckColor;
+  final Color? checkboxFocusColor;
+  final Color? checkboxHoverColor;
+  final Color? checkboxBorderColor;
+
   LegendCell({
     /// Base [Cell] API
     this.leading,
@@ -83,10 +90,27 @@ class LegendCell extends StatelessWidget {
     this.cellBorderColor = const Color(4278190080),
     this.allRowsChecked = false,
     this.onChanged,
+    this.checkboxActiveColor,
+    this.checkboxCheckColor,
+    this.checkboxFocusColor,
+    this.checkboxHoverColor,
+    this.checkboxBorderColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    Checkbox _checkbox = Checkbox(
+      value: allRowsChecked,
+
+      /// display a dash in the checkbox when the value is null
+      tristate: true,
+      onChanged: onChanged,
+      activeColor: checkboxActiveColor,
+      checkColor: checkboxCheckColor,
+      focusColor: checkboxFocusColor,
+      hoverColor: checkboxHoverColor,
+    );
+
     return Cell(
       leading: leading,
       trailing: trailing,
@@ -118,13 +142,12 @@ class LegendCell extends StatelessWidget {
       onHover: onHover,
       onMouseEnter: onMouseEnter,
       onMouseExit: onMouseExit,
-      child: Checkbox(
-        value: allRowsChecked,
-
-        /// display a dash in the checkbox when the value is null
-        tristate: true,
-        onChanged: onChanged,
-      ),
+      child: checkboxBorderColor != null
+          ? Theme(
+              data: ThemeData(unselectedWidgetColor: checkboxBorderColor),
+              child: _checkbox,
+            )
+          : _checkbox,
     );
   }
 }
