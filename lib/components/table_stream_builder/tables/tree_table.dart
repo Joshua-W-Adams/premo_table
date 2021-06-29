@@ -146,8 +146,8 @@ class _TreeTableState<T extends IUniqueParentChildRow>
     final double iconWidth = 40.0;
 
     List<Icon?> icons = [
-      Icon(Icons.keyboard_arrow_down, size: 24),
-      Icon(Icons.keyboard_arrow_down, size: 16),
+      Icon(Icons.keyboard_arrow_right, size: 24),
+      Icon(Icons.keyboard_arrow_right, size: 16),
     ];
     return TableStreamBuilder<T>(
       stream: widget.tableBloc.stream,
@@ -384,14 +384,16 @@ class _TreeTableState<T extends IUniqueParentChildRow>
                 stream: parentBloc.stream,
                 builder: (expanded) {
                   return ParentWidget(
-                    parent: Row(children: cells),
-                    // parentRowColor: depth <= 1 ? rowColors[depth] : null,
-                    icon: depth <= 1 ? icons[depth] : null,
+                    parent: RotatingIconRow(
+                      icon: depth <= 1 ? icons[depth] : null,
+                      expanded: expanded,
+                      content: Row(children: cells),
+                      onPressed: () {
+                        parentBloc.setExpanded(!expanded);
+                      },
+                    ),
                     children: childrenWidgets,
                     expanded: expanded,
-                    onPressed: () {
-                      parentBloc.setExpanded(!expanded);
-                    },
                   );
                 },
               );
@@ -404,14 +406,16 @@ class _TreeTableState<T extends IUniqueParentChildRow>
                 stream: parentBloc.stream,
                 builder: (expanded) {
                   return ParentWidget(
-                    parent: Row(children: cells),
-                    // parentRowColor: depth <= 1 ? rowColors[depth] : null,
-                    icon: null,
+                    parent: RotatingIconRow(
+                      icon: null,
+                      expanded: expanded,
+                      content: Row(children: cells),
+                      onPressed: () {
+                        parentBloc.setExpanded(!expanded);
+                      },
+                    ),
                     children: childrenWidgets,
                     expanded: expanded,
-                    onPressed: () {
-                      parentBloc.setExpanded(!expanded);
-                    },
                   );
                 },
               );
