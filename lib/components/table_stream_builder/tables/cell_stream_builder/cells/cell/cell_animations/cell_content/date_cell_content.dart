@@ -142,7 +142,7 @@ class DateCellContent extends StatelessWidget {
                           onChanged?.call(newDate);
                           onFocusLost?.call(newDate);
 
-                          // HOLD - Update state in parent component
+                          // Update state in parent component
                           _oldValue = newDate;
                         }
                       }
