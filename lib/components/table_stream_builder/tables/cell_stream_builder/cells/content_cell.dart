@@ -269,17 +269,23 @@ class ContentCell extends StatelessWidget {
     } else if (cellType == CellTypes.date) {
       return DateCellContent(
         value: value,
-        enabled: enabled && !readOnly,
+        selected: selected,
+        enabled: enabled,
+        readOnly: readOnly,
         textStyle: textStyle,
         horizontalAlignment: horizontalAlignment,
+        // validator: validator,
         inputDecoration: inputDecoration,
+        // inputFormatters: inputFormatters,
         inputParser: DataFormatter.toDate,
+        // outputParser: outputParser,
+        // keyboardType: keyboardType,
+        minLines: minLines,
+        maxLines: maxLines,
         cursorColor: cursorColor,
         onTap: onTap,
-        onChanged: (newValue) {
-          onChanged?.call(newValue);
-          onFocusLost?.call(newValue);
-        },
+        onChanged: onChanged,
+        onFocusLost: onFocusLost,
       );
     } else if (cellType == CellTypes.custom) {
       return customCellContent!;

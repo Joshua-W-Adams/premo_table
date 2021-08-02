@@ -78,6 +78,18 @@ abstract class DataFormatter {
         ?.group(0);
   }
 
+  static bool isDate(String? date) {
+    if (date == null) {
+      return false;
+    }
+
+    /// ref. https://stackoverflow.com/questions/15491894/regex-to-validate-date-format-dd-mm-yyyy-with-leap-year-support
+    RegExp regExp = RegExp(
+      r"^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$",
+    );
+    return regExp.hasMatch(date);
+  }
+
   /// [isInt] will check a string to determine if there are any matches for a
   /// character that is not a digit. If a match is made then the string is not
   /// considered an integer.

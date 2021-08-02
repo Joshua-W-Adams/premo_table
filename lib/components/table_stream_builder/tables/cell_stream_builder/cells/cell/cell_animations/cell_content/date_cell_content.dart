@@ -1,73 +1,73 @@
 part of premo_table;
 
-/// Manages all content within a [Cell] of type date
-class DateCellContent extends StatefulWidget {
+/// Manages all content within a [Cell] of type date. Is composed of a based
+/// [TextCellContent] widget.
+class DateCellContent extends StatelessWidget {
+  /// Base [TextCellContent] widget
   final String? value;
+  final bool selected;
   final TextStyle? textStyle;
-
   final Alignment horizontalAlignment;
-
-  /// cannot be edited but can be selected
   final bool readOnly;
-
-  /// cannot be edited or selected
   final bool enabled;
-
-  /// label text, hint text, helper text, prefix icon, suffix icon
+  final int? minLines;
+  final int? maxLines;
+  final TextInputType? keyboardType;
   final InputDecoration? inputDecoration;
-
+  final String? Function(String?)? validator;
+  final AutovalidateMode? autovalidateMode;
   final void Function(String)? onChanged;
-
-  /// user events
+  final void Function(String)? onFocusLost;
   final VoidCallback? onTap;
-
-  /// parsers for the string representation of the date passed to the value
-  /// parameter so that the date is presented in a certain format
-  /// applied to all values set in a date cell content
-  final String? Function(String?) inputParser;
-  // applied to all values returned from date cell content
+  final String? Function(String?)? inputParser;
   final String? Function(String?)? outputParser;
-
+  final List<TextInputFormatter>? inputFormatters;
   final Color? cursorColor;
 
+  /// Additional properties for [DateCellContent]
+  final bool enableDatePicker;
+  final Icon datePickerIcon;
+
   DateCellContent({
+    /// Base [TextCellContent] widget
+    Key? key,
     required this.value,
+    required this.selected,
     this.textStyle,
     this.horizontalAlignment = Alignment.centerLeft,
-    this.readOnly = true,
+    this.readOnly = false,
     this.enabled = true,
+    this.minLines,
+    this.maxLines,
+    this.keyboardType = TextInputType.text,
     this.inputDecoration = const InputDecoration(
       border: InputBorder.none,
       contentPadding: EdgeInsets.all(0),
 
-      /// Required to ensure the FormField respects the cells alignment property
-      /// E.g. so that the form field is centered within the parent widget.
+      /// dense display of text cell. Required to ensure the textFormField
+      /// respects the cells alignment property. E.g. so that the text form
+      /// field is centered within the parent widget.
       isDense: true,
     ),
+    this.validator,
+    this.autovalidateMode = AutovalidateMode.onUserInteraction,
     this.onChanged,
+    // this.onEditingComplete,
+    // this.onFieldSubmitted,
+    this.onFocusLost,
     this.onTap,
     this.inputParser = DataFormatter.toDate,
     this.outputParser,
+    this.inputFormatters,
     this.cursorColor,
+
+    /// Additional properties for [DateCellContent]
+    this.enableDatePicker = true,
+    this.datePickerIcon = const Icon(Icons.date_range),
   });
 
-  @override
-  _DateCellContentState createState() => _DateCellContentState();
-}
-
-class _DateCellContentState extends State<DateCellContent> {
-  final TextEditingController _textController = TextEditingController();
-
-  /// call dispose method to cleanup all state variables to eliminate any
-  /// memory leaks.
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _selectDate() async {
-    DateTime? initialDate = DateTime.tryParse(_textController.text);
+  Future<String> _selectDate(BuildContext context, String initialValue) async {
+    DateTime? initialDate = DateTime.tryParse(initialValue);
 
     if (initialDate == null) {
       initialDate = DateTime.now();
@@ -84,58 +84,73 @@ class _DateCellContentState extends State<DateCellContent> {
       ),
     );
 
-    String newDate = widget.inputParser(pickedDate?.toString()) ?? '';
+    final String newDate = inputParser?.call(pickedDate?.toString()) ?? '';
 
-    /// prevent onChange callback firing on same date selected
-    if (newDate != _textController.text) {
-      /// update text form field data
-      /// Note: will NOT fire the [TextFormField] [onChanged] event. Therefore
-      /// change management must be handled
-      _textController.text = newDate;
-
-      if (widget.outputParser != null) {
-        newDate = widget.outputParser!(newDate) ?? '';
-      }
-      if (widget.onChanged != null) {
-        widget.onChanged!(newDate);
-      }
-    }
+    return newDate;
   }
 
   @override
   Widget build(BuildContext context) {
-    String? _date = widget.inputParser(widget.value);
-
-    /// update controller value and selection position on cell state update
-    _textController.value = TextEditingValue(
-      text: _date ?? '',
-      selection: TextSelection.collapsed(
-        offset: _date?.length ?? 0,
-      ),
-    );
-
-    return TextFormField(
-      /// internal functionality
-      controller: _textController,
-      autocorrect: false,
-
-      /// api properties
-      style: widget.textStyle,
-      textAlign: CellContentFunctions.getHorizontalAlignment(
-          widget.horizontalAlignment),
-      readOnly: widget.readOnly,
-      enabled: widget.enabled,
-      decoration: widget.inputDecoration,
-      cursorColor: widget.cursorColor,
-      onTap: () {
-        /// load date selector
-        _selectDate();
-
-        /// execute on content on tap
-        if (widget.onTap != null) {
-          widget.onTap!();
+    String? _date = inputParser?.call(value);
+    return TextCellContent(
+      value: _date ?? value,
+      selected: selected,
+      textStyle: textStyle,
+      horizontalAlignment: horizontalAlignment,
+      readOnly: readOnly,
+      enabled: enabled,
+      minLines: minLines,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      inputDecoration: inputDecoration,
+      validator: (val) {
+        if (!DataFormatter.isDate(val) && ![null, ''].contains(val)) {
+          return 'yyyy-mm-dd format required';
         }
+        return null;
       },
+      autovalidateMode: autovalidateMode,
+      onChanged: onChanged,
+      onFocusLost: onFocusLost,
+      onTap: onTap,
+      inputParser: inputParser,
+      outputParser: outputParser,
+      inputFormatters: inputFormatters,
+      cursorColor: cursorColor,
+      trailingBuilder: enableDatePicker
+          ? (_context, _textController, _oldValue) {
+              return IconButton(
+                onPressed: enabled && !readOnly
+                    ? () async {
+                        final String initialDate = _textController.text;
+
+                        /// load date selector
+                        String newDate =
+                            await _selectDate(_context, initialDate);
+
+                        /// prevent onChange callback firing on same date selected
+                        if (newDate != initialDate) {
+                          /// update text form field data
+                          /// Note: will NOT fire the [TextFormField] [onChanged]
+                          /// event. Therefore change management must be handled.
+                          _textController.text = newDate;
+
+                          if (outputParser != null) {
+                            newDate = outputParser!(newDate) ?? '';
+                          }
+
+                          onChanged?.call(newDate);
+                          onFocusLost?.call(newDate);
+
+                          // HOLD - Update state in parent component
+                          _oldValue = newDate;
+                        }
+                      }
+                    : null,
+                icon: datePickerIcon,
+              );
+            }
+          : null,
     );
   }
 }

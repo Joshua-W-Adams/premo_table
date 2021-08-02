@@ -22,6 +22,7 @@ class TextCellContent extends StatefulWidget {
 
   /// text field validator
   final String? Function(String?)? validator;
+  final AutovalidateMode? autovalidateMode;
   final void Function(String)? onChanged;
   // final void Function(String value)? onEditingComplete;
   // final void Function(String)? onFieldSubmitted;
@@ -41,6 +42,9 @@ class TextCellContent extends StatefulWidget {
   final List<TextInputFormatter>? inputFormatters;
 
   final Color? cursorColor;
+
+  final Widget Function(BuildContext, TextEditingController, String?)?
+      trailingBuilder;
 
   TextCellContent({
     Key? key,
@@ -63,6 +67,7 @@ class TextCellContent extends StatefulWidget {
       isDense: true,
     ),
     this.validator,
+    this.autovalidateMode,
     this.onChanged,
     // this.onEditingComplete,
     // this.onFieldSubmitted,
@@ -72,6 +77,7 @@ class TextCellContent extends StatefulWidget {
     this.outputParser,
     this.inputFormatters,
     this.cursorColor,
+    this.trailingBuilder,
   }) : super(key: key);
 
   @override
@@ -153,7 +159,7 @@ class _TextCellContentState extends State<TextCellContent> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    TextFormField textFormField = TextFormField(
       /// internal functionality
       key: _key,
       controller: _textController,
@@ -170,6 +176,7 @@ class _TextCellContentState extends State<TextCellContent> {
       maxLines: widget.maxLines,
       keyboardType: widget.keyboardType,
       decoration: widget.inputDecoration,
+      autovalidateMode: widget.autovalidateMode,
       validator: widget.validator,
       inputFormatters: widget.inputFormatters,
       cursorColor: widget.cursorColor,
@@ -207,5 +214,16 @@ class _TextCellContentState extends State<TextCellContent> {
       //   }
       // },
     );
+
+    if (widget.trailingBuilder != null) {
+      return Row(
+        children: [
+          Expanded(child: textFormField),
+          widget.trailingBuilder!(context, _textController, _oldValue),
+        ],
+      );
+    }
+
+    return textFormField;
   }
 }
